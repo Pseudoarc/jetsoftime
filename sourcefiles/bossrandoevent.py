@@ -434,7 +434,7 @@ def reassign_charms_drops(settings: rset.Settings,
                                               settings.item_difficulty)
 
 
-def make_weak_obstacle_copies(config: cfg.RandoConfig):
+def make_weak_obstacle_copies(settings: rset.Settings, config: cfg.RandoConfig):
     '''
     If an obstacle-using boss is found before guaranteed amulets, make the
     obstacle have a weaker status.  All early obstacles will share the same
@@ -446,6 +446,11 @@ def make_weak_obstacle_copies(config: cfg.RandoConfig):
         BSID.BLACK_OMEN_ELDER_SPAWN, BSID.BLACK_OMEN_GIGA_MUTANT,
         BSID.BLACK_OMEN_TERRA_MUTANT
     ]
+    # If unlocked skygates is on, then amulets are available as soon as 12kBC is.
+    # This means that Woe should be able to have endgame obstacle, but
+    # since gate key is an easy way to antiquity, also add anything that requires it.
+    if rset.GameFlags.UNLOCKED_SKYGATES in settings.gameflags:
+        endgame_spots.extend([BSID.MT_WOE, BSID.REPTITE_LAIR, BSID.TYRANO_LAIR_NIZBEL])
 
     early_obstacle_bosses = []
     obstacle_bosses = [bt.BossID.MEGA_MUTANT,
@@ -493,7 +498,7 @@ def scale_bosses_given_assignment(settings: rset.Settings,
                                  config.enemy_sprite_dict)
     update_twin_boss(settings, config)
     reassign_charms_drops(settings, config)
-    make_weak_obstacle_copies(config)
+    make_weak_obstacle_copies(settings, config)
 
     # Store hp, xp, tp, gp data before messing with stats
     hp_dict = bossspot.get_initial_hp_dict(settings, config)

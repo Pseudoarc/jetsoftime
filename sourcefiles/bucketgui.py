@@ -2,6 +2,8 @@
 Module for creating a frame with bucket settings.
 '''
 
+from __future__ import annotations
+
 import dataclasses
 import tkinter as tk
 import typing
