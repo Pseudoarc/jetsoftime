@@ -8,15 +8,16 @@ import randoconfig as cfg
 import randosettings as rset
 
 def write_config(settings: rset.Settings, config: cfg.RandoConfig, rand):
-    #elems = [ctenums.Element.LIGHTNING, ctenums.Element.SHADOW, ctenums.Element.ICE, ctenums.Element.FIRE]
-    #doubled_elem = rand.choice(elems)
-    #elems = elems + doubled_elem
+    if rset.GameFlags.ELEMENT_RANDO in settings.gameflags:
+        #elems = [ctenums.Element.LIGHTNING, ctenums.Element.SHADOW, ctenums.Element.ICE, ctenums.Element.FIRE]
+        #doubled_elem = rand.choice(elems)
+        #elems = elems + doubled_elem
 
-    #rand.shuffle(elems) # we'll just use the order for now. crono marle lucca (skip robo) frog (skip ayla) magus
-    # static right now
-    elems = [ctenums.Element.SHADOW, ctenums.Element.FIRE, ctenums.Element.SHADOW, ctenums.Element.LIGHTNING, ctenums.Element.ICE]
+        #rand.shuffle(elems) # we'll just use the order for now. crono marle lucca (skip robo) frog (skip ayla) magus
+        # static right now
+        elems = [ctenums.Element.SHADOW, ctenums.Element.FIRE, ctenums.Element.SHADOW, ctenums.Element.LIGHTNING, ctenums.Element.ICE]
 
-    config.tech_db = shuffle_techdb(config.tech_db, elems)
+        config.tech_db = shuffle_techdb(config.tech_db, elems)
 
 def setelem(tech, elem: ctenums.Element):
     tech['control'][3] &= 0x0F

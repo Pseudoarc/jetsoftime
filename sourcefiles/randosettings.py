@@ -98,6 +98,7 @@ class GameFlags(Flag):
     REMOVE_BLACK_OMEN_SPOT = auto()
     # No longer Logic Tweak Flags
     TECH_DAMAGE_RANDO = auto()
+    ELEMENT_RANDO = auto()
 
     def __add__(self, other: GameFlags):
         return self | other

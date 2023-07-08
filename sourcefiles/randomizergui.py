@@ -1252,6 +1252,20 @@ class RandoGUI:
 
         row += 1
 
+        ercheck = tk.Checkbutton(
+            frame,
+            text='Element Randomization',
+            variable=self.flag_dict[GameFlags.ELEMENT_RANDO]
+        )
+        ercheck.grid(row=row, column=0,  sticky=tk.W, columnspan=2)
+
+        CreateToolTip(
+            ercheck,
+            'Element Randomization'
+        )
+
+        row += 1
+
         # Shop Prices dropdown
         shop_price_values = ShopPrices.str_dict().values()
         label = tk.Label(frame, text="Shop Prices:")
