@@ -153,6 +153,10 @@ _flag_entry_dict: dict[GF | CF, FlagEntry] = {
         "--vanilla-desert", None,
         "The sunken desert only unlocks after talking to the plant lady "
         "in Zeal"),
+    GF.ELEMENT_RANDO: FlagEntry(
+        "--element-randomization", None,
+        "The elements assigned to each character are randomized, with a "
+        "random duplicated element"),
     # Cosmetic Flags
     CF.AUTORUN: FlagEntry(
         "--autorun", None,
@@ -520,7 +524,7 @@ def get_parser():
          GF.LOCKED_CHARS, GF.UNLOCKED_MAGIC, GF.CHRONOSANITY,
          GF.TAB_TREASURES, GF.BOSS_RANDO, GF.CHAR_RANDO,
          GF.MYSTERY, GF.HEALING_ITEM_RANDO, GF.GEAR_RANDO,
-         GF.EPOCH_FAIL), parser
+         GF.EPOCH_FAIL, GF.ELEMENT_RANDO), parser
     )
 
     add_flags_to_parser(
