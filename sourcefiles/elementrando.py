@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import ctenums
 from ctenums import Element as El, TechID as T
 from techdb import TechDB
 import ctstrings
