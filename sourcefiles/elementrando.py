@@ -120,6 +120,16 @@ _name_replaces = {
         ctenums.Element.FIRE: '',
         ctenums.Element.ICE: 'Hecks Mist',
         ctenums.Element.LIGHTNING: ''
+    },
+
+    ctenums.TechID.ICE_2_M: {
+        ctenums.Element.SHADOW: 'Dark Mist'
+    },
+    ctenums.TechID.FIRE_2_M: {
+        ctenums.Element.SHADOW: 'Dark Mist'
+    },
+    ctenums.TechID.LIGHTNING_2_M: {
+        ctenums.Element.SHADOW: 'Dark Mist'
     }
 }
 
@@ -162,6 +172,14 @@ def shuffle_techdb(orig_db, elems):
         replace_elems(orig_db,
                 [ctenums.TechID.DARK_BOMB, ctenums.TechID.DARK_MIST, ctenums.TechID.DARK_MATTER],
                 elems[4])
-        # TODO: fix conflicting lv2 spells for magus
+
+        # replace the lv2 spell for the new element with a weak dark mist
+        if elems[4] == ctenums.Element.ICE:
+            to_replace_lv2 = ctenums.TechID.ICE_2_M
+        elif elems[4] == ctenums.Element.FIRE:
+            to_replace_lv2 = ctenums.TechID.FIRE_2_M
+        elif elems[4] == ctenums.Element.LIGHTNING:
+            to_replace_lv2 = ctenums.TechID.LIGHTNING_2_M
+        replace_elem(orig_db, to_replace_lv2, ctenums.Element.SHADOW)
 
     return orig_db
