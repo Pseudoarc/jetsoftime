@@ -111,6 +111,10 @@ _flag_entry_dict: dict[GF | CF, FlagEntry] = {
     GF.BOSS_SPOT_HP: FlagEntry(
         "--boss-spot-hp",
         "boss HP is set to match the vanilla boss HP in each spot"),
+    GF.ELEMENT_RANDO: FlagEntry(
+        "--element-randomization", "-er",
+        "The elements assigned to each character are randomized, with a "
+        "random duplicated element"),
     # Logic Tweak flags from VanillaRando mode
     GF.UNLOCKED_SKYGATES: FlagEntry(
         "--unlocked-skyways", None,
@@ -153,10 +157,6 @@ _flag_entry_dict: dict[GF | CF, FlagEntry] = {
         "--vanilla-desert", None,
         "The sunken desert only unlocks after talking to the plant lady "
         "in Zeal"),
-    GF.ELEMENT_RANDO: FlagEntry(
-        "--element-randomization", None,
-        "The elements assigned to each character are randomized, with a "
-        "random duplicated element"),
     # Cosmetic Flags
     CF.AUTORUN: FlagEntry(
         "--autorun", None,

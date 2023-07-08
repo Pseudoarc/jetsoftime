@@ -622,6 +622,7 @@ class Settings:
             GameFlags.HEALING_ITEM_RANDO: 'h',  # h for Healing
             GameFlags.GEAR_RANDO: 'q',  # q for eQuipment (g taken)
             GameFlags.EPOCH_FAIL: 'ef',  # ef for Epoch Fail
+            GameFlags.ELEMENT_RANDO: 'er',  # er for Element Rando
             GameFlags.BUCKET_LIST: 'k'  # k for bucKet
         }
 
