@@ -67,6 +67,7 @@ class GameFlags(Flag):
     ROCKSANITY = auto()
     TAB_TREASURES = auto()  # Maybe needs to be part of treasure page?
     BOSS_RANDO = auto()
+    CHAR_RANDO = auto()
     DUPLICATE_CHARS = auto()
     DUPLICATE_TECHS = auto()
     VISIBLE_HEALTH = auto()
@@ -113,6 +114,7 @@ _forced_off_dict: dict[Union[_GF, _GM], _GF] = {
     _GF.ROCKSANITY: _GF(0),
     _GF.TAB_TREASURES: _GF(0),
     _GF.BOSS_RANDO: _GF(0),
+    _GF.CHAR_RANDO: _GF(0),
     _GF.DUPLICATE_CHARS: _GF(0),
     _GF.DUPLICATE_TECHS: _GF(0),
     _GF.VISIBLE_HEALTH: _GF(0),
@@ -158,8 +160,9 @@ _forced_on_dict = {
     _GF.ROCKSANITY: _GF.UNLOCKED_SKYGATES,
     _GF.TAB_TREASURES: _GF(0),
     _GF.BOSS_RANDO: _GF(0),
-    _GF.DUPLICATE_CHARS: _GF(0),
-    _GF.DUPLICATE_TECHS: _GF(0),
+    _GF.CHAR_RANDO: _GF(0),
+    _GF.DUPLICATE_CHARS: _GF.CHAR_RANDO,
+    _GF.DUPLICATE_TECHS: (_GF.CHAR_RANDO | _GF.DUPLICATE_CHARS),
     _GF.VISIBLE_HEALTH: _GF(0),
     _GF.FAST_TABS: _GF(0),
     _GF.BUCKET_LIST: _GF(0),
@@ -317,6 +320,7 @@ class MysterySettings:
             GameFlags.BOSS_RANDO: 0.50,
             GameFlags.BOSS_SCALE: 0.10,
             GameFlags.LOCKED_CHARS: 0.25,
+            GameFlags.CHAR_RANDO: 0.5,
             GameFlags.DUPLICATE_CHARS: 0.25,
             GameFlags.EPOCH_FAIL: 0.5,
             GameFlags.GEAR_RANDO: 0.25,
@@ -566,6 +570,7 @@ class Settings:
             GameFlags.UNLOCKED_MAGIC: 'm',
             GameFlags.CHRONOSANITY: 'cr',
             GameFlags.TAB_TREASURES: 'tb',
+            GameFlags.CHAR_RANDO: 'rc',
             GameFlags.DUPLICATE_CHARS: 'dc',
             GameFlags.HEALING_ITEM_RANDO: 'h',  # h for Healing
             GameFlags.GEAR_RANDO: 'q',  # q for eQuipment (g taken)

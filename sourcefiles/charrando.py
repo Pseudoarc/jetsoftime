@@ -1,6 +1,8 @@
 import copy
 import random
 
+from itertools import permutations
+
 from characters import ctpcstats
 from techdb import TechDB
 from byteops import get_record, set_record, to_little_endian, \
@@ -60,14 +62,34 @@ def write_pcs_to_config(settings: rset.Settings, config: cfg.RandoConfig):
         else:
             raise ValueError('Impossible Recruit Spot')
 
-    # Now, reassign characters if duplicates is on.
+    # Now, reassign characters if char rando is on.
     # It was important to do the scaling first so that we know what level
     # and tech level to use when reassigning
-    if rset.GameFlags.DUPLICATE_CHARS in settings.gameflags:
+    if rset.GameFlags.CHAR_RANDO in settings.gameflags:
         choices = {}
-        for pc_id in CharID:
-            avail_choices = settings.char_choices[int(pc_id)]
-            choices[pc_id] = random.choice(avail_choices)
+        if rset.GameFlags.DUPLICATE_CHARS in settings.gameflags:
+            for pc_id in CharID:
+                avail_choices = settings.char_choices[int(pc_id)]
+                choices[pc_id] = random.choice(avail_choices)
+        # unique chars (default for char rando)
+        else:
+            all_choices = [p for p in permutations(range(0, 7), r=7)]
+            shuffle = random.sample(all_choices, k=len(all_choices))
+            pc_ids = sorted(CharID)
+            try:
+                permutation = next(
+                    p for p in shuffle
+                    if all(
+                        p[pc_id] in settings.char_choices[pc_id]
+                        for pc_id in pc_ids
+                    )
+                )
+            except StopIteration:
+                raise ValueError(
+                    'No valid permutation for unique characters based on '
+                    'character choices.'
+                )
+            choices = {pc_id: permutation[pc_id] for pc_id in pc_ids}
 
         # Get Copies of stats
         orig_stats = {
