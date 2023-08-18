@@ -791,13 +791,28 @@ class RandoGUI:
 
     # Called by self.settings_valid
     def rc_settings_valid(self) -> bool:
-        for i in range(7):
-            is_set = False
-            for j in self.char_choices[i]:
-                if j.get() == 1:
-                    is_set = True
+        # check all character identities have a model associated
+        model_missing = any(
+            not any(
+                model.get() == 1
+                for model in self.char_choices[identity]
+            )
+            for identity in range(7)
+        )
+        if model_missing:
+            return False
 
-            if not is_set:
+        # unless duplicate chars, also check all character models
+        # are associated with at least one identity
+        if not self.flag_dict[GameFlags.DUPLICATE_CHARS].get() == 1:
+            identity_missing = any(
+                not any(
+                    identity[model].get() == 1
+                    for identity in self.char_choices
+                )
+                for model in range(7)
+            )
+            if identity_missing:
                 return False
         return True
 
@@ -1372,17 +1387,23 @@ class RandoGUI:
 
         # Check for bad input from RC page
         if not self.rc_settings_valid():
-            if self.flag_dict[GameFlags.DUPLICATE_CHARS].get() == 1:
-                messagebox.showerror(
-                    'RC Settings Error',
-                    'Each character must have at least one choice selected.'
+            rc_err = (
+                'Each character identity (row) must have at least '
+                'one model (column) selected.'
+            )
+            if not self.flag_dict[GameFlags.DUPLICATE_CHARS].get() == 1:
+                rc_err += (
+                    ' Each character model (column) must have at least '
+                    'one identity (row) selected.'
                 )
+            if self.flag_dict[GameFlags.CHAR_RANDO].get() == 1:
                 self.notebook.select(self.rc_page)
+                messagebox.showerror('RC Settings Error', rc_err)
                 return
             elif self.flag_dict[GameFlags.MYSTERY].get() == 1:
                 messagebox.showerror(
                     'RC+Mystery Settings Error',
-                    'Each character must have at least one choice selected. '
+                    rc_err,
                     'Enable rc flag and adjust the settings.'
                 )
                 return
