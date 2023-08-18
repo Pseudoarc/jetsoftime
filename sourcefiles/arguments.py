@@ -603,7 +603,7 @@ def get_parser():
     )
 
     rc_options.add_argument(
-        "--duplicate-characters",
+        "--duplicate-characters", "-dc",
         help="Allow multiple copies of a character to be present in a seed.",
         action="store_true"
     )
