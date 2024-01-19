@@ -2311,18 +2311,12 @@ def main():
     print(f"output ROM: {writer.full_output_path}")
 
     if val_dict['spoilers']:
-        spoiler_name = \
-            f"{base_name}.{flag_string}.{settings.seed}.spoilers.txt"
-        spoiler_path = os.path.join(output_path, spoiler_name)
-        rando.write_spoiler_log(spoiler_path)
-        print(f"spoilers: {spoiler_path}")
+        writer.write_spoiler_log(output_path)
+        print(f"spoilers: {writer.spoiler_path}")
 
     if val_dict['json_spoilers']:
-        json_spoiler_name = \
-            f"{base_name}.{flag_string}.{settings.seed}.spoilers.json"
-        json_spoiler_path = os.path.join(output_path, json_spoiler_name)
-        rando.write_json_spoiler_log(json_spoiler_path)
-        print(f"json spoilers: {json_spoiler_path}")
+        writer.write_json_spoiler_log(output_path)
+        print(f"json spoilers: {writer.json_spoiler_path}")
 
 
 if __name__ == "__main__":
