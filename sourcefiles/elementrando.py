@@ -109,9 +109,9 @@ _replacements: Dict = {
     },
 
     T.WATER: {
-        El.SHADOW: {'name': '*DarkSplash', 'gfx': {4: 0x25, 6: 0x33}},
-        El.FIRE: {'name': _common['fire'], 'gfx': {4: 0x13, 6: 0x15}},
-        El.LIGHTNING: {'name': _common['lit'], 'gfx': {4: 0x02, 6: 0x10}}
+        El.SHADOW: {'name': '*DarkSplash', 'gfx': {4: 0x25, 5: 0x25}},
+        El.FIRE: {'name': _common['fire'], 'gfx': {4: 0x11, 5: 0x03}},
+        El.LIGHTNING: {'name': _common['lit'], 'gfx': {4: 0x03, 5: 0x03}}
     },
     T.WATER_2: {
         El.FIRE: {'name': _common['fire2'], 'gfx': {4: 0x13, 6: 0x1c}},
