@@ -103,21 +103,20 @@ _replacements: Dict = {
         El.LIGHTNING: {'name': 'LightBomb', 'gfx': {4: 0x03, 6: 0x29}}
     },
     T.FLARE: {
-        El.SHADOW: {'name': '*DarkMatter'},
-        El.ICE: {'name': '*Iceburst'},
-        El.LIGHTNING: {'name': '*Lumiflare'}
+        El.SHADOW: {'name': '*DarkMatter', 'gfx': {0: 0x16, 4: 0x34, 6: 0x1E}},
+        El.ICE: {'name': '*Iceburst', 'gfx': {0: 0x16, 4: 0x3A, 6: 0x32}},
+        El.LIGHTNING: {'name': '*Lumiflare', 'gfx': {0: 0x16, 4: 0x03, 6: 0x01}}
     },
 
     T.WATER: {
-        El.SHADOW: {'name': '*DarkSplash'},
-        El.FIRE: {'name': _common['fire']},
-        El.LIGHTNING: {'name': _common['lit']}
+        El.SHADOW: {'name': '*DarkSplash', 'gfx': {4: 0x25, 6: 0x33}},
+        El.FIRE: {'name': _common['fire'], 'gfx': {4: 0x13, 6: 0x15}},
+        El.LIGHTNING: {'name': _common['lit'], 'gfx': {4: 0x02, 6: 0x10}}
     },
     T.WATER_2: {
-        El.FIRE: {'name': _common['fire2']},
-        El.ICE: {'name':_common['ice2']},
-        El.LIGHTNING: {'name': _common['lit2']},
-        El.SHADOW: {'name': _common['dmist']}
+        El.FIRE: {'name': _common['fire2'], 'gfx': {4: 0x13, 6: 0x1c}},
+        El.LIGHTNING: {'name': _common['lit2'], 'gfx': {4: 0x03, 6: 0x02}},
+        El.SHADOW: {'name': _common['dmist'], 'gfx': {4: 0x25, 6: 0x2F}}
     },
 
     T.DARK_BOMB: {
@@ -132,8 +131,8 @@ _replacements: Dict = {
         El.SHADOW: {'name': _common['dmist'], 'gfx': {4: 0x25, 6: 0x2F}}
     },
     T.DARK_MATTER: {
-        El.FIRE: {'name': '*Flare', 'gfx': {4: 0x13, 6: 0x0D}},
-        El.ICE: {'name': '*Hex Mist', 'gfx': {4: 0x3A, 6: 0x17}},
+        El.FIRE: {'name': '*Flare', 'gfx': {6: 0x0D}},
+        El.ICE: {'name': '*Hex Mist', 'gfx': {0: 0x34, 6: 0x17}},
         El.LIGHTNING: {'name': '*Luminaire', 'gfx': {6: 0x01}}
     },
 
