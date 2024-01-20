@@ -371,7 +371,7 @@ _single_tech_abbrev = {
     '*Black Hole': 'BlHole',
     '*DarkMatter': 'DkMa',
     '*Red Matter': 'RdMa',
-    '*Hecks Mist': 'HxMst',
+    '*Hex Mist': 'HxMst',
     '*LghtMatter': 'LtMa',
     '*Anti Life': 'Alife',
     '*Reraise': 'Reraise'

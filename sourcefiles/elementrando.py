@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Dict
+
 from ctenums import Element as El, TechID as T
 from techdb import TechDB
 import ctstrings
@@ -41,98 +43,134 @@ _common = {
         'dmist': '*Dark Mist',
 }
 
-_l2 = {
-        El.FIRE: _common['fire2'],
-        El.ICE: _common['ice2'],
-        El.LIGHTNING: _common['lit2'],
-        El.SHADOW: _common['dmist']
-}
-
-_name_replaces = {
+# TechID: {Element: {'name': 'NewName', 'gfx': {4: 0x63, 5: 0x98 etc.}}}
+_replacements: Dict = {
     T.SLASH: {
-        El.SHADOW: 'DarkSlash',
-        El.FIRE: 'FireSlash',
-        El.ICE: 'IceSlash'
+        El.SHADOW: {'name': 'DarkSlash', 'gfx': {4: 0x25}},
+        El.FIRE:   {'name': 'FireSlash', 'gfx': {4: 0x13}},
+        El.ICE:    {'name': 'IceSlash', 'gfx': {4: 0x3a}}
     },
     T.LIGHTNING: {
-        El.SHADOW: '*DarkBolt',
-        El.FIRE: _common['fire'],
-        El.ICE: _common['ice']
+        El.SHADOW: {'name': '*DarkBolt', 'gfx': {4: 0x25, 5: 0x07}},
+        El.FIRE: {'name': _common['fire'], 'gfx': {4: 0x13, 5: 0x0A}},
+        El.ICE: {'name': _common['ice'], 'gfx': {4: 0x3A, 5: 0x03, 6: 0x2D}}
     },
     T.LIGHTNING_2: {
-        El.SHADOW: '*DarkBolt 2',
-        El.FIRE: _common['fire2'],
-        El.ICE: _common['ice2']
+        El.SHADOW: {'name': '*DarkBolt 2', 'gfx': {4: 0x25, 5: 0x06, 6: 0x2F}},
+        El.FIRE: {'name': _common['fire2'], 'gfx': {4: 0x13, 6: 0x1C}},
+        El.ICE: {'name': _common['ice2'], 'gfx': {4: 0x3A, 6: 0x32}}
     },
     T.LUMINAIRE: {
-        El.SHADOW: '*Darkinaire',
-        El.FIRE: '*Flaire',
-        El.ICE: '*Iceinaire'
+        El.SHADOW: {'name': '*Darkinaire', 'gfx': {6: 0x1E}},
+        El.FIRE: {'name': '*Flaire', 'gfx': {0: 0x04, 6: 0x0D}},
+        El.ICE: {'name': '*Iceinaire', 'gfx': {0: 0x03, 1: 0xFC, 2: 0x00, 3: 0x00, 4: 0x3A, 5: 0x00, 6: 0x17}}
     },
 
     T.ICE: {
-        El.SHADOW: '*DrkCrystal',
-        El.FIRE: _common['fire'],
-        El.LIGHTNING: _common['lit']
+        El.SHADOW: {'name': '*DrkCrystal', 'gfx': {4: 0x25, 6: 0x33}},
+        El.FIRE: {'name': _common['fire'], 'gfx': {4: 0x13, 6: 0x15}},
+        El.LIGHTNING: {'name': _common['lit'], 'gfx': {4: 0x02, 6: 0x10}}
     },
-    T.ICE_2: _l2,
+    T.ICE_2: {
+        El.FIRE: {'name': _common['fire2'], 'gfx': {4: 0x13, 6: 0x1c}},
+        El.LIGHTNING: {'name': _common['lit2'], 'gfx': {4: 0x03, 6: 0x02}},
+        El.SHADOW: {'name': _common['dmist'], 'gfx': {4: 0x25, 6: 0x2F}}
+    },
 
     T.FLAME_TOSS: {
-        El.SHADOW: 'Dark Toss',
-        El.ICE: 'Ice Toss',
-        El.LIGHTNING: 'LightToss'
+        El.SHADOW: {'name': 'Dark Toss', 'gfx': {4: 0x25}},
+        El.ICE: {'name': 'Ice Toss', 'gfx': {4: 0x3A}},
+        El.LIGHTNING: {'name': 'LightToss', 'gfx': {4: 0x03}}
     },
     T.FIRE: {
-        El.SHADOW: '*Dark Fire',
-        El.ICE: _common['ice'],
-        El.LIGHTNING: _common['lit']
+        El.SHADOW: {'name': '*Dark Fire', 'gfx': {4: 0x25}},
+        El.ICE: {'name': _common['ice'], 'gfx': {4: 0x3A}},
+        El.LIGHTNING: {'name': _common['lit'], 'gfx': {4: 0x03}}
     },
     T.NAPALM: {
-        El.SHADOW: '*Dark Bomb',
-        El.ICE: 'WtrBalloon',
-        El.LIGHTNING: 'LghtGrenade'
+        El.SHADOW: {'name': '*Dark Bomb', 'gfx': {4: 0x25, 6: 0x21}},
+        El.ICE: {'name': 'WtrBalloon', 'gfx': {4: 0x3A, 6: 0x53}},
+        El.LIGHTNING: {'name': 'LghtGrenade', 'gfx': {4: 0x03, 6: 0x2C}}
     },
-    T.FIRE_2: _l2,
+    T.FIRE_2: {
+        El.ICE: {'name':_common['ice2'], 'gfx': {4: 0x3A, 6: 0x57}},
+        El.LIGHTNING: {'name': _common['lit2'], 'gfx': {4: 0x03, 6: 0x02}},
+        El.SHADOW: {'name': _common['dmist'], 'gfx': {4: 0x25, 6: 0x2F}}
+    },
     T.MEGABOMB: {
-        El.SHADOW: 'OmegaBomb',
-        El.ICE: 'Ice Bomb',
-        El.LIGHTNING: 'LightBomb'
+        El.SHADOW: {'name': 'OmegaBomb', 'gfx': {4: 0x25, 6: 0x06}},
+        El.ICE: {'name': 'Ice Bomb', 'gfx': {4: 0x3A, 6: 0x27}},
+        El.LIGHTNING: {'name': 'LightBomb', 'gfx': {4: 0x03, 6: 0x29}}
     },
     T.FLARE: {
-        El.SHADOW: '*DarkMatter',
-        El.ICE: '*Iceburst',
-        El.LIGHTNING: '*Lumiflare'
+        El.SHADOW: {'name': '*DarkMatter'},
+        El.ICE: {'name': '*Iceburst'},
+        El.LIGHTNING: {'name': '*Lumiflare'}
     },
 
     T.WATER: {
-        El.SHADOW: '*DarkSplash',
-        El.FIRE: _common['fire'],
-        El.LIGHTNING: _common['lit']
+        El.SHADOW: {'name': '*DarkSplash'},
+        El.FIRE: {'name': _common['fire']},
+        El.LIGHTNING: {'name': _common['lit']}
     },
-    T.WATER_2: _l2,
+    T.WATER_2: {
+        El.FIRE: {'name': _common['fire2']},
+        El.ICE: {'name':_common['ice2']},
+        El.LIGHTNING: {'name': _common['lit2']},
+        El.SHADOW: {'name': _common['dmist']}
+    },
 
     T.DARK_BOMB: {
-        El.FIRE: 'Napalm',
-        El.ICE: 'WtrBalloon',
-        El.LIGHTNING: 'LightBomb'
+        El.FIRE: {'name': 'Napalm', 'gfx': {6: 0x49}},
+        El.ICE: {'name': 'WtrBalloon', 'gfx': {6: 0x53}},
+        El.LIGHTNING: {'name': 'LightBomb', 'gfx': {6: 0x2C}}
     },
-    T.DARK_MIST: _l2,
+    T.DARK_MIST: {
+        El.ICE: {'name':_common['ice2'], 'gfx': {4: 0x3A, 6: 0x57}},
+        El.FIRE: {'name': _common['fire2'], 'gfx': {4: 0x13, 6: 0x1c}},
+        El.LIGHTNING: {'name': _common['lit2'], 'gfx': {4: 0x03, 6: 0x02}},
+        El.SHADOW: {'name': _common['dmist'], 'gfx': {4: 0x25, 6: 0x2F}}
+    },
     T.DARK_MATTER: {
-        El.FIRE: '*Red Matter',
-        El.ICE: '*Hecks Mist',
-        El.LIGHTNING: '*LghtMatter'
+        El.FIRE: {'name': '*Flare', 'gfx': {4: 0x13, 6: 0x0D}},
+        El.ICE: {'name': '*Hex Mist', 'gfx': {4: 0x3A, 6: 0x17}},
+        El.LIGHTNING: {'name': '*Luminaire', 'gfx': {6: 0x01}}
     },
 
-    T.ICE_2_M: _l2,
-    T.FIRE_2_M: _l2,
-    T.LIGHTNING_2_M: _l2,
+    T.ICE_2_M: {
+        El.ICE: {'name':_common['ice2'], 'gfx': {4: 0x3A, 6: 0x57}},
+        El.FIRE: {'name': _common['fire2'], 'gfx': {4: 0x13, 6: 0x1c}},
+        El.LIGHTNING: {'name': _common['lit2'], 'gfx': {4: 0x03, 6: 0x02}},
+        El.SHADOW: {'name': _common['dmist'], 'gfx': {4: 0x25, 6: 0x2F}}
+    },
+    T.FIRE_2_M: {
+        El.ICE: {'name':_common['ice2'], 'gfx': {4: 0x3A, 6: 0x57}},
+        El.FIRE: {'name': _common['fire2'], 'gfx': {4: 0x13, 6: 0x1c}},
+        El.LIGHTNING: {'name': _common['lit2'], 'gfx': {4: 0x03, 6: 0x02}},
+        El.SHADOW: {'name': _common['dmist'], 'gfx': {4: 0x25, 6: 0x2F}}
+    },
+    T.LIGHTNING_2_M: {
+        El.ICE: {'name':_common['ice2'], 'gfx': {4: 0x3A, 6: 0x57}},
+        El.FIRE: {'name': _common['fire2'], 'gfx': {4: 0x13, 6: 0x1c}},
+        El.LIGHTNING: {'name': _common['lit2'], 'gfx': {4: 0x03, 6: 0x02}},
+        El.SHADOW: {'name': _common['dmist'], 'gfx': {4: 0x25, 6: 0x2F}}
+    },
+
+    T.DOUBLE_BOMB: {
+        El.SHADOW: {'name': "Omega2 Bomb"}
+    },
 }
 
 def replace_elem(db, techid, elem: El):
     tech = db.get_tech(techid)
-    name = _name_replaces.get(techid, {}).get(elem, None)
-    if name is not None:
-        tech['name'] = ctstrings.CTNameString.from_string(name, TechDB.name_size)
+    repl = _replacements.get(techid, {}).get(elem, None)
+    if repl is not None:
+        if 'name' in repl:
+            tech['name'] = ctstrings.CTNameString.from_string(repl['name'], TechDB.name_size)
+        if 'gfx' in repl:
+            for i in range(7):
+                if i in repl['gfx']:
+                    tech['gfx'][i] = repl['gfx'][i]
     tech = setelem(tech, elem)
     db.set_tech(tech, techid)
 
@@ -141,26 +179,30 @@ def replace_elems(db, techids, elem: El):
         replace_elem(db, techid, elem)
 
 def shuffle_techdb(orig_db, elems):
-    # TODO: double/triple techs
     # crono
     if elems[0] != El.LIGHTNING:
         replace_elems(orig_db,
-                [T.SLASH, T.LIGHTNING, T.LIGHTNING_2, T.LUMINAIRE],
+                [T.SLASH, T.LIGHTNING, T.LIGHTNING_2, T.LUMINAIRE, T.SPIRE, T.VOLT_BITE],
                 elems[0])
+        # super volt: lightning if crono is lit or water, shadow otherwise
+        if elems[0] != El.ICE: # if it's lit, we don't even get to this point
+            replace_elems(orig_db, [T.SUPER_VOLT], El.SHADOW)
     # marle
     if elems[1] != El.ICE:
         replace_elems(orig_db,
-                [T.ICE, T.ICE_2],
+                [T.ICE, T.ICE_2, T.ICE_SWORD, T.ICE_SWORD_2, T.ICE_TACKLE, T.ICE_TOSS, T.CUBE_TOSS, T.ARC_IMPULSE],
                 elems[1])
     # lucca
     if elems[2] != El.FIRE:
         replace_elems(orig_db,
-                [T.FLAME_TOSS, T.FIRE, T.NAPALM, T.FIRE_2, T.MEGABOMB, T.FLARE],
+                [T.FLAME_TOSS, T.FIRE, T.NAPALM, T.FIRE_2, T.MEGABOMB, T.FLARE, T.FIRE_WHIRL, T.FIRE_SWORD, T.FIRE_SWORD_2, T.FIRE_PUNCH, T.FIRE_TACKLE, T.RED_PIN, T.LINE_BOMB, T.FROG_FLARE, T.FLAME_KICK, T.BLAZE_TWISTER, T.BLAZE_KICK, T.FIRE_ZONE],
                 elems[2])
+        # doublebomb: if lucca's not fire, it should be shadow
+        replace_elem(orig_db, T.DOUBLE_BOMB, El.SHADOW)
     # frog
     if elems[3] != El.ICE:
         replace_elems(orig_db,
-                [T.WATER, T.WATER_2],
+                [T.WATER, T.WATER_2, T.SWORD_STREAM],
                 elems[3])
     # magus
     if elems[4] != El.SHADOW:
@@ -177,6 +219,28 @@ def shuffle_techdb(orig_db, elems):
             to_replace_lv2 = T.LIGHTNING_2_M
         replace_elem(orig_db, to_replace_lv2, El.SHADOW)
 
+    # antipode: keep as shadow, unless marle & lucca match element
+    if elems[1] == elems[2] and elems[1] != El.SHADOW:
+        replace_elems(orig_db,
+                [T.ANTIPODE, T.ANTIPODE_2, T.ANTIPODE_3],
+                elems[1])
+
+    # marle-frog techs are shadow if their elems differ, otherwise that elem
+    if elems[1] == elems[3] and elems[1] != El.ICE:
+        replace_elems(orig_db,
+                [T.ICE_WATER, T.GLACIER],
+                elems[1])
+    elif elems[1] != elems[3]:
+        replace_elems(orig_db,
+                [T.ICE_WATER, T.GLACIER],
+                El.SHADOW)
+
+    # crono-marle final kick or crono-lucca gatling kick, if types match, become that type
+    if elems[0] == elems[1]:
+        replace_elem(orig_db, T.FINAL_KICK, elems[0])
+    elif elems[0] == elems[2]:
+        replace_elem(orig_db, T.GATLING_KICK, elems[0])
+    
     '''
     ice sword/2 -> fire sword/2
     fire whirl -> dark whirl
