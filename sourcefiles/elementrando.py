@@ -157,26 +157,26 @@ _replacements: Dict = {
     },
 
     T.LASER_SPIN: {
-        El.ICE: {'name': 'Ice Spin'},
-        El.FIRE: {'name': 'Fire Spin'},
-        El.LIGHTNING: {'name': 'LightSpin'},
+        El.ICE: {'name': 'Ice Spin', 'gfx': {6: 0x24}},
+        El.FIRE: {'name': 'Fire Spin', 'gfx': {6: 0x4F}},
+        El.LIGHTNING: {'name': 'LightSpin', 'gfx': {6: 0x3D}}
     },
     T.AREA_BOMB: {
-        El.ICE: {'name': 'Ice Burst'},
-        El.LIGHTNING: {'name': 'FlashBomb'},
-        El.SHADOW: {'name': 'DarkBurst'},
+        El.ICE: {'name': 'Ice Burst', 'gfx': {4: 0x3A}},
+        El.LIGHTNING: {'name': 'FlashBomb', 'gfx': {4: 0x03, 6: 0x02}},
+        El.SHADOW: {'name': 'DarkBurst', 'gfx': {4: 0x25}}
     },
     T.SHOCK: {
-        El.ICE: {'name': 'Freeze'},
-        El.FIRE: {'name': 'Immolate'},
-        El.SHADOW: {'name': 'Obscure'},
+        El.ICE: {'name': 'Freeze', 'gfx': {6: 0x32}},
+        El.FIRE: {'name': 'Immolate', 'gfx': {6: 0x62}},
+        El.SHADOW: {'name': 'Obscure', 'gfx': {6: 0x64}}
     },
 
     T.DOUBLE_BOMB: {
         El.SHADOW: {'name': "OmegaDBomb"},
         El.ICE: {'name': "IceWtrBomb"},
         El.LIGHTNING: {'name': "VoltBomb"}
-    },
+    }
 }
 
 def replace_elem(db, techid, elem: El):
