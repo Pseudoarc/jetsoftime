@@ -11,14 +11,20 @@ import randosettings as rset
 
 def write_config(settings: rset.Settings, config: cfg.RandoConfig, rand):
     if rset.GameFlags.ELEMENT_RANDO in settings.gameflags:
-        #elems = [El.LIGHTNING, El.SHADOW, El.ICE, El.FIRE]
-        #doubled_elem = rand.choice(elems)
-        #elems = elems + doubled_elem
+        elems = [El.LIGHTNING, El.SHADOW, El.ICE, El.FIRE]
+        doubled_elem = rand.choice(elems)
 
-        #rand.shuffle(elems) # we'll just use the order for now. crono marle lucca (skip robo) frog (skip ayla) magus
+        roboelems = list(set(elems) - {doubled_elem,})
+        elems = elems + [doubled_elem]
+            
+        # These are just keyed by order:
+        # crono marle lucca (skip robo) frog (skip ayla) magus
+        # laser spin, area bomb, shock for robo
+        rand.shuffle(elems) 
+        rand.shuffle(roboelems)
         # static right now
-        elems = [El.SHADOW, El.FIRE, El.SHADOW, El.LIGHTNING, El.ICE]
-        roboelems = [El.FIRE, El.LIGHTNING, El.ICE]
+        #elems = [El.SHADOW, El.FIRE, El.SHADOW, El.LIGHTNING, El.ICE]
+        #roboelems = [El.FIRE, El.LIGHTNING, El.ICE]
 
         config.tech_db = shuffle_techdb(config.tech_db, elems, roboelems)
 
@@ -176,6 +182,168 @@ _replacements: Dict = {
         El.SHADOW: {'name': "OmegaDBomb"},
         El.ICE: {'name': "IceWtrBomb"},
         El.LIGHTNING: {'name': "VoltBomb"}
+    },
+
+    T.SPIRE: {
+        El.SHADOW: {'name': 'DarkSpire'},
+        El.ICE: {'name': 'IceSpire'},
+        El.FIRE: {'name': 'FlameSpire'}
+    },
+    T.VOLT_BITE: {
+        El.SHADOW: {'name': 'Dark Bite'},
+        El.ICE: {'name': 'Ice Bite'},
+        El.FIRE: {'name': 'Flame Bite'}
+    },
+    T.ICE_SWORD: {
+        El.SHADOW: {'name': 'Dark Sword'},
+        El.ICE: {'name': 'Ice Sword'},
+        El.FIRE: {'name': 'Fire Sword'},
+        El.LIGHTNING: {'name': 'Light Sword'}
+    },
+    T.ICE_SWORD_2: {
+        El.SHADOW: {'name': 'Dark Sword 2'},
+        El.ICE: {'name': 'Ice Sword 2'},
+        El.FIRE: {'name': 'Fire Sword 2'},
+        El.LIGHTNING: {'name': 'Light Sword 2'}
+    },
+    T.ICE_TACKLE: {
+        El.SHADOW: {'name': 'Dark Tackle'},
+        El.ICE: {'name': 'Ice Tackle'},
+        El.FIRE: {'name': 'Fire Tackle'},
+        El.LIGHTNING: {'name': 'LightTackle'}
+    },
+    T.ICE_TOSS: {
+        El.SHADOW: {'name': 'ShdwToss'},
+        El.FIRE: {'name': 'Fire Toss'},
+        El.LIGHTNING: {'name': 'Light Toss'}
+    },
+    T.CUBE_TOSS: {
+        El.SHADOW: {'name': 'Dark Toss'},
+        El.FIRE: {'name': 'Blaze Toss'},
+        El.LIGHTNING: {'name': 'Shock Toss'}
+    },
+    T.ARC_IMPULSE: {
+        El.SHADOW: {'name': 'DarkImpulse'},
+        El.FIRE: {'name': 'FireImpulse'},
+        El.LIGHTNING: {'name': 'LghtImpulse'}
+    },
+    T.FIRE_WHIRL: {
+        El.SHADOW: {'name': 'ShdwWhirl'},
+        El.ICE: {'name': 'Ice Whirl'},
+        El.LIGHTNING: {'name': 'Light Whirl'}
+    },
+    T.FIRE_SWORD: {
+        El.SHADOW: {'name': 'Dark Sword'},
+        El.ICE: {'name': 'Ice Sword'},
+        El.FIRE: {'name': 'Fire Sword'},
+        El.LIGHTNING: {'name': 'Light Sword'}
+    },
+    T.FIRE_SWORD_2: {
+        El.SHADOW: {'name': 'Dark Sword 2'},
+        El.ICE: {'name': 'Ice Sword 2'},
+        El.FIRE: {'name': 'Fire Sword 2'},
+        El.LIGHTNING: {'name': 'Light Sword 2'}
+    },
+    T.FIRE_PUNCH: {
+        El.SHADOW: {'name': 'Dark Punch'},
+        El.ICE: {'name': 'Ice Punch'},
+        El.LIGHTNING: {'name': 'Light Punch'}
+    },
+    T.FIRE_TACKLE: {
+        El.SHADOW: {'name': 'Dark Tackle'},
+        El.ICE: {'name': 'Ice Tackle'},
+        El.FIRE: {'name': 'Fire Tackle'},
+        El.LIGHTNING: {'name': 'LightTackle'}
+    },
+    T.RED_PIN: {
+        El.SHADOW: {'name': 'Dark Pin'},
+        El.ICE: {'name': 'Ice Pin'},
+        El.LIGHTNING: {'name': 'Light Pin'}
+    },
+    T.LINE_BOMB: {
+        El.SHADOW: {'name': 'Dark Line'},
+        El.ICE: {'name': 'Ice Line'},
+        El.LIGHTNING: {'name': 'Shock Line'}
+    },
+    T.FROG_FLARE: {
+        El.SHADOW: {'name': 'FrogMatter'},
+        El.ICE: {'name': 'Frog Mist'},
+        El.LIGHTNING: {'name': 'Froginaire'}
+    },
+    T.FLAME_KICK: {
+        El.SHADOW: {'name': 'Shadow Kick'},
+        El.ICE: {'name': 'Ice Kick'},
+        El.LIGHTNING: {'name': 'Light Kick'}
+    },
+    T.BLAZE_TWISTER: {
+        El.SHADOW: {'name': 'Dark Whirl'},
+        El.ICE: {'name': 'FreezeWhirl'},
+        El.LIGHTNING: {'name': 'Shock Whirl'}
+    },
+    T.BLAZE_KICK: {
+        El.SHADOW: {'name': 'Dark Kick'},
+        El.ICE: {'name': 'FreezeKick'},
+        El.LIGHTNING: {'name': 'Shock Kick'}
+    },
+    T.FIRE_ZONE: {
+        El.SHADOW: {'name': 'Dark Zone'},
+        El.ICE: {'name': 'Ice Zone'},
+        El.LIGHTNING: {'name': 'Shock Zone'}
+    },
+    T.SWORD_STREAM: {
+        El.SHADOW: {'name': 'Dark Sword'},
+        El.FIRE: {'name': 'Sword Flame'},
+        El.LIGHTNING: {'name': 'Sword Bolt'}
+    },
+    T.ROCKET_ROLL: {
+        El.ICE: {'name': 'Ice Roll'},
+        El.FIRE: {'name': 'Flame Roll'},
+        El.LIGHTNING: {'name': 'Light Roll'}
+    },
+    T.TWISTER: {
+        El.ICE: {'name': 'IceTwist'},
+        El.FIRE: {'name': 'FlameTwist'},
+        El.LIGHTNING: {'name': 'LightTwist'}
+    },
+    T.SUPER_VOLT: {
+        El.SHADOW: {'name': 'ShadowVolt'},
+        El.ICE: {'name': 'Ice Volt'},
+        El.FIRE: {'name': 'Fire Volt'}
+    },
+    T.ANTIPODE: {
+        El.ICE: {'name': 'Icepode'},
+        El.FIRE: {'name': 'Firepode'},
+        El.LIGHTNING: {'name': 'Lightpode'}
+    },
+    T.ANTIPODE_2: {
+        El.ICE: {'name': 'Icepode 2'},
+        El.FIRE: {'name': 'Firepode 2'},
+        El.LIGHTNING: {'name': 'Lightpode 2'}
+    },
+    T.ANTIPODE_3: {
+        El.ICE: {'name': 'Icepode 3'},
+        El.FIRE: {'name': 'Firepode 3'},
+        El.LIGHTNING: {'name': 'Lightpode 3'}
+    },
+    T.ICE_WATER: {
+        El.SHADOW: {'name': 'Shadow Dark'},
+        El.FIRE: {'name': 'Flame Blaze'},
+        El.LIGHTNING: {'name': 'Light Shock'}
+    },
+    T.GLACIER: {
+        El.SHADOW: {'name': 'Dark Shadow'},
+        El.FIRE: {'name': 'Blaze Flame'},
+        El.LIGHTNING: {'name': 'Shock Light'}
+    },
+    T.FINAL_KICK: {
+        El.ICE: {'name': 'GlcierKick'},
+        El.FIRE: {'name': 'InfrnoKick'},
+        El.LIGHTNING: {'name': 'ThnderKick'}
+    },
+    T.GATLING_KICK: {
+        El.ICE: {'name': 'GlcierKick'},
+        El.FIRE: {'name': 'InfrnoKick'},
+        El.LIGHTNING: {'name': 'ThnderKick'}
     }
 }
 
