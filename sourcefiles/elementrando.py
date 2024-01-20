@@ -156,6 +156,22 @@ _replacements: Dict = {
         El.SHADOW: {'name': _common['dmist'], 'gfx': {4: 0x25, 6: 0x2F}}
     },
 
+    T.LASER_SPIN: {
+        El.ICE: {'name': 'Ice Spin'},
+        El.FIRE: {'name': 'Fire Spin'},
+        El.LIGHTNING: {'name': 'LightSpin'},
+    },
+    T.AREA_BOMB: {
+        El.ICE: {'name': 'Ice Burst'},
+        El.LIGHTNING: {'name': 'FlashBomb'},
+        El.SHADOW: {'name': 'DarkBurst'},
+    },
+    T.SHOCK: {
+        El.ICE: {'name': 'Freeze'},
+        El.FIRE: {'name': 'Immolate'},
+        El.SHADOW: {'name': 'Obscure'},
+    },
+
     T.DOUBLE_BOMB: {
         El.SHADOW: {'name': "Omega2 Bomb"}
     },
@@ -184,9 +200,7 @@ def shuffle_techdb(orig_db, elems, roboelems):
         replace_elems(orig_db,
                 [T.SLASH, T.LIGHTNING, T.LIGHTNING_2, T.LUMINAIRE, T.SPIRE, T.VOLT_BITE],
                 elems[0])
-        # super volt: lightning if crono is lit or water, shadow otherwise
-        if elems[0] != El.ICE: # if it's lit, we don't even get to this point
-            replace_elems(orig_db, [T.SUPER_VOLT], El.SHADOW)
+
     # marle
     if elems[1] != El.ICE:
         replace_elems(orig_db,
@@ -197,8 +211,6 @@ def shuffle_techdb(orig_db, elems, roboelems):
         replace_elems(orig_db,
                 [T.FLAME_TOSS, T.FIRE, T.NAPALM, T.FIRE_2, T.MEGABOMB, T.FLARE, T.FIRE_WHIRL, T.FIRE_SWORD, T.FIRE_SWORD_2, T.FIRE_PUNCH, T.FIRE_TACKLE, T.RED_PIN, T.LINE_BOMB, T.FROG_FLARE, T.FLAME_KICK, T.BLAZE_TWISTER, T.BLAZE_KICK, T.FIRE_ZONE],
                 elems[2])
-        # doublebomb: if lucca's not fire, it should be shadow
-        replace_elem(orig_db, T.DOUBLE_BOMB, El.SHADOW)
     # frog
     if elems[3] != El.ICE:
         replace_elems(orig_db,
@@ -221,13 +233,29 @@ def shuffle_techdb(orig_db, elems, roboelems):
 
     # robo is special, gets a set of 3 elems for Laser Spin, Area Bomb, Shock resp.
     if roboelems[0] != El.SHADOW:
-        replace_elem(orig_db, T.LASER_SPIN, roboelems[0])
+        replace_elems(orig_db, [T.LASER_SPIN, T.ROCKET_ROLL, T.TWISTER], roboelems[0])
 
     if roboelems[1] != El.FIRE:
         replace_elem(orig_db, T.AREA_BOMB, roboelems[1])
 
     if roboelems[2] != El.LIGHTNING:
         replace_elem(orig_db, T.SHOCK, roboelems[2])
+
+    # robo duals/triples
+    # Super Volt: lit/lit or lit/ice is lit, other matching is that, else shadow?
+    if elems[0] == roboelems[2] and elems[0] != El.LIGHTNING: # luminaire and shock rolled the same
+        if elems[0] != El.LIGHTNING: # no-op if it's light already
+            replace_elem(orig_db, T.SUPER_VOLT, elems[0])
+    elif (elems[0] == El.ICE and roboelems[2] == El.LIGHTNING) or (elems[0] == El.LIGHTNING and roboelems[2] == El.ICE): # water + lightning stays lightning as well
+        pass
+    else:
+        replace_elem(orig_db, T.SUPER_VOLT, El.SHADOW)
+
+    # Double Bomb: matching or shadow?
+    if elems[2] == roboelems[1] and elems[2] != El.FIRE: # matching
+        replace_elem(orig_db, T.DOUBLE_BOMB, elems[2])
+    elif elems[2] != roboelems[1]:
+        replace_elem(orig_db, T.DOUBLE_BOMB, El.SHADOW)
 
     # antipode: keep as shadow, unless marle & lucca match element
     if elems[1] == elems[2] and elems[1] != El.SHADOW:
