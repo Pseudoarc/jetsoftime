@@ -332,7 +332,6 @@ _single_tech_abbrev = {
     'Mega Bomb': 'MgBm',
     'OmegaBomb': 'OmBm',
     'Ice Bomb': 'IcBm',
-    'LightBomb': 'LtBm',
     '*Flare': 'Flr',
     '*Iceburst': 'Icb',
     '*Lumiflare': 'Lflr',
