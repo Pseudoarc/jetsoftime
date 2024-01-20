@@ -173,7 +173,9 @@ _replacements: Dict = {
     },
 
     T.DOUBLE_BOMB: {
-        El.SHADOW: {'name': "Omega2 Bomb"}
+        El.SHADOW: {'name': "OmegaDBomb"},
+        El.ICE: {'name': "IceWtrBomb"},
+        El.LIGHTNING: {'name': "VoltBomb"}
     },
 }
 
