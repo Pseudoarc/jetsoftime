@@ -18,8 +18,9 @@ def write_config(settings: rset.Settings, config: cfg.RandoConfig, rand):
         #rand.shuffle(elems) # we'll just use the order for now. crono marle lucca (skip robo) frog (skip ayla) magus
         # static right now
         elems = [El.SHADOW, El.FIRE, El.SHADOW, El.LIGHTNING, El.ICE]
+        roboelems = [El.FIRE, El.LIGHTNING, El.ICE]
 
-        config.tech_db = shuffle_techdb(config.tech_db, elems)
+        config.tech_db = shuffle_techdb(config.tech_db, elems, roboelems)
 
 def setelem(tech, elem: El):
     tech['control'][3] &= 0x0F
@@ -177,7 +178,7 @@ def replace_elems(db, techids, elem: El):
     for techid in techids:
         replace_elem(db, techid, elem)
 
-def shuffle_techdb(orig_db, elems):
+def shuffle_techdb(orig_db, elems, roboelems):
     # crono
     if elems[0] != El.LIGHTNING:
         replace_elems(orig_db,
@@ -217,6 +218,16 @@ def shuffle_techdb(orig_db, elems):
         elif elems[4] == El.LIGHTNING:
             to_replace_lv2 = T.LIGHTNING_2_M
         replace_elem(orig_db, to_replace_lv2, El.SHADOW)
+
+    # robo is special, gets a set of 3 elems for Laser Spin, Area Bomb, Shock resp.
+    if roboelems[0] != El.SHADOW:
+        replace_elem(orig_db, T.LASER_SPIN, roboelems[0])
+
+    if roboelems[1] != El.FIRE:
+        replace_elem(orig_db, T.AREA_BOMB, roboelems[1])
+
+    if roboelems[2] != El.LIGHTNING:
+        replace_elem(orig_db, T.SHOCK, roboelems[2])
 
     # antipode: keep as shadow, unless marle & lucca match element
     if elems[1] == elems[2] and elems[1] != El.SHADOW:
