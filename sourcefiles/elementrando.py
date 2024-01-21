@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from typing import Dict
+import re
 
-from ctenums import Element as El, TechID as T
+import ctrom
+from ctenums import Element as El, TechID as T, LocID as L
 from techdb import TechDB
 import ctstrings
 
@@ -26,7 +28,34 @@ def write_config(settings: rset.Settings, config: cfg.RandoConfig, rand):
         #elems = [El.SHADOW, El.FIRE, El.SHADOW, El.LIGHTNING, El.ICE]
         #roboelems = [El.FIRE, El.LIGHTNING, El.ICE]
 
+        config.elems = elems + roboelems
         config.tech_db = shuffle_techdb(config.tech_db, elems, roboelems)
+
+def update_scripts(ct_rom: ctrom.CTRom, config: cfg.RandoConfig):
+    if len(config.elems) > 0:
+        spekkio_script = ct_rom.script_manager.get_script(L.SPEKKIO)
+
+        for i, barr in enumerate(spekkio_script.strings):
+            string = ctstrings.CTString(barr).to_ascii() 
+            newstr = None
+            if re.search(r'punk hairdo', string) is not None: # Crono
+                newstr = re.sub('Lightning', str(config.elems[0]), string)
+            elif re.search(r'ponytail', string) is not None: # Marle
+                newstr = re.sub('Water', str(config.elems[1]), string)
+            elif re.search(r'goofy glasses', string) is not None: # Lucca
+                newstr = re.sub('Fire', str(config.elems[2]), string)
+            elif re.search(r'biggest toy', string) is not None: # Robo
+                newstr = 'SPEKKIO: That\'s the biggest toy I\'ve{line break}ever seen...{line break}Hey, you\'re not alive, are you?!{page break}You\'ve got great strength, however,{line break}since I can\'t measure your inner{line break}character, I can\'t give any magic to{line break}you.{page break}But your various weapons will suffice.{line break}They can inflict many types{line break}of damage.{null}'
+            elif re.search(r'a frog', string) is not None: # Frog
+                newstr = re.sub('Water', str(config.elems[3]), string)
+            elif re.search(r'Sweetheart', string) is not None: # Ayla
+                pass # no changes for ayla
+            elif re.search(r'marlin', string) is not None: # Magus
+                newstr = re.sub('Shadow', str(config.elems[4]), string)
+
+            if newstr is not None:
+                spekkio_script.strings[i] = ctstrings.CTString.from_str(newstr)
+                spekkio_script.modified_strings = True
 
 def setelem(tech, elem: El):
     tech['control'][3] &= 0x0F
