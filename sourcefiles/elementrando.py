@@ -376,6 +376,38 @@ _replacements: Dict = {
     }
 }
 
+def dual_elem(first: El, second: El, clear_enabled=False) -> El:
+    if first == second:
+        return first
+    elif first == El.ICE and second == El.LIGHTNING:
+        return El.LIGHTNING
+    elif first == El.LIGHTNING and second == El.ICE:
+        return El.LIGHTNING
+    elif first == El.LIGHTNING and second == El.SHADOW and clear_enabled:
+        return El.NONELEMENTAL
+    elif first == El.SHADOW and second == El.LIGHTNING and clear_enabled:
+        return El.NONELEMENTAL
+    else:
+        return El.SHADOW
+
+def triple_elem(first: El, second: El, third: El, clear_enabled=False) -> El:
+    if first == second == third:
+        return first
+    elif clear_enabled and first == El.SHADOW and second == El.SHADOW and third == El.LIGHTNING:
+        return El.NONELEMENTAL
+    elif clear_enabled and first == El.SHADOW and second == El.LIGHTNING and third == El.SHADOW:
+        return El.NONELEMENTAL
+    elif clear_enabled and first == El.LIGHTNING and second == El.SHADOW and third == El.SHADOW:
+        return El.NONELEMENTAL
+    elif clear_enabled and first == El.LIGHTNING and second == El.LIGHTNING and third == El.SHADOW:
+        return El.NONELEMENTAL
+    elif clear_enabled and first == El.LIGHTNING and second == El.SHADOW and third == El.LIGHTNING:
+        return El.NONELEMENTAL
+    elif clear_enabled and first == El.SHADOW and second == El.LIGHTNING and third == El.LIGHTNING:
+        return El.NONELEMENTAL
+    else:
+        return El.SHADOW
+
 def replace_elem(db, techid, elem: El):
     tech = db.get_tech(techid)
     repl = _replacements.get(techid, {}).get(elem, None)
@@ -393,7 +425,7 @@ def replace_elems(db, techids, elem: El):
     for techid in techids:
         replace_elem(db, techid, elem)
 
-def shuffle_techdb(orig_db, elems, roboelems):
+def shuffle_techdb(orig_db, elems, roboelems, clear_enabled=False):
     # crono
     if elems[0] != El.LIGHTNING:
         replace_elems(orig_db,
@@ -441,43 +473,55 @@ def shuffle_techdb(orig_db, elems, roboelems):
         replace_elem(orig_db, T.SHOCK, roboelems[2])
 
     # robo duals/triples
-    # Super Volt: lit/lit or lit/ice is lit, other matching is that, else shadow?
-    if elems[0] == roboelems[2] and elems[0] != El.LIGHTNING: # luminaire and shock rolled the same
-        if elems[0] != El.LIGHTNING: # no-op if it's light already
-            replace_elem(orig_db, T.SUPER_VOLT, elems[0])
-    elif (elems[0] == El.ICE and roboelems[2] == El.LIGHTNING) or (elems[0] == El.LIGHTNING and roboelems[2] == El.ICE): # water + lightning stays lightning as well
-        pass
-    else:
-        replace_elem(orig_db, T.SUPER_VOLT, El.SHADOW)
+    sv_elem = dual_elem(elems[0], roboelems[2], clear_enabled)
+    if sv_elem != El.LIGHTNING:
+        replace_elem(orig_db, T.SUPER_VOLT, sv_elem)
 
-    # Double Bomb: matching or shadow?
-    if elems[2] == roboelems[1] and elems[2] != El.FIRE: # matching
-        replace_elem(orig_db, T.DOUBLE_BOMB, elems[2])
-    elif elems[2] != roboelems[1]:
-        replace_elem(orig_db, T.DOUBLE_BOMB, El.SHADOW)
 
-    # antipode: keep as shadow, unless marle & lucca match element
-    if elems[1] == elems[2] and elems[1] != El.SHADOW:
+    db_elem = dual_elem(elems[2], roboelems[1], clear_enabled)
+    if db_elem != El.FIRE:
+        replace_elem(orig_db, T.DOUBLE_BOMB, db_elem)
+
+    anti_elem = dual_elem(elems[1], elems[2], clear_enabled)
+    if anti_elem != El.SHADOW:
         replace_elems(orig_db,
                 [T.ANTIPODE, T.ANTIPODE_2, T.ANTIPODE_3],
-                elems[1])
+                anti_elem)
 
     # marle-frog techs are shadow if their elems differ, otherwise that elem
-    if elems[1] == elems[3] and elems[1] != El.ICE:
+    mf_elem = dual_elem(elems[1], elems[3], clear_enabled)
+    if mf_elem != El.ICE:
         replace_elems(orig_db,
                 [T.ICE_WATER, T.GLACIER],
-                elems[1])
-    elif elems[1] != elems[3]:
-        replace_elems(orig_db,
-                [T.ICE_WATER, T.GLACIER],
-                El.SHADOW)
+                mf_elem)
 
     # crono-marle final kick or crono-lucca gatling kick, if types match, become that type
-    if elems[0] == elems[1]:
-        replace_elem(orig_db, T.FINAL_KICK, elems[0])
-    elif elems[0] == elems[2]:
-        replace_elem(orig_db, T.GATLING_KICK, elems[0])
-    
+    fk_elem = dual_elem(elems[0], elems[1], clear_enabled)
+    if fk_elem != El.SHADOW:
+        replace_elem(orig_db, T.FINAL_KICK, fk_elem)
+
+    gk_elem = dual_elem(elems[0], elems[2], clear_enabled)
+    if gk_elem != El.SHADOW:
+        replace_elem(orig_db, T.GATLING_KICK, gk_elem)
+
+    # these matter only if clear_enabled
+    if clear_enabled:
+        df_elem = triple_elem(elems[0], elems[1], elems[2], clear_enabled)
+        if df_elem != El.SHADOW:
+            replace_elem(orig_db, T.DELTA_FORCE, df_elem)
+
+        ds_elem = triple_elem(elems[0], elems[1], elems[3], clear_enabled)
+        if ds_elem != El.SHADOW:
+            replace_elem(orig_db, T.DELTA_STORM, ds_elem)
+
+        de_elem = triple_elem(elems[1], elems[2], elems[4], clear_enabled)
+        if de_elem != El.SHADOW:
+            replace_elem(orig_db, T.DARK_ETERNAL, de_elem)
+
+        of_elem = triple_elem(elems[2], elems[4], roboelems[0], clear_enabled)
+        if of_elem != El.SHADOW:
+            replace_elem(orig_db, T.OMEGA_FLARE, of_elem)
+
     '''
     ice sword/2 -> fire sword/2
     fire whirl -> dark whirl
