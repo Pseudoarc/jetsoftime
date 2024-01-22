@@ -201,8 +201,8 @@ class Randomizer:
 
         # Character config.  Includes tech randomization and who can equip
         # which items.
-        charrando.write_config(self.settings, self.config)
         elementrando.write_config(self.settings, self.config, random)
+        charrando.write_config(self.settings, self.config)
         techrandomizer.write_tech_order_to_config(self.settings,
                                                   self.config)
 
