@@ -1142,7 +1142,7 @@ class Randomizer:
 
         prismshard.update_prismshard_quest(self.out_rom)
 
-        elementrando.update_scripts(self.out_rom, self.config)
+        elementrando.update_ctrom(self.out_rom, self.config)
 
         if epoch_fail:
             epochfail.apply_epoch_fail(self.out_rom, self.settings)

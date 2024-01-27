@@ -24,9 +24,6 @@ def write_config(settings: rset.Settings, config: cfg.RandoConfig, rand):
         # laser spin, area bomb, shock for robo
         rand.shuffle(elems) 
         rand.shuffle(roboelems)
-        # static right now
-        #elems = [El.SHADOW, El.FIRE, El.SHADOW, El.LIGHTNING, El.ICE]
-        #roboelems = [El.FIRE, El.LIGHTNING, El.ICE]
 
         for i, elem in enumerate(elems):
             real_i = i
@@ -39,6 +36,9 @@ def write_config(settings: rset.Settings, config: cfg.RandoConfig, rand):
 
         config.elems = elems + roboelems
         config.tech_db = shuffle_techdb(config.tech_db, elems, roboelems)
+
+def update_ctrom(ct_rom: ctrom.CTRom, config: cfg.RandoConfig):
+    update_scripts(ct_rom, config)
 
 def update_scripts(ct_rom: ctrom.CTRom, config: cfg.RandoConfig):
     if len(config.elems) > 0:
