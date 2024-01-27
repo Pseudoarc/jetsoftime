@@ -531,20 +531,4 @@ def shuffle_techdb(orig_db, elems, roboelems, clear_enabled=False):
         if of_elem != El.SHADOW:
             replace_elem(orig_db, T.OMEGA_FLARE, of_elem)
 
-    '''
-    ice sword/2 -> fire sword/2
-    fire whirl -> dark whirl
-    fire sword/2 -> dark sword/2
-    swordstream -> (lightning)
-    spire -> DarkSpire (lol)
-    (no marle/lucca changes right now)
-    ice water -> (shadow)
-    glacier -> (shadow)
-    red pin -> black pin
-    line bomb -> shadow
-    frog flare -> deep frog
-    delta force/delta storm -> no change
-    arc impulse -> flame arc/photon arc/shadow arc (type from marle)
-    '''
-
     return orig_db
