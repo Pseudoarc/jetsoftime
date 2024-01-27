@@ -4,7 +4,7 @@ from typing import Dict
 import re
 
 import ctrom
-from ctenums import Element as El, TechID as T, LocID as L
+from ctenums import Element as El, TechID as T, LocID as L, CharID as C
 from techdb import TechDB
 import ctstrings
 
@@ -27,6 +27,15 @@ def write_config(settings: rset.Settings, config: cfg.RandoConfig, rand):
         # static right now
         #elems = [El.SHADOW, El.FIRE, El.SHADOW, El.LIGHTNING, El.ICE]
         #roboelems = [El.FIRE, El.LIGHTNING, El.ICE]
+
+        for i, elem in enumerate(elems):
+            real_i = i
+            if i == 3:
+                real_i = 4
+            elif i == 4:
+                real_i = 6
+            statblock = config.pcstats.pc_stat_dict[C(real_i)].stat_block
+            statblock.innate_element_resisted = elem
 
         config.elems = elems + roboelems
         config.tech_db = shuffle_techdb(config.tech_db, elems, roboelems)
