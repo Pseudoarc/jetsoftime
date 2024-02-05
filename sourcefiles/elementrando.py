@@ -3,7 +3,13 @@ from __future__ import annotations
 from typing import Dict
 import re
 
+import byteops
+from asm import instructions as inst
+from asm.instructions import AddressingMode as AM
+from asm import assemble
+import ctenums
 import ctrom
+from freespace import FSWriteType as FSW
 from ctenums import Element as El, TechID as T, LocID as L, CharID as C
 from techdb import TechDB
 import ctstrings
@@ -37,8 +43,72 @@ def write_config(settings: rset.Settings, config: cfg.RandoConfig, rand):
         config.elems = elems + roboelems
         config.tech_db = shuffle_techdb(config.tech_db, elems, roboelems)
 
+
+def update_element_placards_on_ctrom(ct_rom: ctrom.CTRom, config: cfg.RandoConfig):
+    """
+    Update the element graphics on each PC's stats page in the menu to show the randomized element.
+    Call this after charrando because its changes need to be overwritten.
+    """
+
+    # The relevant code is:
+    # $C2/A27C BF C6 A2 C2 LDA $C2A2C6,x[$C2:A2C6]
+    # X has the pc-index which needs to be reeassigned
+
+    # These are indices computed from looking at the $C2A6C6 range
+    elem_index_dict: dict[ctenums.Element, int] = {
+        ctenums.Element.LIGHTNING: 0,
+        ctenums.Element.FIRE: 6,
+        ctenums.Element.ICE: 4,
+        ctenums.Element.SHADOW: 2,
+        ctenums.Element.NONELEMENTAL: 8
+    }
+
+    char_elem_dict: dict[ctenums.CharID, ctenums.Element] = {
+        ctenums.CharID.CRONO: config.elems[0],
+        ctenums.CharID.MARLE: config.elems[1],
+        ctenums.CharID.LUCCA: config.elems[2],
+        ctenums.CharID.FROG: config.elems[3],
+        ctenums.CharID.MAGUS: config.elems[4],
+        ctenums.CharID.ROBO: ctenums.Element.NONELEMENTAL,
+        ctenums.CharID.AYLA: ctenums.Element.NONELEMENTAL
+    }
+
+    reassign_dict = {
+        pc_id: config.pcstats.get_character_assignment(pc_id)
+        for pc_id in ctenums.CharID
+    }
+
+    char_index_b = bytes(
+        [elem_index_dict[char_elem_dict[reassign_dict[pc_id]]]
+         for pc_id in ctenums.CharID]
+    )
+
+    # Possibly you can overwrite the $C2A2C6,x range, but we'll just
+    # Grab 7 bytes from somewhere else.
+    rom = ct_rom.rom_data
+    space_man = ct_rom.rom_data.space_manager
+    char_index_addr = space_man.get_free_addr(len(char_index_b))
+
+    rom.seek(char_index_addr)
+    rom.write(char_index_b, FSW.MARK_USED)
+
+    routine: assemble.ASMList = [
+        inst.LDA(byteops.to_rom_ptr(char_index_addr), AM.LNG_X)
+    ]
+    routine_b = assemble.assemble(routine)
+
+    # fix menu magic type picture
+
+    rom.seek(0x02A27C)
+    rom.write(routine_b)  # Replacing 4 bytes for 4 bytes.
+
+
+
+
+
 def update_ctrom(ct_rom: ctrom.CTRom, config: cfg.RandoConfig):
     update_scripts(ct_rom, config)
+
 
 def update_scripts(ct_rom: ctrom.CTRom, config: cfg.RandoConfig):
     if len(config.elems) > 0:

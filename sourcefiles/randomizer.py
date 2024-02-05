@@ -205,6 +205,7 @@ class Randomizer:
         # which items.
         elementrando.write_config(self.settings, self.config, random)
         charrando.write_config(self.settings, self.config)
+
         techrandomizer.write_tech_order_to_config(self.settings,
                                                   self.config)
 
@@ -1003,6 +1004,7 @@ class Randomizer:
 
         # Write out the rest of the character data (incl. techs)
         charrando.reassign_characters_on_ctrom(ctrom, config)
+        elementrando.update_element_placards_on_ctrom(ctrom, config)
 
         # Write out the bosses
         bossrando.write_bosses_to_ctrom(ctrom, config)
