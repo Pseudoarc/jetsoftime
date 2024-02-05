@@ -1,0 +1,18 @@
+[run]
+branch = True
+omit =
+    # omit cached files
+    __pycache__/*
+    .pytest_cache/*
+
+[report]
+exclude_also =
+    # don't complain if tests don't hit defensive code
+    raise AssertionError
+    raise NotImplementedError
+
+    # don't complain about abstract methods, they aren't run
+    @(abc\.)?abstractmethod
+
+    # don't complain about type-checking only code
+    if.*TYPE_CHECKING

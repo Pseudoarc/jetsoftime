@@ -3,17 +3,17 @@ The Chrono Trigger: Jets of Time Randomizer
 '''
 from __future__ import annotations
 
-import copy
-import os
 import random
 import pickle
 import sys
 import json
 import textwrap
 import typing
-from typing import Optional
 
-import arguments
+from pathlib import Path
+from typing import Optional, Union
+
+import cli.arguments as arguments
 import charassign
 import eventfunction
 
@@ -101,6 +101,8 @@ class Randomizer:
         rando.generate_rom()
         out_rom = rando.get_generated_rom()
     '''
+    _pickles_path: Path = Path(__file__).parent / 'pickles'
+
     def __init__(self, rom: bytes, is_vanilla: bool = True,
                  settings: Optional[rset.Settings] = None,
                  config: Optional[cfg.RandoConfig] = None):
@@ -190,11 +192,11 @@ class Randomizer:
         # provided.  You just have to make sure to redump any time time that
         # base_patch.ips or hard.ips change.  Demo below.
         '''
-        with open('./pickles/default_randoconfig.pickle', 'rb') as infile:
+        with self._get_pickle_path('default_randoconfig.pickle').open('rb') as infile:
             self.config = pickle.load(infile)
 
         if self.settings.enemy_difficulty == rset.Difficulty.HARD:
-            with open('./pickles/enemy_dict_hard.pickle', 'rb') as infile:
+            with self._get_pickle_path('enemy_dict_hard.pickle').open('rb') as infile:
                 self.config.enemy_dict = pickle.load(infile)
         '''
 
@@ -1279,9 +1281,8 @@ class Randomizer:
                 self.write_json_spoiler_log(real_outfile)
         else:
             json.dump(
-                {"configuration": self.config,
-                 "settings": self.settings},
-                outfile, cls=JOTJSONEncoder
+                {"configuration": self.config, "settings": self.settings},
+                outfile, cls=JOTJSONEncoder, indent=2
             )
 
     def _summarize_dupes(self):
@@ -1298,8 +1299,8 @@ class Randomizer:
                     ", ".join([str(CharID(i))
                                for i in (set(range(7)) - set(choicelist))])
 
-        chars = {c: summarize_single(self.settings.char_choices[c])
-                 for c in range(len(self.settings.char_choices))}
+        chars = {c: summarize_single(self.settings.char_settings.choices[c])
+                 for c in range(len(self.settings.char_settings.choices))}
         rv = ""
         for c in sorted(chars.keys()):
             if chars[c] != "Any":
@@ -1334,7 +1335,7 @@ class Randomizer:
                 f"Speed {tab_set.speed_min}-{tab_set.speed_max}\n"
             )
         if rset.GameFlags.CHAR_RANDO in gf and \
-           self.settings.char_choices != rset.Settings().char_choices:
+           self.settings.char_settings.choices != rset.Settings().char_settings.choices:
 
             dupes = self._summarize_dupes()
             file_object.write(f"Characters: {dupes}\n")
@@ -1353,8 +1354,13 @@ class Randomizer:
                 minus = pretty(minus_flags, indent=" - |", width=73)
                 diff += f"\n  - {minus}"
             file_object.write(textwrap.indent(f"{diff}\n", 7*" "))
-        pretty_cosmetics = pretty(self.settings.cosmetic_flags, indent=23*" "+"|")
-        file_object.write(f"Cosmetic: {pretty_cosmetics}\n\n")
+        if rset.GameFlags.BOSS_RANDO in self.settings.gameflags and self.settings.ro_settings.flags:
+            pretty_ro = pretty(self.settings.ro_settings.flags, indent=23*" "+"|")
+            file_object.write(f"RO Flags: {pretty_ro}\n")
+        if self.settings.cosmetic_flags:
+            pretty_cosmetics = pretty(self.settings.cosmetic_flags, indent=23*" "+"|")
+            file_object.write(f"Cosmetic: {pretty_cosmetics}\n")
+        file_object.write("\n")
 
     def write_consumable_spoilers(self, file_object):
         file_object.write("Consumable Properties\n")
@@ -1925,7 +1931,7 @@ class Randomizer:
             cosmetichacks.death_peak_singing_mountain_music(ctrom, settings)
 
         cosmetichacks.set_pc_names(
-            ctrom, *settings.char_names
+            ctrom, *settings.char_settings.names
         )
 
         if rset.CosmeticFlags.REDUCE_FLASH in cos_flags:
@@ -1948,7 +1954,7 @@ class Randomizer:
         cls.fill_default_config_entries(config)
         config.update_from_ct_rom(ct_rom)
 
-        with open('./pickles/default_randoconfig.pickle', 'wb') as outfile:
+        with Randomizer._get_pickle_path('default_randoconfig.pickle').open('wb') as outfile:
             pickle.dump(config, outfile)
 
     @classmethod
@@ -2228,68 +2234,64 @@ class Randomizer:
         rando.generate_rom()
         return rando.get_generated_rom()
 
+    @staticmethod
+    def _get_pickle_path(filename: Union[str, Path]) -> Path:
+        '''Get path to pickle from "pickles" directory in package.'''
+        return Randomizer._pickles_path / filename
+
 
 class RandomizerWriter:
     '''Utility class for writing output/spoilers for Randomizer.'''
-    def __init__(self, rando: Randomizer, base_name: str):
+    def __init__(self, rando: Randomizer, base_name: Path):
         self.rando = rando
 
         flag_string = rando.settings.get_flag_string()
         seed = rando.settings.seed
         self.out_string = f"{base_name}.{flag_string}.{seed}"
 
-    def write_output_rom(self, output_path: str):
+    def write_output_rom(self, output_path: Path):
         out_name = f"{self.out_string}.sfc"
         self.out_rom = self.rando.get_generated_rom()
-        self.full_output_path = os.path.join(output_path, out_name)
+        self.full_output_path = output_path / out_name
+        self.full_output_path.write_bytes(self.out_rom)
 
-        with open(self.full_output_path, 'wb') as outfile:
-            outfile.write(self.out_rom)
-
-    def write_spoiler_log(self, output_path: str):
+    def write_spoiler_log(self, output_path: Path):
         spoiler_name = f"{self.out_string}.spoilers.txt"
-        self.spoiler_path = os.path.join(output_path, spoiler_name)
-        self.rando.write_spoiler_log(self.spoiler_path)
+        self.spoiler_path = output_path / spoiler_name
+        self.rando.write_spoiler_log(str(self.spoiler_path))
 
-    def write_json_spoiler_log(self, output_path: str):
+    def write_json_spoiler_log(self, output_path: Path):
         json_spoiler_name = f"{self.out_string}.spoilers.json"
-        self.json_spoiler_path = os.path.join(output_path, json_spoiler_name)
-        self.rando.write_json_spoiler_log(self.json_spoiler_path)
+        self.json_spoiler_path = output_path / json_spoiler_name
+        self.rando.write_json_spoiler_log(str(self.json_spoiler_path))
 
 
 def read_names():
-    p = open("names.txt", "r")
-    names = p.readline()
-    names = names.split(",")
-    p.close()
+    names_path = Path(__file__).parent / 'names.txt'
+    with names_path.open('r') as p:
+        names = p.readline().split(',')
     return names
 
 
 def main():
     parser = arguments.get_parser()
-    arg_namespace = parser.parse_args()
-    val_dict = vars(arg_namespace)
+    args = parser.parse_args()
 
-    input_file = val_dict['input_file']
-    output_path = val_dict['output_path']
-
-    if not os.path.isfile(input_file):
+    if not args.input_file.exists():
         raise FileNotFoundError("Invalid input file path.")
 
-    if output_path is None:
-        output_path = os.path.dirname(input_file)
-    elif not os.path.isdir(output_path):
+    if args.output_path is None:
+        args.output_path = args.input_file.parent
+    if not args.output_path.is_dir():
         raise FileNotFoundError("Invalid output directory.")
 
     # Make sure the settings are ok before going further and reading the rom.
-    settings = arguments.args_to_settings(arg_namespace)
+    settings = arguments.args_to_settings(args)
     if settings.seed is None or settings.seed == "":
         names = read_names()
         settings.seed = "".join(random.choice(names) for i in range(2))
 
-    with open(input_file, 'rb') as infile:
-        rom = infile.read()
-
+    rom = args.input_file.read_bytes()
     if not CTRom.validate_ct_rom_bytes(rom):
         print(
             'Warning: File provided is not a vanilla CT ROM.  Proceed '
@@ -2299,21 +2301,20 @@ def main():
         if not proceed:
             sys.exit()
 
-    rando = Randomizer(rom, is_vanilla=False,
-                       settings=settings, config=None)
+    rando = Randomizer(rom, is_vanilla=False, settings=settings, config=None)
     rando.set_random_config()
 
-    base_name = os.path.basename(input_file)
+    base_name = args.input_file.parts[-1]
     writer = RandomizerWriter(rando, base_name=base_name)
-    writer.write_output_rom(output_path)
+    writer.write_output_rom(args.output_path)
     print(f"output ROM: {writer.full_output_path}")
 
-    if val_dict['spoilers']:
-        writer.write_spoiler_log(output_path)
+    if args.spoilers:
+        writer.write_spoiler_log(args.output_path)
         print(f"spoilers: {writer.spoiler_path}")
 
-    if val_dict['json_spoilers']:
-        writer.write_json_spoiler_log(output_path)
+    if args.json_spoilers:
+        writer.write_json_spoiler_log(args.output_path)
         print(f"json spoilers: {writer.json_spoiler_path}")
 
 

@@ -5,10 +5,8 @@ import ctrom
 import ctenums
 
 import eventcommand
-import eventfunction
 
-from ctevent import CommandNotFoundException
-from eventcommand import EventCommand as EC, FuncSync as FS, Operation as OP
+from eventcommand import EventCommand as EC, FuncSync as FS
 from eventfunction import EventFunction as EF
 
 

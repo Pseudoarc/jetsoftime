@@ -4,20 +4,8 @@ max-line-length = 119
 
 extend-ignore=
   # Temporarily ignore issues which probably should be addressed in near future
-  ## use isinstance()
-  E721,
-
-  ## bare except
-  E722,
-
-  ## imported but unused
-  F401,
-
   ## assigned but never used
   F841,
-
-  ## end-of-file blank lines
-  W391,
 
   # Ignore formatting issues that a tool like black could automatically address
   ## non-syntax indentation (visual)
@@ -34,9 +22,6 @@ extend-ignore=
 
   ## trailing whitespace, blank line contains whitespace
   W291, W293,
-
-  ## line breaks around binary operators
-  W503, W504
 
   ## line length
   E501,

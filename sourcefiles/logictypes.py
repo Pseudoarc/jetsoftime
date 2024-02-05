@@ -370,7 +370,7 @@ class Location:
     def __repr__(self):
         return f'<Location.{self.getName()}>'
 
-    def _jot_json(self):
+    def to_jot_json(self):
         return {self.getName(): str(self.getKeyItem())}
 
     #
@@ -504,7 +504,7 @@ class LinkedLocation():
         self.location1 = location1
         self.location2 = location2
 
-    def _jot_json(self):
+    def to_jot_json(self):
         return {self.getName(): str(self.getKeyItem())}
 
     def getName(self):

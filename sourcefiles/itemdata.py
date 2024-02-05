@@ -1083,7 +1083,7 @@ class Item:
         self.name = bytearray(name_bytes)
         self.desc = bytearray(desc_bytes)
 
-    def _jot_json(self):
+    def to_jot_json(self):
         return {
             'name': self.get_name_as_str(True),
             'desc': self.get_desc_as_str(),
@@ -1554,5 +1554,5 @@ class ItemDB:
 
         # fs.print_blocks()
 
-    def _jot_json(self):
+    def to_jot_json(self):
         return {str(x): self.item_dict[x] for x in self.item_dict}

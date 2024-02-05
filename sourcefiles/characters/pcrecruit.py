@@ -17,7 +17,7 @@ class RecruitSpot(typing.Protocol):
     held_char: ctenums.CharID
 
     # Still explicitly defining this in implementing classes
-    def _jot_json(self):
+    def to_jot_json(self):
         return str(self.held_char)
 
     def write_to_ctrom(self, ct_rom: ctrom.CTRom):
@@ -46,7 +46,7 @@ class CharRecruit(RecruitSpot):
         self.load_obj_id = load_obj_id
         self.recruit_obj_id = recruit_obj_id
 
-    def _jot_json(self):
+    def to_jot_json(self):
         return str(self.held_char)
 
     # This might be poor naming, but the writing goes to the script manager
@@ -130,7 +130,7 @@ class StarterChar:
         self.held_char = held_char
         self.starter_num = starter_num
 
-    def _jot_json(self):
+    def to_jot_json(self):
         return str(self.held_char)
 
     def write_to_ctrom(self, ct_rom: ctrom.CTRom):

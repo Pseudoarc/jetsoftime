@@ -8,7 +8,6 @@ from typing import Union, List
 from asm import instructions as inst
 from asm.instructions import _BranchInstruction, _NormalInstruction
 
-import byteops
 
 Instruction = Union[_BranchInstruction, _NormalInstruction]
 ASMList = List[Union[Instruction, str]]

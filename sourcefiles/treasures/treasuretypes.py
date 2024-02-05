@@ -17,10 +17,8 @@ import ctstrings
 import cttypes as ctt
 
 import eventcommand
-import eventfunction
 
-from eventcommand import EventCommand as EC, FuncSync as FS, Operation as OP
-from eventfunction import EventFunction as EF
+from eventcommand import EventCommand as EC
 
 
 RewardType = typing.Union[ctenums.ItemID, int]
@@ -33,7 +31,7 @@ class Treasure(abc.ABC):
     def __init__(self, reward: RewardType = ctenums.ItemID.MOP):
         self.reward = reward
 
-    def _jot_json(self):
+    def to_jot_json(self):
         return str(self.reward)
 
     @abc.abstractmethod
@@ -276,7 +274,7 @@ class ScriptTreasure(Treasure):
             reward: RewardType,
             orig_gold_amt: typing.Optional[int] = None):
 
-        if type(reward) == ctenums.ItemID:
+        if isinstance(reward, ctenums.ItemID):
             if reward == ctenums.ItemID.NONE:
                 repl_str = 'Nothing'
             else:

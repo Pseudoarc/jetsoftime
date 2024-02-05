@@ -2,8 +2,6 @@ import ctenums
 import ctrom
 
 import eventcommand
-import eventfunction
-
 import randoconfig as cfg
 
 from eventcommand import EventCommand as EC, FuncSync as FS, Operation as OP

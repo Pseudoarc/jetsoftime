@@ -4,7 +4,6 @@
 # GameConfig out to the rom.
 from __future__ import annotations
 import dataclasses
-import typing
 from typing import Optional, Union
 
 from treasures import treasuretypes
@@ -23,8 +22,6 @@ import ctenums
 import ctrom
 import ctstrings
 import techdb
-
-import randosettings as rset
 
 
 @dataclasses.dataclass
@@ -187,16 +184,16 @@ class RandoConfig:
             objectives = []
         self.objectives = objectives
 
-    def _jot_json(self):
+    def to_jot_json(self):
         def enum_key_dict(d):
             "Properly uses str(key) for dicts with StrIntEnum keys."
             return { str(k): v for (k,v) in d.items() }
 
         def merged_list_dict(l):
-            """For things that are a list of objects, each having a _jot_json
+            """For things that are a list of objects, each having a to_jot_json
             method that returns a single-key dict, this merges those dicts into
             one."""
-            return {k: v for d in l for k, v in d._jot_json().items()}
+            return {k: v for d in l for k, v in d.to_jot_json().items()}
 
         def enum_enum_dict(d):
             "For dicts with both keys and values that are StrIntEnums"
@@ -224,7 +221,7 @@ class RandoConfig:
         boss_details_dict[str(BossID.BLACK_TYRANO)]['element'] = \
             str(bossrando.get_black_tyrano_element(self))
 
-        chars = self.pcstats._jot_json()
+        chars = self.pcstats.to_jot_json()
         # the below is ugly, would be nice to have tech lists on PlayerChar
         # objects maybe
         def get_tech_list(char_id: int, tech_db: techdb.TechDB):

@@ -106,7 +106,7 @@ class ShopManager:
         '''Print out all shops with prices from item_db.'''
         print(self.get_spoiler_string(item_db))
 
-    def _jot_json(self):
+    def to_jot_json(self):
         shops_ignored = [
             ctenums.ShopID.EMPTY_12, ctenums.ShopID.EMPTY_14,
             ctenums.ShopID.LAST_VILLAGE_UPDATED

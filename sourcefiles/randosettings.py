@@ -1,11 +1,15 @@
 from __future__ import annotations
+import random
+from collections import UserList
 from enum import Flag, IntEnum, auto
-from dataclasses import dataclass, field
-from typing import Callable, Union, Optional, Tuple, Type, TypeVar
+from dataclasses import dataclass, field, fields
+from typing import Any, Callable, Dict, Iterable, List, Union, Mapping, Optional, Sequence, Tuple, Type, TypeVar
 
 import bossrandotypes as rotypes
 import ctoptions
 
+JSONPrimitive = Optional[Union[int, float, bool, str]]
+JSONType = Union[JSONPrimitive, Mapping[str, "JSONType"], Sequence["JSONType"]]
 SIE = TypeVar('SIE', bound='StrIntEnum')
 
 
@@ -15,6 +19,10 @@ class StrIntEnum(IntEnum):
         x = self.__repr__().split('.')[1].split(':')[0].lower().capitalize()
         x = x.replace('_', ' ')
         return x
+
+    @classmethod
+    def default(cls):
+        raise NotImplementedError(f"No .default implemented for {cls}")
 
     @classmethod
     def str_dict(cls: Type[SIE]) -> dict[SIE, str]:
@@ -36,17 +44,29 @@ class GameMode(StrIntEnum):
     LEGACY_OF_CYRUS = auto()
     VANILLA_RANDO = auto()
 
+    @classmethod
+    def default(_):
+        return GameMode.STANDARD
+
 
 class Difficulty(StrIntEnum):
     EASY = 0
     NORMAL = 1
     HARD = 2
 
+    @classmethod
+    def default(_):
+        return Difficulty.NORMAL
+
 
 class TechOrder(StrIntEnum):
     NORMAL = 0
     FULL_RANDOM = 1
     BALANCED_RANDOM = 2
+
+    @classmethod
+    def default(_):
+        return TechOrder.FULL_RANDOM
 
 
 class ShopPrices(StrIntEnum):
@@ -55,8 +75,23 @@ class ShopPrices(StrIntEnum):
     FULLY_RANDOM = 2
     FREE = 3
 
+    @classmethod
+    def default(_):
+        return ShopPrices.NORMAL
 
-class GameFlags(Flag):
+
+class SerializableFlag(Flag):
+    def __add__(self, other: Flag):
+        return self | other
+
+    def __sub__(self, other: Flag):
+        return self & ~other
+
+    def to_jot_json(self) -> List[str]:
+        return [str(flag) for flag in type(self) if flag in self]
+
+
+class GameFlags(SerializableFlag):
     FIX_GLITCH = auto()
     BOSS_SCALE = auto()
     ZEAL_END = auto()
@@ -82,7 +117,6 @@ class GameFlags(Flag):
     GEAR_RANDO = auto()
     STARTERS_SUFFICIENT = auto()
     EPOCH_FAIL = auto()
-    BOSS_SPOT_HP = auto()
     # Logic Tweak flags from VanillaRando mode
     UNLOCKED_SKYGATES = auto()
     ADD_SUNKEEP_SPOT = auto()
@@ -99,106 +133,68 @@ class GameFlags(Flag):
     # No longer Logic Tweak Flags
     TECH_DAMAGE_RANDO = auto()
 
-    def __add__(self, other: GameFlags):
-        return self | other
-
-    def __sub__(self, other: GameFlags):
-        return self & ~other
-
 
 # Dictionary for what flags force what other flags off.
 # Note that this is NOT symmetric.  For example Lost Worlds will force
 # Boss Scaling off, but not vice versa because it's annoying to have to
 # click off every minor flag to select a major flag like a game mode.
-_GF = GameFlags
-_GM = GameMode
-_forced_off_dict: dict[Union[_GF, _GM], _GF] = {
-    _GF.FIX_GLITCH: _GF(0),
-    _GF.BOSS_SCALE: _GF(0),
-    _GF.ZEAL_END: _GF(0),
-    _GF.FAST_PENDANT: _GF(0),
-    _GF.LOCKED_CHARS: _GF(0),
-    _GF.UNLOCKED_MAGIC: _GF(0),
-    _GF.CHRONOSANITY: _GF.BOSS_SCALE,
-    _GF.ROCKSANITY: _GF(0),
-    _GF.TAB_TREASURES: _GF(0),
-    _GF.BOSS_RANDO: _GF(0),
-    _GF.CHAR_RANDO: _GF(0),
-    _GF.DUPLICATE_CHARS: _GF(0),
-    _GF.DUPLICATE_TECHS: _GF(0),
-    _GF.VISIBLE_HEALTH: _GF(0),
-    _GF.FAST_TABS: _GF(0),
-    _GF.BUCKET_LIST: _GF(0),
-    _GF.MYSTERY: _GF(0),
-    _GF.GEAR_RANDO: _GF(0),
-    _GF.HEALING_ITEM_RANDO: _GF(0),
-    _GF.EPOCH_FAIL: _GF(0),
-    _GM.STANDARD: _GF(0),
-    _GM.LOST_WORLDS: (
-        _GF.BOSS_SCALE | _GF.BUCKET_LIST | _GF.EPOCH_FAIL |
-        _GF.ADD_BEKKLER_SPOT | _GF.ADD_CYRUS_SPOT | _GF.ADD_OZZIE_SPOT |
-        _GF.ADD_RACELOG_SPOT | _GF.ADD_SUNKEEP_SPOT | _GF.RESTORE_JOHNNY_RACE |
-        _GF.SPLIT_ARRIS_DOME | _GF.RESTORE_TOOLS | _GF.UNLOCKED_SKYGATES |
-        _GF.VANILLA_DESERT | _GF.VANILLA_ROBO_RIBBON | _GF.ROCKSANITY |
-        _GF.REMOVE_BLACK_OMEN_SPOT
-    ),
-    _GM.ICE_AGE: (
-        _GF.ZEAL_END |
-        _GF.BOSS_SCALE | _GF.BUCKET_LIST |
-        _GF.ADD_BEKKLER_SPOT
-    ),
-    _GM.LEGACY_OF_CYRUS: (
-        _GF.ZEAL_END |
-        _GF.BUCKET_LIST | _GF.BOSS_SCALE |
-        _GF.ADD_OZZIE_SPOT | _GF.ADD_SUNKEEP_SPOT | _GF.RESTORE_TOOLS |
-        _GF.RESTORE_JOHNNY_RACE | _GF.SPLIT_ARRIS_DOME | _GF.ADD_RACELOG_SPOT |
-        _GF.ADD_BEKKLER_SPOT
-    ),
-    _GM.VANILLA_RANDO: (
-        _GF.BOSS_SCALE
-    )
-}
+class ForcedFlags:
+    _GF = GameFlags
+    _GM = GameMode
+
+    forced_off: Dict[Union[GameFlags, GameMode], GameFlags] = {
+        _GF.CHRONOSANITY: _GF.BOSS_SCALE,
+        _GM.LOST_WORLDS: (
+            _GF.BOSS_SCALE | _GF.BUCKET_LIST | _GF.EPOCH_FAIL |
+            _GF.ADD_BEKKLER_SPOT | _GF.ADD_CYRUS_SPOT | _GF.ADD_OZZIE_SPOT |
+            _GF.ADD_RACELOG_SPOT | _GF.ADD_SUNKEEP_SPOT | _GF.RESTORE_JOHNNY_RACE |
+            _GF.SPLIT_ARRIS_DOME | _GF.RESTORE_TOOLS | _GF.UNLOCKED_SKYGATES |
+            _GF.VANILLA_DESERT | _GF.VANILLA_ROBO_RIBBON | _GF.ROCKSANITY |
+            _GF.REMOVE_BLACK_OMEN_SPOT
+        ),
+        _GM.ICE_AGE: (
+            _GF.ZEAL_END |
+            _GF.BOSS_SCALE | _GF.BUCKET_LIST |
+            _GF.ADD_BEKKLER_SPOT
+        ),
+        _GM.LEGACY_OF_CYRUS: (
+            _GF.ZEAL_END |
+            _GF.BUCKET_LIST | _GF.BOSS_SCALE |
+            _GF.ADD_OZZIE_SPOT | _GF.ADD_SUNKEEP_SPOT | _GF.RESTORE_TOOLS |
+            _GF.RESTORE_JOHNNY_RACE | _GF.SPLIT_ARRIS_DOME | _GF.ADD_RACELOG_SPOT |
+            _GF.ADD_BEKKLER_SPOT
+        ),
+        _GM.VANILLA_RANDO: _GF.BOSS_SCALE,
+    }
+
+    # Similar dictionary for forcing flags on
+    forced_on: Dict[Union[GameFlags, GameMode], GameFlags] = {
+        _GF.ROCKSANITY: _GF.UNLOCKED_SKYGATES,
+        _GF.DUPLICATE_CHARS: _GF.CHAR_RANDO,
+        _GF.DUPLICATE_TECHS: (_GF.CHAR_RANDO | _GF.DUPLICATE_CHARS),
+        _GM.LOST_WORLDS: _GF.UNLOCKED_MAGIC,
+        _GM.ICE_AGE: _GF.UNLOCKED_MAGIC,
+        _GM.LEGACY_OF_CYRUS: _GF.UNLOCKED_MAGIC,
+    }
 
 
-# Similar dictionary for forcing flags on
-_forced_on_dict = {
-    _GF.FIX_GLITCH: _GF(0),
-    _GF.BOSS_SCALE: _GF(0),
-    _GF.ZEAL_END: _GF(0),
-    _GF.FAST_PENDANT: _GF(0),
-    _GF.LOCKED_CHARS: _GF(0),
-    _GF.UNLOCKED_MAGIC: _GF(0),
-    _GF.CHRONOSANITY: _GF(0),
-    _GF.ROCKSANITY: _GF.UNLOCKED_SKYGATES,
-    _GF.TAB_TREASURES: _GF(0),
-    _GF.BOSS_RANDO: _GF(0),
-    _GF.CHAR_RANDO: _GF(0),
-    _GF.DUPLICATE_CHARS: _GF.CHAR_RANDO,
-    _GF.DUPLICATE_TECHS: (_GF.CHAR_RANDO | _GF.DUPLICATE_CHARS),
-    _GF.VISIBLE_HEALTH: _GF(0),
-    _GF.FAST_TABS: _GF(0),
-    _GF.BUCKET_LIST: _GF(0),
-    _GF.MYSTERY: _GF(0),
-    _GF.GEAR_RANDO: _GF(0),
-    _GF.HEALING_ITEM_RANDO: _GF(0),
-    _GF.EPOCH_FAIL: _GF(0),
-    _GM.STANDARD: _GF(0),
-    _GM.LOST_WORLDS: _GF.UNLOCKED_MAGIC,
-    _GM.ICE_AGE: _GF.UNLOCKED_MAGIC,
-    _GM.LEGACY_OF_CYRUS: _GF.UNLOCKED_MAGIC,
-    _GM.VANILLA_RANDO: _GF(0)
-}
+    @classmethod
+    def get_forced_off(cls, flag: Union[GameFlags, GameMode]) -> GameFlags:
+        return cls.forced_off.get(flag, GameFlags(0))
+
+    @classmethod
+    def get_forced_on(cls, flag: Union[GameFlags, GameMode]) -> GameFlags:
+        return cls.forced_on.get(flag, GameFlags(0))
+
+    @classmethod
+    def to_jot_json(cls) -> Dict[str, Any]:
+        return {
+            'forced_off': {str(k): v for k, v in cls.forced_off.items()},
+            'forced_on': {str(k): v for k, v in cls.forced_on.items()},
+        }
 
 
-def get_forced_off(flag: GameFlags) -> GameFlags:
-    return _forced_off_dict.get(flag, GameFlags(0))
-
-
-def get_forced_on(flag: GameFlags) -> GameFlags:
-    return _forced_on_dict.get(flag, GameFlags(0))
-
-
-class CosmeticFlags(Flag):
+class CosmeticFlags(SerializableFlag):
     ZENAN_ALT_MUSIC = auto()
     DEATH_PEAK_ALT_MUSIC = auto()
     QUIET_MODE = auto()
@@ -210,10 +206,14 @@ class TabRandoScheme(StrIntEnum):
     UNIFORM = 0
     BINOMIAL = 1
 
+    @classmethod
+    def default(_):
+        return TabRandoScheme.UNIFORM
+
 
 @dataclass
 class TabSettings:
-    scheme: TabRandoScheme = TabRandoScheme.UNIFORM
+    scheme: TabRandoScheme = TabRandoScheme.default()
     binom_success: float = 0.5  # Only used by binom if set
     power_min: int = 2
     power_max: int = 4
@@ -222,8 +222,13 @@ class TabSettings:
     speed_min: int = 1
     speed_max: int = 1
 
+    def to_jot_json(self) -> Dict[str, JSONPrimitive]:
+        data = {field.name: getattr(self, field.name) for field in fields(self)}
+        data['scheme'] = str(self.scheme)
+        return data
 
-class ROFlags(Flag):
+
+class ROFlags(SerializableFlag):
     '''
     Flags which can be passed to boss rando.
     '''
@@ -237,21 +242,15 @@ class ROSettings:
     Full Boss Rando settings allow specification of which bosses/spots are
     in the pool as well as some additional flags.
     '''
-    spots: list[rotypes.BossSpotID] = field(default_factory=list)
-    bosses: list[rotypes.BossID] = field(default_factory=list)
+    spots: List[rotypes.BossSpotID] = field(default_factory=list)
+    bosses: List[rotypes.BossID] = field(default_factory=list)
     flags: ROFlags = ROFlags(0)
 
-    @classmethod
+    @staticmethod
     def from_game_mode(
-            cls,
-            mode: GameMode,
-            boss_list: Optional[list[rotypes.BossID]] = None,
-            ro_flags: ROFlags = ROFlags(0)
-            ) -> ROSettings:
-        '''
-        Construct an ROSettings object with correct initial locations given
-        the game mode.
-        '''
+        mode: GameMode, bosses: Optional[List[rotypes.BossID]] = None, flags: ROFlags = ROFlags(0)
+    ) -> ROSettings:
+        '''Construct an ROSettings object with correct initial locations given the game mode.'''
         spots = []
         BS = rotypes.BossSpotID
         if mode == GameMode.LOST_WORLDS:
@@ -275,10 +274,22 @@ class ROSettings:
         else:  # Std, IA, Vanilla
             spots = list(BS)
 
-        if boss_list is None:
-            boss_list = rotypes.get_assignable_bosses()
+        if not bosses:
+            bosses = rotypes.get_assignable_bosses()
+        # if bosses specified, and not enough bosses for spots, assure any specified bosses are included,
+        # but randomly take enough other assignable bosses to fill all spots
+        elif (padding_needed := len(spots) - len(bosses)) > 0:
+            assignable = [boss for boss in rotypes.get_assignable_bosses() if boss not in bosses]
+            bosses.extend(random.sample(assignable, k=padding_needed))
 
-        return ROSettings(spots, boss_list, ro_flags)
+        return ROSettings(spots, bosses, flags)
+
+    def to_jot_json(self) -> Dict[str, Any]:
+        data = {}
+        for item in fields(self):
+            attr = getattr(self, item.name)
+            data[item.name] = [str(x) for x in attr] if isinstance(attr, List) else attr
+        return data
 
 
 @dataclass
@@ -294,37 +305,157 @@ class BucketSettings:
     num_objectives_needed: int = 4
     hints: list[str] = field(default_factory=list)
 
+    def to_jot_json(self) -> Dict[str, JSONType]:
+        return {field.name: getattr(self, field.name) for field in fields(self)}
 
-class MysterySettings:
+
+class CharChoices(UserList):
+    '''Type-checked list of lists for character choices allowing get/set via string or index.'''
+
+    def __init__(self, choices: Optional[List[Union[str, List[int]]]] = None):
+        self.data = [list(range(7)) for _ in range(7)]
+
+        if choices:
+            for pc_id, choice in enumerate(choices):
+                self[pc_id] = choice
+
+    def __getitem__(self, key):
+        '''Lookup items via characer name string or index.'''
+        return self.data[CharNames.lookup(key)]
+
+    def __setitem__(self, key, choices):
+        '''Set items via character name string or index.
+
+        When choices is a string, parse to determine character choice ints.
+        Otherwise, item must be a list of ints, or raise TypeError.
+        '''
+        index = CharNames.lookup(key)
+        if isinstance(choices, str):
+            self.data[index] = self._parse_choices(choices)
+        elif isinstance(choices, List) and all(isinstance(x, int) for x in choices):
+            self.data[index] = choices
+        else:
+            raise TypeError('Character choices must be either string or list of ints.')
+
+    @staticmethod
+    def _parse_choices(choices: str) -> List[int]:
+        '''Determine list of character choice ints based on specified string.'''
+        selections = choices.lower().split()
+
+        # select all character choices
+        if selections[0] == 'all':
+            return list(range(7))
+
+        # inverted selection: get all character choices except specified
+        if selections[0] == 'not':
+            indices = [CharNames.lookup(choice) for choice in selections[1:]]
+            return [index for index in range(7) if index not in indices]
+
+        # regular selection: get all character choices specified
+        indices = [CharNames.lookup(choice) for choice in selections]
+        return [index for index in range(7) if index in indices]
+
+    def to_jot_json(self) -> List[List[int]]:
+        def _choices(choices):
+            if isinstance(choices, str):
+                return choices
+            else:
+                return [choice for choice in choices]
+        return [_choices(character) for character in self.data]
+
+
+class CharNames(UserList):
+    '''Type-checked list of character names allowing get/set via string or index.'''
+
+    def __init__(self, names: Optional[Iterable[str]] = None):
+        names = [name for name in names] if names else []
+        if not names:
+            names = self.default()
+        if len(names) != 8:
+            raise IndexError('Must specify 8 names if using assignment.')
+        if not all(isinstance(name, str) for name in names):
+            raise TypeError('All character names must be strings.')
+        self.data = names
+
+    def __getitem__(self, key):
+        '''Lookup items via characer name string or index.'''
+        return self.data[self.lookup(key)]
+
+    def __setitem__(self, key, name):
+        '''Set items via character name string or index.'''
+        if not isinstance(name, str):
+            raise TypeError('Character names must be strings.')
+        self.data[self.lookup(key)] = name
+
+    @staticmethod
+    def default() -> List[str]:
+        '''Default character names.'''
+        return ['Crono', 'Marle', 'Lucca', 'Robo', 'Frog', 'Ayla', 'Magus', 'Epoch']
+
+    @staticmethod
+    def lookup(key) -> int:
+        if isinstance(key, str):
+            return CharNames.default().index(key.lower().capitalize())
+        return key
+
+    def to_jot_json(self) -> List[str]:
+        return [name for name in self.data]
+
+
+@dataclass
+class CharSettings:
+    '''Contains settings related to characters.'''
+    names: CharNames
+    choices: CharChoices
+
     def __init__(self):
-        self.game_mode_freqs: dict[GameMode, int] = {
+        self.names = CharNames()
+        self.choices = CharChoices()
+
+    def to_jot_json(self) -> Dict[str, JSONType]:
+        return {field.name: getattr(self, field.name) for field in fields(self)}
+
+
+@dataclass
+class MysterySettings:
+    '''Settings related to generating mystery seeds.'''
+
+    game_mode_freqs: Dict[GameMode, int] = field(default_factory=dict)
+    item_difficulty_freqs: Dict[Difficulty, int] = field(default_factory=dict)
+    enemy_difficulty_freqs: Dict[Difficulty, int] = field(default_factory=dict)
+    tech_order_freqs: Dict[TechOrder, int] = field(default_factory=dict)
+    shop_price_freqs: Dict[ShopPrices, int] = field(default_factory=dict)
+    flag_prob_dict: Dict[GameFlags, float] = field(default_factory=dict)
+
+    def __init__(self):
+        self.game_mode_freqs = {
             GameMode.STANDARD: 75,
             GameMode.LOST_WORLDS: 25,
             GameMode.LEGACY_OF_CYRUS: 0,
             GameMode.ICE_AGE: 0,
             GameMode.VANILLA_RANDO: 0
         }
-        self.item_difficulty_freqs: dict[Difficulty, int] = {
+        self.item_difficulty_freqs = {
             Difficulty.EASY: 15,
             Difficulty.NORMAL: 70,
             Difficulty.HARD: 15
         }
-        self.enemy_difficulty_freqs: dict[Difficulty, int] = {
+        self.enemy_difficulty_freqs = {
             Difficulty.NORMAL: 75,
             Difficulty.HARD: 25
         }
-        self.tech_order_freqs: dict[TechOrder, int] = {
+        self.tech_order_freqs = {
             TechOrder.NORMAL: 10,
             TechOrder.BALANCED_RANDOM: 10,
             TechOrder.FULL_RANDOM: 80
         }
-        self.shop_price_freqs: dict[ShopPrices, int] = {
+        self.shop_price_freqs = {
             ShopPrices.NORMAL: 70,
             ShopPrices.MOSTLY_RANDOM: 10,
             ShopPrices.FULLY_RANDOM: 10,
             ShopPrices.FREE: 10
         }
-        self.flag_prob_dict: dict[GameFlags, float] = {
+        self.flag_prob_dict = {
             GameFlags.TAB_TREASURES: 0.10,
             GameFlags.UNLOCKED_MAGIC: 0.5,
             GameFlags.BUCKET_LIST: 0.15,
@@ -339,38 +470,62 @@ class MysterySettings:
             GameFlags.HEALING_ITEM_RANDO: 0.25
         }
 
-    def __str__(self):
-        ret_str = ''
-        ret_str += str(self.game_mode_freqs) + '\n'
-        ret_str += str(self.item_difficulty_freqs) + '\n'
-        ret_str += str(self.enemy_difficulty_freqs) + '\n'
-        ret_str += str(self.tech_order_freqs) + '\n'
-        ret_str += str(self.shop_price_freqs) + '\n'
-        ret_str += str(self.flag_prob_dict) + '\n'
+    def to_jot_json(self) -> Dict[str, JSONType]:
+        return {
+            field.name: {str(k): freq for k, freq in self[field.name].items()}
+            for field in fields(self)
+        }
 
-        return ret_str
+    def update(self, **items) -> MysterySettings:
+        for attr, updates in items.items():
+            self[attr].update(updates)
+        return self
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    def __str__(self) -> str:
+        return '\n'.join(str(self[field.name]) for field in fields(self)) + '\n'
 
 
+@dataclass
 class Settings:
+    '''Container for all settings which do not require reading ROM data.'''
+
+    # NOTE: all fields in dataclasses are used to determine object equivalence
+    # that is why initial_flags is intentionally missing from fields list, but initialized in __init__
+    game_mode: GameMode
+    item_difficulty: Difficulty
+    enemy_difficulty: Difficulty
+    techorder: TechOrder
+    shopprices: ShopPrices
+    mystery_settings: MysterySettings
+    gameflags: GameFlags
+    ro_settings: ROSettings
+    bucket_settings: BucketSettings
+    char_settings: CharSettings
+    tab_settings: TabSettings
+    cosmetic_flags: CosmeticFlags
+    ctoptions: ctoptions.CTOpts
+    seed: str
 
     def __init__(self):
 
-        self.game_mode = GameMode.STANDARD
-        self.item_difficulty = Difficulty.NORMAL
-        self.enemy_difficulty = Difficulty.NORMAL
+        self.game_mode = GameMode.default()
+        self.item_difficulty = Difficulty.default()
+        self.enemy_difficulty = Difficulty.default()
 
-        self.techorder = TechOrder.FULL_RANDOM
-        self.shopprices = ShopPrices.NORMAL
+        self.techorder = TechOrder.default()
+        self.shopprices = ShopPrices.default()
 
         self.mystery_settings = MysterySettings()
 
         self.gameflags = GameFlags(0)
         self.initial_flags = GameFlags(0)
-        self.char_choices = [list(range(7)) for j in range(7)]
 
         self.ro_settings = ROSettings.from_game_mode(self.game_mode)
         self.bucket_settings = BucketSettings()
-
+        self.char_settings = CharSettings()
         self.tab_settings = TabSettings()
         self.cosmetic_flags = CosmeticFlags(0)
 
@@ -378,22 +533,23 @@ class Settings:
 
         self.seed = ''
 
-        self.char_names: list[str] = [
-            'Crono', 'Marle', 'Lucca', 'Robo', 'Frog', 'Ayla', 'Magus',
-            'Epoch'
-        ]
-
-    def _jot_json(self):
+    def to_jot_json(self) -> Dict[str, Any]:
         return {
-            "seed": self.seed,
-            "mode": str(self.game_mode),
+            "game_mode": str(self.game_mode),
             "enemy_difficulty": str(self.enemy_difficulty),
             "item_difficulty": str(self.item_difficulty),
-            "tech_order": str(self.techorder),
-            "shops": str(self.shopprices),
-            "flags": self.gameflags,
+            "techorder": str(self.techorder),
+            "shopprices": str(self.shopprices),
+            "mystery_settings": self.mystery_settings,
+            "gameflags": self.gameflags,
             "initial_flags": self.initial_flags,
-            "cosmetic_flags": self.cosmetic_flags
+            "ro_settings": self.ro_settings,
+            "bucket_settings": self.bucket_settings,
+            "char_settings": self.char_settings,
+            "tab_settings": self.tab_settings,
+            "cosmetic_flags": self.cosmetic_flags,
+            "ctoptions": self.ctoptions,
+            "seed": self.seed,
         }
 
     @staticmethod
@@ -485,9 +641,10 @@ class Settings:
 
         ret.gameflags = (
             GF.FIX_GLITCH | GF.ZEAL_END | GF.FAST_PENDANT | GF.BOSS_RANDO |
-            GF.BOSS_SPOT_HP | GF.FAST_TABS | GF.FREE_MENU_GLITCH |
+            GF.FAST_TABS | GF.FREE_MENU_GLITCH |
             GF.GEAR_RANDO | GF.HEALING_ITEM_RANDO
         )
+        ret.ro_settings.flags = ROFlags.BOSS_SPOT_HP
 
         return ret
 
@@ -514,7 +671,7 @@ class Settings:
         from resolveExtraKeyItems, if possible.
         '''
         mode = self.game_mode
-        forced_off = _forced_off_dict[mode]
+        forced_off = ForcedFlags.get_forced_off(mode)
         self.gameflags &= ~forced_off
 
         # Duplicate Character implies Character Rando
@@ -579,8 +736,7 @@ class Settings:
                 self.gameflags &= ~GameFlags.EPOCH_FAIL
                 added_kis -= 1
             else:
-                raise ValueError('Cannot fix flag conflicts')
-
+                raise ValueError(f"Cannot fix flag conflicts: {added_kis} KIs > {added_spots} spots")
 
 
     def get_flag_string(self):
