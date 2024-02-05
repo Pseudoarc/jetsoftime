@@ -50,6 +50,9 @@ def update_element_placards_on_ctrom(ct_rom: ctrom.CTRom, config: cfg.RandoConfi
     Call this after charrando because its changes need to be overwritten.
     """
 
+    if not config.elems:
+        return
+
     # The relevant code is:
     # $C2/A27C BF C6 A2 C2 LDA $C2A2C6,x[$C2:A2C6]
     # X has the pc-index which needs to be reeassigned
