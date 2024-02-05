@@ -1,3 +1,4 @@
+"""Module for some types used by both enemy and pc techs."""
 from __future__ import annotations
 
 import typing

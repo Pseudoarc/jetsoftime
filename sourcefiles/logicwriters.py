@@ -671,7 +671,7 @@ def commitKeyItems(settings: rset.Settings,
 
     for locationGroup in gameConfig.locationGroups:
         for location in locationGroup.getLocations():
-            if type(location) == logictypes.BaselineLocation and \
+            if isinstance(location, logictypes.BaselineLocation) and \
                (location not in chosenLocations):
 
                 # This is a baseline location without a key item.

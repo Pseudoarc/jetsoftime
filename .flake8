@@ -1,0 +1,45 @@
+[flake8]
+exclude = .git,__pycache__
+max-line-length = 119
+
+extend-ignore=
+  # Temporarily ignore issues which probably should be addressed in near future
+  ## assigned but never used
+  F841,
+
+  # Ignore formatting issues that a tool like black could automatically address
+  ## non-syntax indentation (visual)
+  E122, E123, E128, E131,
+
+  ## whitespace around parens, operators, separators, keywords
+  E201, E202, E222, E225, E231, E231, E241, E251, E271, E272, E275,
+
+  ## whitespace with comments
+  E261, E262, E265,
+
+  ## blank lines
+  E301, E302, E303, E305, E306,
+
+  ## trailing whitespace, blank line contains whitespace
+  W291, W293,
+
+  ## line length
+  E501,
+
+  # Ignore other issues which may or may not care about
+  ## multiple imports per line
+  E401,
+
+  ## ambigious variable name
+  E741
+
+per-file-ignores=
+  # Temporarily ignore issues which probably should be addressed in near future
+  ## indentation not a multiple of 4 (should address in near future)
+  sourcefiles/logicwriter_chronosanity.py:E111, E114
+
+  # Ignore other issues which may or may not care about
+  ## line length
+  sourcefiles/ctoptions.py:E501
+  sourcefiles/randomizergui.py:E501
+

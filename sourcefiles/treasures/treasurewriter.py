@@ -231,7 +231,7 @@ def ptr_to_enum(ptr_list):
     tdict = config.treasure_assign_dict
 
     treasureids = [x for x in tdict.keys()
-                   if type(tdict[x]) == cfg.ChestTreasure
+                   if isinstance(tdict[x], cfg.ChestTreasure)
                    and tdict[x].chest_index in chestid]
 
     used_ids = [tdict[x].chest_index for x in treasureids]
@@ -272,4 +272,3 @@ def find_script_ptrs(ptr_list):
         chest_index = (ptr-0x35f404)//4
         if 0 > chest_index or chest_index > 0xF8:
             print(f"{ptr:06X}")
-

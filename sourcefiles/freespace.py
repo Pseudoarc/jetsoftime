@@ -1,7 +1,8 @@
 from __future__ import annotations
 from enum import Enum
 from io import BytesIO
-from typing import Tuple
+from pathlib import Path
+from typing import Tuple, Union
 
 import byteops
 
@@ -340,6 +341,8 @@ class FreeSpace():
 
 class FSRom(BytesIO):
 
+    _patches_path: Path = Path(__file__).parent / 'patches'
+
     def __init__(self, rom: bytes, is_free=False):
         super().__init__(rom)
         self.space_manager = FreeSpace(len(rom), is_free)
@@ -348,7 +351,7 @@ class FSRom(BytesIO):
     # Code copied from patcher.py with few modifications.
     # I am assuming that all writes are using up free space.
     def patch_txt_file(self, filename):
-        with open(filename, 'r') as patch_obj:
+        with self._get_patch_path(filename).open('r') as patch_obj:
             self.patch_txt(patch_obj)
 
     def patch_txt(self, patch_obj):
@@ -365,7 +368,7 @@ class FSRom(BytesIO):
     # Apply an ips patch.  Most writes are considered used space, but long
     # rle blocks of 0s are considered free space.
     def patch_ips_file(self, filename):
-        with open(filename, 'rb') as patch_obj:
+        with self._get_patch_path(filename).open('rb') as patch_obj:
             self.patch_ips(patch_obj)
 
     def patch_ips(self, patch_obj):
@@ -456,6 +459,18 @@ class FSRom(BytesIO):
             self.seek(write_addr)
             self.write(data, FSWriteType.MARK_USED)
             return write_addr
+
+    @staticmethod
+    def _get_patch_path(filename: Union[str, Path]) -> Path:
+        '''Coerce filename path to use patch from "patches" directory in package instead of relative to CWD.
+
+        If filename starts with './patches/', it is replaced with the location of "patches" directory.
+        '''
+        parts = Path(filename).parts
+        if parts[0] == 'patches':
+            # strip off leading './patches/' if included in filename
+            parts = parts[1:]
+        return Path(FSRom._patches_path, *parts)
 
 
 def main():

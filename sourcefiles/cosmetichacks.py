@@ -27,9 +27,7 @@ def set_pc_names(
     '''
     Provide names to be used for characters and epoch.
     '''
-    default_names = (
-        'Crono', 'Marle', 'Lucca', 'Robo', 'Frog', 'Ayla', 'Magus', 'Epoch'
-    )
+    default_names = rset.CharNames.default()
 
     copy_str = bytearray()
 

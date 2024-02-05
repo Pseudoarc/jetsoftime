@@ -6,6 +6,8 @@ from __future__ import annotations
 import pickle
 import typing
 
+from pathlib import Path
+
 import byteops
 
 
@@ -118,6 +120,8 @@ class CTHuffmanTree:
 # methods for converting to python string and compression.
 class CTString(bytearray):
 
+    _pickles_path: Path = Path(__file__).parent / 'pickles'
+
     # This list might not be exactly right.  I need to encounter each keyword
     # in a flux file before I know exactly what name flux uses.
 
@@ -145,7 +149,7 @@ class CTString(bytearray):
         '{:inf:}', 'none'
     ]
 
-    huffman_table = pickle.load(open('./pickles/huffman_table.pickle', 'rb'))
+    huffman_table = pickle.load(Path(_pickles_path / 'huffman_table.pickle').open('rb'))
     huffman_tree = CTHuffmanTree(huffman_table)
 
     # There's nothing special that we do for CTStrings.

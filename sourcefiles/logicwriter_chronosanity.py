@@ -2,6 +2,8 @@
 from __future__ import annotations
 import random as rand
 
+from typing import List
+
 
 # jets of time libraries
 import logicfactory
@@ -20,7 +22,7 @@ import randosettings as rset
 #
 
 # Script variables
-locationGroups = []
+locationGroups: List[logictypes.LocationGroup] = []
 
 
 #
@@ -30,7 +32,7 @@ locationGroups = []
 #
 # return: List of all available LocationGroups
 #
-def getAvailableLocations(game: logictypes.Game) -> list[logictypes.Location]:
+def getAvailableLocations(game: logictypes.Game) -> List[logictypes.LocationGroup]:
   # Have the game object update what characters are available based on the
   # currently available items and time periods.
   game.updateAvailableCharacters()
@@ -268,7 +270,7 @@ def commitKeyItems(settings: rset.Settings,
     # piece of treasure. Treasure quality is based on the location's loot tier.
     for locationGroup in locationGroups:
         for location in locationGroup.getLocations():
-            if type(location) == logictypes.BaselineLocation and \
+            if isinstance(location, logictypes.BaselineLocation) and \
                (location not in chosenLocations):
 
                 # This is a baseline location without a key item.

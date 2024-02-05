@@ -1,0 +1,17 @@
+[tool.black]
+line-length = 119
+skip_string_normalization = true
+
+[tool.mypy]
+disable_error_code = "annotation-unchecked"
+ignore_missing_imports = true
+exclude = [
+  # Some errors on types from tk/ttk in randomizergui.py
+  "^sourcefiles/randomizergui.py",
+
+  # Need to update some type defintions/Optionals in treasures files
+  "^sourcefiles/treasures/",
+
+  # Vanilla Rando code has some missing attributes, might be actual typos/bugs
+  "^sourcefiles/vanillarando/"
+]

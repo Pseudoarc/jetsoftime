@@ -1,6 +1,7 @@
 from __future__ import annotations
 import enum
-from typing import ByteString, Optional, Tuple
+from pathlib import Path
+from typing import ByteString, Optional, Union, Tuple
 
 from ctdecompress import compress, decompress, get_compressed_length, \
     get_compressed_packet
@@ -102,6 +103,8 @@ def get_location_script(rom, loc_id):
 # of relevant entities (objects, functions).
 class Event:
 
+    _flux_path: Path = Path(__file__).parent / 'flux'
+
     def __init__(self):
         self.num_objects = 0
 
@@ -126,8 +129,7 @@ class Event:
     @staticmethod
     def from_flux(filename: str):
         '''Reads a .flux file and loads it into an Event'''
-
-        with open(filename, 'rb') as infile:
+        with Event._get_flux_path(filename).open('rb') as infile:
             flux = bytearray(infile.read())
 
         # These first bytes are used internally by TF, but they don't seem
@@ -1259,6 +1261,19 @@ class Event:
         self.__shift_starts(ins_position, len(new_commands))
 
         self.data[ins_position:ins_position] = new_commands
+
+
+    @staticmethod
+    def _get_flux_path(filename: Union[Path, str]) -> Path:
+        '''Coerce filename path to use flux from "flux" directory in package instead of relative to CWD.
+
+        If filename starts with './flux/', it is replaced with the location of "flux" directory.
+        '''
+        parts = Path(filename).parts
+        if parts[0] == 'flux':
+            # strip off leading './flux/' if included in filename
+            parts = parts[1:]
+        return Path(Event._flux_path, *parts)
 
 
 # Find the length of a location's event script

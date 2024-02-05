@@ -121,7 +121,7 @@ class EnemyStats:
         self._set_name(ctstrings.CTString(name_bytes))
         self._set_rewards(reward_bytes)
 
-    def _jot_json(self):
+    def to_jot_json(self):
         return {
             'hp': self.hp,
             'level': self.level,

@@ -1,16 +1,17 @@
 # python standard libraries
 from functools import reduce
+import copy
 import os
 import pathlib
 import pickle
 import random
-import sys
 import threading
 import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import askdirectory
 from tkinter import messagebox
+from typing import Optional
 
 # custom/local libraries
 import bucketgui
@@ -18,13 +19,12 @@ import randomizer
 import bossrandotypes as rotypes
 from randosettings import Settings, GameFlags, Difficulty, ShopPrices, \
     TechOrder, TabSettings, TabRandoScheme, ROSettings, ROFlags, \
-    CosmeticFlags, BucketSettings, GameMode, MysterySettings
-from ctenums import LocID, ActionMap, InputMap
+    CosmeticFlags, GameMode, MysterySettings, CharNames
+from ctenums import ActionMap, InputMap
 import ctoptions
 import ctrom
 import ctstrings
 
-import objectivehints as oh
 
 #
 # tkinter does not have a native tooltip implementation.
@@ -75,7 +75,7 @@ class CreateToolTip(object):
         self.tw.wm_overrideredirect(True)
         self.tw.wm_geometry("+%d+%d" % (x, y))
         displaytext = self.text
-        if type(self.text) == tk.StringVar:
+        if isinstance(self.text, tk.StringVar):
             displaytext = self.text.get()
         label = tk.Label(self.tw, text=displaytext, justify='left',
                          background="#ffffff", relief='solid', borderwidth=1,
@@ -279,7 +279,7 @@ class RandoGUI:
 
     def set_settings(self, new_settings: Settings):
         self.__settings = new_settings
-        # print(self.__settings.char_choices)
+        # print(self.__settings.char_settings.choices)
         # print(self.__settings.gameflags)
         # print(self.__settings.get_flag_string())
         self.update_gui_vars()
@@ -400,17 +400,12 @@ class RandoGUI:
             value = InputMap[button.get().upper().replace(' ', '_')]
             self.settings.ctoptions.controller_binds.mappings[action] = value
 
-        self.settings.char_names[0] = self.char_names['Crono'].get()
-        self.settings.char_names[1] = self.char_names['Marle'].get()
-        self.settings.char_names[2] = self.char_names['Lucca'].get()
-        self.settings.char_names[3] = self.char_names['Robo'].get()
-        self.settings.char_names[4] = self.char_names['Frog'].get()
-        self.settings.char_names[5] = self.char_names['Ayla'].get()
-        self.settings.char_names[6] = self.char_names['Magus'].get()
-        self.settings.char_names[7] = self.char_names['Epoch'].get()
+        for name in CharNames.default():
+            self.settings.char_settings.names[name] = self.char_names[name].get()
 
         self.settings.gameflags = \
             reduce(lambda a, b: a | b, flags, GameFlags(False))
+        self.settings.initial_flags = copy.deepcopy(self.settings.gameflags)
         self.settings.cosmetic_flags = \
             reduce(lambda a, b: a | b, cosmetic_flags, CosmeticFlags(False))
 
@@ -431,10 +426,10 @@ class RandoGUI:
 
         # RC (dup duals already taken, just char choices)
         for i in range(7):
-            self.settings.char_choices[i] = []
+            self.settings.char_settings.choices[i] = []
             for j in range(7):
                 if self.char_choices[i][j].get() == 1:
-                    self.settings.char_choices[i].append(j)
+                    self.settings.char_settings.choices[i].append(j)
 
         # RO Settings
         # print(self.bosses)
@@ -444,11 +439,11 @@ class RandoGUI:
         loc_list = [self.boss_locations[i]
                     for i in self.boss_location_listbox.curselection()]
 
-        self.settings.ro_settings = ROSettings(
-            loc_list,
-            boss_list,
-            False
-        )
+        if loc_list:
+            roset = ROSettings(loc_list, boss_list, False)
+        else:
+            roset = ROSettings.from_game_mode(self.settings.game_mode, bosses=boss_list)
+        self.settings.ro_settings = roset
         self.settings.ro_settings.flags = \
             reduce(lambda a, b: a | b, ro_flags, ROFlags(False))
 
@@ -506,14 +501,8 @@ class RandoGUI:
                 self.cosmetic_flag_dict[x].set(0)
 
         # Char names
-        self.char_names['Crono'].set(self.settings.char_names[0])
-        self.char_names['Marle'].set(self.settings.char_names[1])
-        self.char_names['Lucca'].set(self.settings.char_names[2])
-        self.char_names['Robo'].set(self.settings.char_names[3])
-        self.char_names['Frog'].set(self.settings.char_names[4])
-        self.char_names['Ayla'].set(self.settings.char_names[5])
-        self.char_names['Magus'].set(self.settings.char_names[6])
-        self.char_names['Epoch'].set(self.settings.char_names[7])
+        for name in CharNames.default():
+            self.char_names[name].set(self.settings.char_settings.names[name])
 
         increment_vars = [
             'menu_background',
@@ -566,7 +555,7 @@ class RandoGUI:
         # RC char choices
         for i in range(7):
             for j in range(7):
-                if j in self.settings.char_choices[i]:
+                if j in self.settings.char_settings.choices[i]:
                     self.char_choices[i][j].set(1)
                 else:
                     self.char_choices[i][j].set(0)
@@ -825,9 +814,7 @@ class RandoGUI:
         row = 0
         col = 0
 
-        char_names = [
-            'Crono', 'Marle', 'Lucca', 'Robo', 'Frog', 'Ayla', 'Magus'
-        ]
+        char_names = CharNames.default()[:-1]
 
         row += 1
 
@@ -1413,7 +1400,7 @@ class RandoGUI:
         for action, button in self.controller_binds.items():
             try:
                 value = InputMap[button.get().upper().replace(' ', '_')]
-            except:
+            except Exception:
                 messagebox.showerror(
                     'Options Controller Error',
                     'All button binds must be set.'
@@ -1713,28 +1700,35 @@ class RandoGUI:
 
             rando = randomizer.Randomizer(rom, is_vanilla=False)
             rando.settings = self.settings
-            rando.set_random_config()
-            out_rom = rando.get_generated_rom()
+            try:
+                rando.set_random_config()
+                out_rom = rando.get_generated_rom()
+            except Exception as ex:
+                tk.messagebox.showerror(
+                    title='Error generating rom!', message=str(ex)
+                )
+                # clear seed field on error
+                self.seed.set('')
+            else:
+                input_path = pathlib.Path(self.input_file.get())
 
-            input_path = pathlib.Path(self.input_file.get())
+                if self.output_dir is None or self.output_dir.get() == '':
+                    self.output_dir.set(str(input_path.parent))
 
-            if self.output_dir is None or self.output_dir.get() == '':
-                self.output_dir.set(str(input_path.parent))
+                base_name = pathlib.Path(input_path.name.split('.')[0])
+                out_dir = pathlib.Path(self.output_dir.get())
 
-            base_name = input_path.name.split('.')[0]
-            out_dir = self.output_dir.get()
+                writer = randomizer.RandomizerWriter(rando, base_name=base_name)
+                writer.write_output_rom(out_dir)
+                writer.write_spoiler_log(out_dir)
+                writer.write_json_spoiler_log(out_dir)
 
-            writer = randomizer.RandomizerWriter(rando, base_name=base_name)
-            writer.write_output_rom(out_dir)
-            writer.write_spoiler_log(out_dir)
-            writer.write_json_spoiler_log(out_dir)
+                tk.messagebox.showinfo(
+                    title='Randomization Complete',
+                    message=f'Randomization Complete.  Seed: {seed}.'
+                )
 
-            tk.messagebox.showinfo(
-                title='Randomization Complete',
-                message=f'Randomization Complete.  Seed: {seed}.'
-            )
-
-            self.save_settings()
+                self.save_settings()
 
         # Regardless of generation, stop the progress bar
         self.progressBar.stop()
@@ -2092,7 +2086,7 @@ class RandoGUI:
         checkbox = tk.Checkbutton(
             extraoptionframe,
             text='Boss Spot HPs',
-            variable=self.flag_dict[GameFlags.BOSS_SPOT_HP]
+            variable=self.ro_flag_dict[ROFlags.BOSS_SPOT_HP]
         )
         checkbox.pack(anchor=tk.W)
 
@@ -2248,14 +2242,26 @@ class RandoGUI:
             'Randomize damage inflicted by single techs.'
         )
 
+        ercheck = tk.Checkbutton(
+            frame,
+            text='Element Randomization',
+            variable=self.flag_dict[GameFlags.ELEMENT_RANDO]
+        )
+        ercheck.pack(anchor=tk.W)
+
+        CreateToolTip(
+            ercheck,
+            'Shuffle the 4 elements among characters and Robo techs.'
+        )
+
         plus_ki_flags = [
             GameFlags.RESTORE_JOHNNY_RACE, GameFlags.RESTORE_TOOLS
         ]
 
-        plus_spot_flags = [
+        adjust_spot_flags = [
             GameFlags.ADD_BEKKLER_SPOT, GameFlags.ADD_OZZIE_SPOT,
             GameFlags.ADD_RACELOG_SPOT, GameFlags.VANILLA_ROBO_RIBBON,
-            GameFlags.ADD_CYRUS_SPOT
+            GameFlags.ADD_CYRUS_SPOT, GameFlags.REMOVE_BLACK_OMEN_SPOT
         ]
 
         ki_neutral_flags = [
@@ -2273,6 +2279,7 @@ class RandoGUI:
             GameFlags.ADD_OZZIE_SPOT: 'Add Ozzie\'s Fort Spot',
             GameFlags.RESTORE_JOHNNY_RACE: 'Restore Johnny Race',
             GameFlags.ADD_RACELOG_SPOT: 'Add Race Log Spot',
+            GameFlags.REMOVE_BLACK_OMEN_SPOT: 'Remove Black Omen Spot',
             GameFlags.SPLIT_ARRIS_DOME: 'Split Arris Dome',
             GameFlags.VANILLA_ROBO_RIBBON: 'Vanilla Robo Ribbon',
             GameFlags.VANILLA_DESERT: 'Vanilla Desert',
@@ -2310,6 +2317,10 @@ class RandoGUI:
             GameFlags.ADD_RACELOG_SPOT: (
                 'Adds a KI in the Lab32 Race Log chest.'
             ),
+            GameFlags.REMOVE_BLACK_OMEN_SPOT: (
+                'Removes Black Omen rock chest as a KI location. Currently '
+                'only relevant when Rocksanity is used.'
+            ),
             GameFlags.SPLIT_ARRIS_DOME: (
                 'Adds a KI as a reward for interacting with the corpse in '
                 'Arris Dome Food Locker.  Adds the Seed as a KI.  Changes the '
@@ -2337,7 +2348,7 @@ class RandoGUI:
                     frame,
                     text=flag_names[flag],
                     variable=self.flag_dict[flag],
-                    width=20,
+                    width=22,
                     anchor=tk.W
                 )
                 CreateToolTip(checkbox, text=tooltip_text[flag])
@@ -2361,10 +2372,10 @@ class RandoGUI:
         gridify(check_frame, plus_ki_flags)
         check_frame.pack(anchor=tk.W, padx=10)
 
-        label = tk.Label(logic_tweak_frame, text='Flags that Add a KI Spot:')
+        label = tk.Label(logic_tweak_frame, text='Flags that Add/Remove a KI Spot:')
         label.pack(anchor=tk.W)
         check_frame = tk.Frame(logic_tweak_frame)
-        gridify(check_frame, plus_spot_flags)
+        gridify(check_frame, adjust_spot_flags)
         check_frame.pack(anchor=tk.W, padx=10)
 
         label = tk.Label(logic_tweak_frame, text='KI-count neutral Flags:')
@@ -2696,25 +2707,12 @@ class RandoGUI:
             and assignment dropdowns.
             '''
 
-            # Initially populate the list.
-            ret = [str(x) for x in InputMap]
-
             # Get the assigned buttons.
             assigned = [
                 y.get() for x, y in binds.items() if y.get() != 'Unset'
             ]
 
-            for x in InputMap:
-                # Force strings to enable comparisons;
-                # StringVars only output str, not StrIntEnum
-                x = str(x)
-                try:
-                    if x in assigned:
-                        ret.remove(x)
-                except:  # TODO: Figure out what exceptions are raised.
-                    pass
-
-            return ret
+            return [str(x) for x in InputMap if str(x) not in assigned]
 
         def _update_display_pg(pg_strs):
             '''
@@ -2769,7 +2767,7 @@ class RandoGUI:
             #update listbox in another frame
             parent.listbox_values.set(options)
             
-        def _construct_callback(action: ActionMap = None):
+        def _construct_callback(action: Optional[ActionMap] = None):
             '''
             Constructs callback function for gui usage.
             '''
@@ -3017,4 +3015,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

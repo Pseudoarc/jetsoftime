@@ -367,7 +367,10 @@ class Location:
         self.treasure_id = treasure_id
         self.keyItem: ItemID = ItemID.NONE
 
-    def _jot_json(self):
+    def __repr__(self):
+        return f'<Location.{self.getName()}>'
+
+    def to_jot_json(self):
         return {self.getName(): str(self.getKeyItem())}
 
     #
@@ -501,7 +504,7 @@ class LinkedLocation():
         self.location1 = location1
         self.location2 = location2
 
-    def _jot_json(self):
+    def to_jot_json(self):
         return {self.getName(): str(self.getKeyItem())}
 
     def getName(self):
@@ -592,6 +595,9 @@ class LocationGroup:
         self.accessRule = accessRule
         self.weightDecay = weightDecay
         self.weightStack = []
+
+    def __repr__(self):
+        return f'<LocationGroup.{self.name}>'
 
     #
     # Return whether or not this location group is accessible.
