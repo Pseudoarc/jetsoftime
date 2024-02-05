@@ -5,7 +5,7 @@ This file was inspired by ff6wc's instruction/asm.py.
 The content of this file and naming conventions are originally from:
   http://www.6502.org/tutorials/65c816opcodes.html
 """
-
+import typing
 from dataclasses import dataclass
 import enum
 import inspect
@@ -94,7 +94,7 @@ _modes_24_bit = (
 
 class _Instruction(Protocol):
     """Protocol for Instructions"""
-    _opcode_dict: ClassVar[dict[AddressingMode, int]]
+    _opcode_dict: ClassVar[typing.Dict[AddressingMode, int]]
     mode: AddressingMode
     _argument: Optional[int]
 
@@ -114,7 +114,7 @@ class _Instruction(Protocol):
         self._argument = val
 
     @classmethod
-    def get_opcode_dict(cls) -> dict[AddressingMode, int]:
+    def get_opcode_dict(cls) -> typing.Dict[AddressingMode, int]:
         return dict(cls._opcode_dict)
 
     def to_bytearray(self) -> bytearray:
@@ -1028,7 +1028,7 @@ class InstructionData:
     addressing_mode: AddressingMode
 
 
-_opcode_instruction_dict: dict[int, InstructionData] = {}
+_opcode_instruction_dict: typing.Dict[int, InstructionData] = {}
 
 # When we're sure everything is fine, probably better to hardcode this and add
 # unit tests to verify consistency.

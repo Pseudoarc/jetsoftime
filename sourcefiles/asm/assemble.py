@@ -1,6 +1,7 @@
 """
 Module for assembling instructions into binary
 """
+import typing
 from dataclasses import dataclass
 from typing import Union
 
@@ -10,7 +11,7 @@ from asm.instructions import _BranchInstruction, _NormalInstruction
 import byteops
 
 Instruction = Union[_BranchInstruction, _NormalInstruction]
-ASMList = list[Union[Instruction, str]]
+ASMList = typing.List[Union[Instruction, str]]
 _AM = inst.AddressingMode
 
 
@@ -32,13 +33,13 @@ class ASMSnippet:
     """
 
     def __init__(self, instruction_list: ASMList):
-        self._label_dict: dict[str, int] = {}
-        self.instruction_list: list[SnippetRecord] = []
+        self._label_dict: typing.Dict[str, int] = {}
+        self.instruction_list: typing.List[SnippetRecord] = []
 
         cur_offset = 0
         prev_length = 0
 
-        unresolved_jump_indices: list[int] = []
+        unresolved_jump_indices: typing.List[int] = []
 
         for ind, instruction in enumerate(instruction_list):
             cur_offset += prev_length
