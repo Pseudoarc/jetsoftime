@@ -105,6 +105,10 @@ FLAG_ENTRY_DICT: Dict[SettingsFlags, FlagEntry] = {
         "--epoch-fail", "-ef",
         "Epoch flight must be unlocked by bringing the JetsOfTime to "
         "Dalton in the Snail Stop"),
+    GF.ELEMENT_RANDO: FlagEntry(
+        "--element-randomization", "-er",
+        "The elements assigned to each character are randomized, with a "
+        "random duplicated element"),
     # Boss Rando flags
     RO.BOSS_SPOT_HP: FlagEntry(
         "--boss-spot-hp", None,

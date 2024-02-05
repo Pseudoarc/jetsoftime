@@ -121,6 +121,7 @@ class BasicFlagsAG(FlagsArgumentGroup):
         GF.HEALING_ITEM_RANDO,
         GF.GEAR_RANDO,
         GF.EPOCH_FAIL,
+        GF.ELEMENT_RANDO
     ]
 
 

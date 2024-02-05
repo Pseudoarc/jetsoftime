@@ -361,6 +361,7 @@ _default_schemes: dict[BossID, BossScheme] = {
         BossPart(_EID.RETINITE_BOTTOM, 6, (0, 0x28))
     ),
     BossID.R_SERIES: BossScheme(
+        # TODO: Fix this from jets values
         BossPart(_EID.R_SERIES, 3),
         BossPart(_EID.R_SERIES, 4, (0, 0x20)),
         BossPart(_EID.R_SERIES, 7, (0x20, 0)),

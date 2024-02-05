@@ -70,7 +70,8 @@ class RandoConfig:
             key_item_locations: Optional[
                 list[Union[logictypes.Location, logictypes.LinkedLocation]]
             ] = None,
-            objectives: Optional[list[obtypes.Objective]] = None
+            objectives: Optional[list[obtypes.Objective]] = None,
+            elems: Optional[list[ctenums.Element]] = None
     ):
         '''
         A RandoConfig consists of the following elements:
@@ -101,6 +102,8 @@ class RandoConfig:
               the logic that gets merged into the treasure_assign_dict.
         - objectives: A container to store the objectives to be used.
         Notes:
+        - elems: A list of chosen elements for element rando,
+          in Crono-Marle-Lucca-Frog-Magus-Laser Spin-Area Bomb-Shock order
         - boss_rank_dict and key_item_locations are on the chopping block b/c
           they should be recomputable given the other items of the config.
         - There's coupling between pcstats and tech_db.  The DC assignment
@@ -183,6 +186,10 @@ class RandoConfig:
         if objectives is None:
             objectives = []
         self.objectives = objectives
+
+        if elems is None:
+            elems = []
+        self.elems = elems
 
     def to_jot_json(self):
         def enum_key_dict(d):
