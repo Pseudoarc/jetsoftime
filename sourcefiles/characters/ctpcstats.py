@@ -10,7 +10,6 @@ import itemdata
 import ctenums
 import ctrom
 import cttypes as ctt
-import ctstrings
 
 
 class PCStat(ctenums.StrIntEnum):
@@ -355,7 +354,7 @@ class PCStatData:
         self.tech_level = TechLevel(tech_level)
         self.tp_threshholds = TPThresholds(tp_threshholds)
 
-    def _jot_json(self):
+    def to_jot_json(self):
         # Copying from the old statcompute.py
         stats = {
             'max_hp': self.stat_block.max_hp,
@@ -488,9 +487,9 @@ class PCStatsManager:
         else:
             self.xp_thresholds = XPThreshholds(xp_thresholds)
 
-    def _jot_json(self):
+    def to_jot_json(self):
         return {
-            str(k): self.pc_stat_dict[k]._jot_json() for k in ctenums.CharID
+            str(k): self.pc_stat_dict[k].to_jot_json() for k in ctenums.CharID
         }
 
     @classmethod

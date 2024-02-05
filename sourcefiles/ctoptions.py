@@ -1,12 +1,15 @@
 '''
 Module for preconfiguring in-game options at compile time
 '''
-from typing import Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 import byteops
 from ctenums import ActionMap, InputMap
 from ctrom import CTRom
 from ctevent import FSWriteType
+
+if TYPE_CHECKING:
+    import randosettings as rset
 
 class ControllerBinds:
     '''
@@ -95,7 +98,7 @@ class ControllerBinds:
 
         try:
             check = {x: binds[x] for x in ActionMap}
-        except:
+        except KeyError:
             return False
 
         assigned = [y for x, y in check.items()]
@@ -441,6 +444,9 @@ class CTOpts:
         
         return ret
 
+    def __eq__(self, other) -> bool:
+        return all(getattr(other, key, None) == value for key, value in self)
+
     def __iter__(self):
         
         ret = {
@@ -457,7 +463,6 @@ class CTOpts:
             'battle_gauge_style': self.battle_gauge_style,
             'consistent_paging': self.consistent_paging
         }
-        
 
         return iter(ret.items())
 
@@ -499,6 +504,9 @@ class CTOpts:
         
         rom.seek(0x011483 + 1) # AND #$10
         rom.write(0x20.to_bytes(1, 'little'))
+
+    def to_jot_json(self) -> Dict[str, 'rset.JSONPrimitive']:
+        return {k: v for k, v in self}
         
 
 if __name__ == '__main__':

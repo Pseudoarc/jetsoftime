@@ -5,10 +5,7 @@ import ctenums
 import ctevent
 import ctrom
 
-import eventcommand
-import eventfunction
-
-from eventcommand import EventCommand as EC, FuncSync as FS, Operation as OP
+from eventcommand import EventCommand as EC
 from eventfunction import EventFunction as EF
 
 import freespace

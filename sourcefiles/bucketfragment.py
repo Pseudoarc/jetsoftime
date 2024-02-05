@@ -11,13 +11,18 @@ import randoconfig as cfg
 import xpscale
 
 
+# TODO: there are no references to this function in the codebase
+# might be WIP or could be something to remove
 def set_bucket_function(ctrom: CTRom, settings: rset.Settings):
     script_man = ctrom.script_manager
     eot_script = script_man.get_script(ctenums.LocID.END_OF_TIME)
 
     new_eot_script = ctevent.Event.from_flux('./flux/bucket_eot.Flux')
 
-    num_fragments = settings.bucket_settings.needed_fragments
+    # TODO: below is only reference to "needed_fragements" in codebase
+    # not sure what it should default to but that should be updated in randosettings
+    # if this should be used
+    num_fragments = getattr(settings.bucket_settings, 'needed_fragments', 0)
 
     start = new_eot_script.get_function_start(0x09, 1)
     end = new_eot_script.get_function_end(0x09, 1)

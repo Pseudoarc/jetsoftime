@@ -4,7 +4,6 @@
 #    from hardcoded loop bounds.
 
 from __future__ import annotations
-import copy
 from typing import Optional
 import typing
 
@@ -14,8 +13,7 @@ from byteops import get_record, set_record, \
 import ctenums
 import ctrom
 import ctstrings
-from cttypes import BinaryData, SizedBinaryData
-import cttypes
+from cttypes import SizedBinaryData
 import cttechtypes as ctt
 import pctech
 from techrefs import fix_tech_refs

@@ -159,7 +159,7 @@ def set_twin_boss_data_in_config(one_spot_boss: bt.BossID,
         settings.game_mode
     )[EnemyID.TWIN_BOSS]
 
-    if rset.GameFlags.BOSS_SPOT_HP in settings.gameflags:
+    if rset.ROFlags.BOSS_SPOT_HP in settings.ro_settings.flags:
         scaled_stats.hp = twin_stats.hp
 
     config.enemy_dict[EnemyID.TWIN_BOSS] = scaled_stats
@@ -184,7 +184,8 @@ def get_random_assignment(
         ) -> dict[bt.BossSpotID, bt.BossID]:
 
     if len(spots) > len(bosses):
-        raise InsufficientSpotsException
+        err = f"Not enough bosses for spots: {len(spots)} spots > {len(bosses)} bosses"
+        raise InsufficientSpotsException(err)
 
     random.shuffle(bosses)
 
@@ -534,7 +535,7 @@ def scale_bosses_given_assignment(settings: rset.Settings,
         )
 
         bossspot.distribute_rewards(reward_dict[spot], to_scheme, scaled_stats)
-        if rset.GameFlags.BOSS_SPOT_HP in settings.gameflags:
+        if rset.ROFlags.BOSS_SPOT_HP in settings.ro_settings.flags:
             bossspot.distribute_hp(
                 from_scheme, to_scheme, hp_dict, scaled_stats
             )
