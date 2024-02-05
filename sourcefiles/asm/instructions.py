@@ -1,11 +1,11 @@
-'''
+"""
 Module for 65816 creating assembly instructions.
 
 This file was inspired by ff6wc's instruction/asm.py.
 The content of this file and naming conventions are originally from:
   http://www.6502.org/tutorials/65c816opcodes.html
-'''
-from __future__ import annotations
+"""
+
 from dataclasses import dataclass
 import enum
 import inspect
@@ -14,22 +14,33 @@ from typing import ClassVar, Optional, Protocol, Type, Union
 
 
 class InvalidAddressingModeException(Exception):
-    '''Raise when instantiating an instruction with an unsupported mode.'''
+    """Raise when instantiating an instruction with an unsupported mode."""
 
 
 class InvalidArgumentException(Exception):
-    '''Raise when the argument does not match the mode provided.'''
+    """Raise when the argument does not match the mode provided."""
 
 
 class SpecialRegister(enum.IntEnum):
+    M7A = 0x211B
+    M7B = 0x211C
+    MPYL = 0x2134
+    MPYM = 0x2135
+    MPYH = 0x2136
     WRMPYA = 0x4202   # Multiply A
     WRMPYB = 0x4203   # Multiply B
-    RDMPYL = 0x4216   # Mult result (long)
-    
-    
+    WRDIVL = 0x4204   # Dividend Lo
+    WRDIVH = 0x4205   # Dividend Hi
+    WRDIVB = 0x4206   # Divisor
+    RDDIVL = 0x4214   # Quotient Lo
+    RDDIVH = 0x4215   # Quotient Hi
+    RDMPYL = 0x4216   # Mult result Lo (also div remainder)
+    RDMPYH = 0x4217   # Mult result Hi (also div remainder)
+
+
 
 class AddressingMode(enum.Enum):
-    '''Class for storing an instruction's addressing mode.'''
+    """Class for storing an instruction's addressing mode."""
 
     # ( ) means 16-bit dereference using DBR for bank
     # [ ] means 24-bit dereference
@@ -59,7 +70,7 @@ class AddressingMode(enum.Enum):
     REL_16 = enum.auto()
     SRC_DEST = enum.auto()
     # There are many no argument addressing modes (e.g. Accumulator, Implied)
-    # But we just lump them togetehr.
+    # But we just lump them together.
     NO_ARG = enum.auto()
 
 
@@ -82,19 +93,19 @@ _modes_24_bit = (
 
 
 class _Instruction(Protocol):
-    '''Protocol for Instructions'''
+    """Protocol for Instructions"""
     _opcode_dict: ClassVar[dict[AddressingMode, int]]
     mode: AddressingMode
     _argument: Optional[int]
 
     @property
     def opcode(self) -> int:
-        '''Returns the command's opcode (read only)'''
+        """Returns the command's opcode (read only)"""
         return self._opcode_dict[self.mode]
 
     @property
     def argument(self) -> Optional[int]:
-        '''This command's argument.'''
+        """This command's argument."""
         return self._argument
 
     @argument.setter
@@ -107,7 +118,7 @@ class _Instruction(Protocol):
         return dict(cls._opcode_dict)
 
     def to_bytearray(self) -> bytearray:
-        '''Convert a command to binary'''
+        """Convert a command to binary"""
         ret = bytearray()
         ret.append(self._opcode_dict[self.mode])
         ret.extend(_get_argument_bytes(self.argument, self.mode))
@@ -194,10 +205,10 @@ class _Instruction(Protocol):
 
 def _verify_argument(argument: Optional[int],
                      mode: AddressingMode) -> None:
-    '''
+    """
     Raise an InvalidArgumentException if the argument does not match their
     addressing mode.
-    '''
+    """
     AM = AddressingMode
     if mode == AM.NO_ARG:
         if argument is not None:
@@ -206,20 +217,20 @@ def _verify_argument(argument: Optional[int],
             )
     elif mode == AM.REL_8:
         if argument is not None and \
-           argument not in range(-0x80, 0x80):
+                not (-0x80 <= argument < 0x80):
             raise InvalidArgumentException
     elif mode == AM.REL_16:
         if argument is not None and \
-           argument not in range(-0x800, 0x800):
+                not (-0x800 <= argument < 0x800):
             raise InvalidArgumentException
     elif mode in _modes_8_bit:
-        if argument not in range(0x100):
+        if not (0 <= argument < 0x100):
             raise InvalidArgumentException
     elif mode in _modes_16_bit:
-        if argument not in range(0x10000):
+        if not (0 <= argument < 0x10000):
             raise InvalidArgumentException
     elif mode in _modes_24_bit:
-        if argument not in range(0x1000000):
+        if not (0 <= argument < 0x1000000):
             raise InvalidArgumentException
     else:
         raise TypeError(f"Uncaught mode {mode}")
@@ -250,9 +261,9 @@ def _get_argument_bytes(argument: Optional[int],
 
 
 class _NormalInstruction(_Instruction):
-    '''
+    """
     Class for a non-branch instruction with a single argument
-    '''
+    """
     _opcode_dict = {}
 
     def __init__(self,
@@ -267,19 +278,17 @@ class _NormalInstruction(_Instruction):
         if mode not in self._opcode_dict:
             raise InvalidAddressingModeException
         self.mode = mode
-
-        _verify_argument(argument, mode)
         self.argument = argument
 
 
 class _BranchInstruction(_Instruction):
-    '''
+    """
     Class for a branch instruction.
 
     The main difference is that a branch instruction allows for a string
     as an argument.  The string is interpreted as a label to branch to.
     The string must be resolved to an integer before conversion to bytes.
-    '''
+    """
 
     _opcode_dict = {}
 
@@ -302,10 +311,9 @@ class _BranchInstruction(_Instruction):
 
         if isinstance(argument, str):
             self.label = argument
-            self.argument = None
+            self._argument = None
         else:
             self.label = None
-            _verify_argument(argument, mode)
             self.argument = argument
 
     def __str__(self):
@@ -326,14 +334,14 @@ class _BranchInstruction(_Instruction):
             if self.label is not None:
                 arg_str += f' (to {self.label})'
 
-                return f'{self.__class__.__name__} {arg_str}'
+        return f'{self.__class__.__name__} {arg_str}'
 
 
 _AM = AddressingMode
 
 
 class ADC(_NormalInstruction):
-    '''Add with Carry.'''
+    """Add with Carry."""
     _opcode_dict = {
         _AM.ABS: 0x6D,
         _AM.ABS_X: 0x7D,
@@ -350,12 +358,12 @@ class ADC(_NormalInstruction):
         _AM.LNG: 0x6F,
         _AM.STK: 0x63,
         _AM.STK_16_Y: 0x73,
-        _AM.NO_ARG: 0x7F,
+        _AM.LNG_X: 0x7F,
     }
 
 
 class SBC(_NormalInstruction):
-    '''Subtract with Carry (Borrow).'''
+    """Subtract with Carry (Borrow)."""
     _opcode_dict = {
         _AM.DIR_X_16: 0xE1,
         _AM.STK: 0xE3,
@@ -377,7 +385,7 @@ class SBC(_NormalInstruction):
 
 
 class CMP(_NormalInstruction):
-    '''Compare to accumulator'''
+    """Compare to accumulator"""
     _opcode_dict = {
         _AM.DIR_X_16: 0xC1,
         _AM.STK: 0xC3,
@@ -399,7 +407,7 @@ class CMP(_NormalInstruction):
 
 
 class CPX(_NormalInstruction):
-    '''Compare to X'''
+    """Compare to X"""
     _opcode_dict = {
         _AM.IMM16: 0xE0,
         _AM.IMM8: 0xE0,
@@ -409,7 +417,7 @@ class CPX(_NormalInstruction):
 
 
 class CPY(_NormalInstruction):
-    '''Compare to Y'''
+    """Compare to Y"""
     _opcode_dict = {
         _AM.IMM16: 0xC0,
         _AM.IMM8: 0xC0,
@@ -419,7 +427,7 @@ class CPY(_NormalInstruction):
 
 
 class DEC(_NormalInstruction):
-    '''Decrement'''
+    """Decrement"""
     _opcode_dict = {
         _AM.NO_ARG: 0x3A,  # Accumulator
         _AM.DIR: 0xC6,
@@ -429,17 +437,17 @@ class DEC(_NormalInstruction):
     }
 
 class DEX(_NormalInstruction):
-    '''Decrement X'''
+    """Decrement X"""
     _opcode_dict = {_AM.NO_ARG: 0xCA}  # Implied
 
 
 class DEY(_NormalInstruction):
-    '''Decrement Y'''
+    """Decrement Y"""
     _opcode_dict = {_AM.NO_ARG: 0x88}  # Implied
 
 
 class INC(_NormalInstruction):
-    '''Increment'''
+    """Increment"""
     _opcode_dict = {
         _AM.NO_ARG: 0x1A,  # Accumulator
         _AM.DIR: 0xE6,
@@ -450,17 +458,17 @@ class INC(_NormalInstruction):
 
 
 class INX(_NormalInstruction):
-    '''Increment X'''
+    """Increment X"""
     _opcode_dict = {_AM.NO_ARG: 0xE8}  # Implied
 
 
 class INY(_NormalInstruction):
-    '''Increment Y'''
+    """Increment Y"""
     _opcode_dict = {_AM.NO_ARG: 0xC8}  # Implied
 
 
 class AND(_NormalInstruction):
-    '''Bitwise AND'''
+    """Bitwise AND"""
     _opcode_dict = {
         _AM.DIR_X_16: 0x21,
         _AM.STK: 0x23,
@@ -481,7 +489,7 @@ class AND(_NormalInstruction):
     }
 
 class EOR(_NormalInstruction):
-    '''Bitwise Exclusive OR'''
+    """Bitwise Exclusive OR"""
     _opcode_dict = {
         _AM.DIR_X_16: 0x41,
         _AM.STK: 0x43,
@@ -503,7 +511,7 @@ class EOR(_NormalInstruction):
 
 
 class OR(_NormalInstruction):
-    '''Bitwise OR'''
+    """Bitwise OR"""
     _opcode_dict = {
         _AM.DIR_X_16: 0x01,
         _AM.STK: 0x03,
@@ -525,7 +533,7 @@ class OR(_NormalInstruction):
 
 
 class BIT(_NormalInstruction):
-    '''Test BITs'''
+    """Test BITs"""
     _opcode_dict = {
         _AM.DIR: 0x24,
         _AM.ABS: 0x2C,
@@ -537,7 +545,7 @@ class BIT(_NormalInstruction):
 
 
 class TRB(_NormalInstruction):
-    '''Test and Reset Bits'''
+    """Test and Reset Bits"""
     _opcode_dict = {
         _AM.DIR: 0x14,
         _AM.ABS: 0x1C
@@ -545,7 +553,7 @@ class TRB(_NormalInstruction):
 
 
 class TSB(_NormalInstruction):
-    '''Test and Set Bits'''
+    """Test and Set Bits"""
     _opcode_dict = {
         _AM.DIR: 0x04,
         _AM.ABS: 0x0C
@@ -553,7 +561,7 @@ class TSB(_NormalInstruction):
 
 
 class ASL(_NormalInstruction):
-    '''Arithmetic Shift Left'''
+    """Arithmetic Shift Left"""
     _opcode_dict = {
         _AM.DIR: 0x06,
         _AM.NO_ARG: 0x0A,  # Accumulator
@@ -564,7 +572,7 @@ class ASL(_NormalInstruction):
 
 
 class LSR(_NormalInstruction):
-    '''Logial Shift Right'''
+    """Logial Shift Right"""
     _opcode_dict = {
         _AM.DIR: 0x46,
         _AM.NO_ARG: 0x4A,  # Accumulator
@@ -575,7 +583,7 @@ class LSR(_NormalInstruction):
 
 
 class ROL(_NormalInstruction):
-    '''ROtate Left'''
+    """ROtate Left"""
     _opcode_dict = {
         _AM.DIR: 0x26,
         _AM.NO_ARG: 0x2A,  # Accumulator
@@ -586,7 +594,7 @@ class ROL(_NormalInstruction):
 
 
 class ROR(_NormalInstruction):
-    '''ROtate Right'''
+    """ROtate Right"""
     _opcode_dict = {
         _AM.DIR: 0x66,
         _AM.NO_ARG: 0x6A,  # Accumulator
@@ -597,57 +605,57 @@ class ROR(_NormalInstruction):
 
 
 class BCC(_BranchInstruction):
-    '''Branch if Carry Clear'''
+    """Branch if Carry Clear"""
     _opcode_dict = {_AM.REL_8: 0x90}
 
 
 class BCS(_BranchInstruction):
-    '''Branch if Carry Set'''
+    """Branch if Carry Set"""
     _opcode_dict = {_AM.REL_8: 0xB0}
 
-    
+
 class BEQ(_BranchInstruction):
-    '''Branch if EQual'''
+    """Branch if EQual"""
     _opcode_dict = {_AM.REL_8: 0xF0}
 
 
 class BMI(_BranchInstruction):
-    '''Branch if MInus'''
+    """Branch if MInus"""
     _opcode_dict = {_AM.REL_8: 0x30}
 
 
 class BNE(_BranchInstruction):
-    '''Branch if Not Equal'''
+    """Branch if Not Equal"""
     _opcode_dict = {_AM.REL_8: 0xD0}
 
 
 class BPL(_BranchInstruction):
-    '''Branch if PLus'''
+    """Branch if PLus"""
     _opcode_dict = {_AM.REL_8: 0x10}
 
 
 class BRA(_BranchInstruction):
-    '''BRanch Always'''
+    """BRanch Always"""
     _opcode_dict = {_AM.REL_8: 0x80}
 
 
 class BVC(_BranchInstruction):
-    '''Branch if oVerflow Clear'''
+    """Branch if oVerflow Clear"""
     _opcode_dict = {_AM.REL_8: 0x50}
 
 
 class BVS(_BranchInstruction):
-    '''Branch if oVerflow Set'''
+    """Branch if oVerflow Set"""
     _opcode_dict = {_AM.REL_8: 0x70}
 
 
 class BRL(_BranchInstruction):
-    '''BRanch Long'''
+    """BRanch Long"""
     _opcode_dict = {_AM.REL_16: 0x82}
 
 
 class JMP(_NormalInstruction):
-    '''JuMP'''
+    """JuMP"""
     _opcode_dict = {
         _AM.ABS: 0x4C,
         _AM.LNG: 0x5C,
@@ -658,12 +666,12 @@ class JMP(_NormalInstruction):
 
 
 class JSL(_NormalInstruction):
-    '''Jump to Subroutine Long'''
+    """Jump to Subroutine Long"""
     _opcode_dict = {_AM.LNG: 0x22}
 
 
 class JSR(_NormalInstruction):
-    '''Jump to SubRoutine'''
+    """Jump to SubRoutine"""
     _opcode_dict = {
         _AM.ABS: 0x20,
         _AM.ABS_X_16: 0xFC,
@@ -671,22 +679,22 @@ class JSR(_NormalInstruction):
 
 
 class RTL(_NormalInstruction):
-    '''ReTurn from subroutine Long'''
+    """ReTurn from subroutine Long"""
     _opcode_dict = {_AM.NO_ARG: 0x6B}
 
 
 class RTS(_NormalInstruction):
-    '''ReTurn from Subroutine'''
+    """ReTurn from Subroutine"""
     _opcode_dict = {_AM.NO_ARG: 0x60}
 
 
 class BRK(_NormalInstruction):
-    '''BReaKpoint'''
+    """BReaKpoint"""
     _opcode_dict = {_AM.NO_ARG: 0x00}
 
 
 class COP(_NormalInstruction):
-    '''COProcessor'''
+    """COProcessor"""
     _opcode_dict = {
         _AM.IMM16: 0x02,
         _AM.IMM8: 0x02
@@ -694,56 +702,56 @@ class COP(_NormalInstruction):
 
 
 class RTI(_NormalInstruction):
-    '''ReTurn from Interrupt'''
+    """ReTurn from Interrupt"""
     _opcode_dict = {_AM.NO_ARG: 0x40}
 
 
 class CLC(_NormalInstruction):
-    '''CLear Carry'''
+    """CLear Carry"""
     _opcode_dict = {_AM.NO_ARG: 0x18}
 
 
 class CLD(_NormalInstruction):
-    '''CLear Decimal mode'''
+    """CLear Decimal mode"""
     _opcode_dict = {_AM.NO_ARG: 0xD8}
 
 
 class CLI(_NormalInstruction):
-    '''CLear Interrupt disable'''
+    """CLear Interrupt disable"""
     _opcode_dict = {_AM.NO_ARG: 0x58}
 
 class CLV(_NormalInstruction):
-    '''CLear oVerflow'''
+    """CLear oVerflow"""
     _opcode_dict = {_AM.NO_ARG: 0xB8}
 
 
 class SEC(_NormalInstruction):
-    '''SEt Carry'''
+    """SEt Carry"""
     _opcode_dict = {_AM.NO_ARG: 0x38}
 
 
 class SED(_NormalInstruction):
-    '''SEt Decimal mode'''
+    """SEt Decimal mode"""
     _opcode_dict = {_AM.NO_ARG: 0xF8}
 
 
 class SEI(_NormalInstruction):
-    '''SEt Interrupt disable'''
+    """SEt Interrupt disable"""
     _opcode_dict = {_AM.NO_ARG: 0x78}
 
 
 class REP(_NormalInstruction):
-    '''REset Processor status bits'''
+    """REset Processor status bits"""
     _opcode_dict = {_AM.IMM8: 0xC2}
 
 
 class SEP(_NormalInstruction):
-    '''SEt Processor status bits'''
+    """SEt Processor status bits"""
     _opcode_dict = {_AM.IMM8: 0xE2}
 
 
 class LDA(_NormalInstruction):
-    '''LoaD Accumulator'''
+    """LoaD Accumulator"""
     _opcode_dict = {
         _AM.DIR_X_16: 0xA1,
         _AM.STK: 0xA3,
@@ -765,7 +773,7 @@ class LDA(_NormalInstruction):
 
 
 class LDX(_NormalInstruction):
-    '''LoaD register X'''
+    """LoaD register X"""
     _opcode_dict = {
         _AM.IMM16: 0xA2,
         _AM.IMM8: 0xA2,
@@ -777,7 +785,7 @@ class LDX(_NormalInstruction):
 
 
 class LDY(_NormalInstruction):
-    '''LoaD register Y'''
+    """LoaD register Y"""
     _opcode_dict = {
         _AM.IMM16: 0xA0,
         _AM.IMM8: 0xA0,
@@ -789,7 +797,7 @@ class LDY(_NormalInstruction):
 
 
 class STA(_NormalInstruction):
-    '''STore Accumulator'''
+    """STore Accumulator"""
     _opcode_dict = {
         _AM.DIR_X_16: 0x81,
         _AM.STK: 0x83,
@@ -809,7 +817,7 @@ class STA(_NormalInstruction):
 
 
 class STX(_NormalInstruction):
-    '''STore register X'''
+    """STore register X"""
     _opcode_dict = {
         _AM.DIR: 0x86,
         _AM.ABS: 0x8E,
@@ -818,7 +826,7 @@ class STX(_NormalInstruction):
 
 
 class STY(_NormalInstruction):
-    '''STore register Y'''
+    """STore register Y"""
     _opcode_dict = {
         _AM.DIR: 0x84,
         _AM.ABS: 0x8C,
@@ -827,7 +835,7 @@ class STY(_NormalInstruction):
 
 
 class STZ(_NormalInstruction):
-    '''STore Zero'''
+    """STore Zero"""
     _opcode_dict = {
         _AM.DIR: 0x64,
         _AM.DIR_X: 0x74,
@@ -837,185 +845,185 @@ class STZ(_NormalInstruction):
 
 
 class MVN(_NormalInstruction):
-    '''MoVe memory Negative'''
+    """MoVe memory Negative"""
     _opcode_dict = {_AM.SRC_DEST: 0x54}
 
 
 class MVP(_NormalInstruction):
-    '''MoVe memory Positive'''
+    """MoVe memory Positive"""
     _opcode_dict = {_AM.SRC_DEST: 0x44}
 
 
 class NOP(_NormalInstruction):
-    '''No OPeration'''
+    """No OPeration"""
     _opcode_dict = {_AM.NO_ARG: 0xEA}
 # Skip WDM
 
 
 class PEA(_NormalInstruction):
-    '''Push Effective Address'''
+    """Push Effective Address"""
     _opcode_dict = {_AM.IMM16: 0xF4}
 
 
 class PEI(_NormalInstruction):
-    '''Push Effective Indirect address'''
+    """Push Effective Indirect address"""
     _opcode_dict = {_AM.DIR: 0xD4}
 
 
 class PER(_NormalInstruction):
-    '''Push Effective Rndirect address'''
+    """Push Effective Rndirect address"""
     _opcode_dict = {_AM.IMM16: 0x62}
 
 
 class PHA(_NormalInstruction):
-    '''PusH Accumulator'''
+    """PusH Accumulator"""
     _opcode_dict = {_AM.NO_ARG: 0x48}
 
 
 class PHX(_NormalInstruction):
-    '''PusH X register'''
+    """PusH X register"""
     _opcode_dict = {_AM.NO_ARG: 0xDA}
 
 
 class PHY(_NormalInstruction):
-    '''PusH Y register'''
+    """PusH Y register"""
     _opcode_dict = {_AM.NO_ARG: 0x5A}
 
 
 class PLA(_NormalInstruction):
-    '''PulL Accumulator'''
+    """PulL Accumulator"""
     _opcode_dict = {_AM.NO_ARG: 0x68}
 
 
 class PLX(_NormalInstruction):
-    '''PulL X register'''
+    """PulL X register"""
     _opcode_dict = {_AM.NO_ARG: 0xFA}
 
 
 class PLY(_NormalInstruction):
-    '''PulL Y register'''
+    """PulL Y register"""
     _opcode_dict = {_AM.NO_ARG: 0x7A}
 
 
 class PHB(_NormalInstruction):
-    '''PusH data Bank register'''
+    """PusH data Bank register"""
     _opcode_dict = {_AM.NO_ARG: 0x8B}
 
 
 class PHD(_NormalInstruction):
-    '''PusH Direct register'''
+    """PusH Direct register"""
     _opcode_dict = {_AM.NO_ARG: 0x0B}
 
 
 class PHK(_NormalInstruction):
-    '''PusH K register'''
+    """PusH K register"""
     _opcode_dict = {_AM.NO_ARG: 0x4B}
 
 
 class PHP(_NormalInstruction):
-    '''PusH Processor status register'''
+    """PusH Processor status register"""
     _opcode_dict = {_AM.NO_ARG: 0x08}
 
 
 class PLB(_NormalInstruction):
-    '''PulL data Bank register'''
+    """PulL data Bank register"""
     _opcode_dict = {_AM.NO_ARG: 0xAB}
 
 
 class PLD(_NormalInstruction):
-    '''PulL Direct register'''
+    """PulL Direct register"""
     _opcode_dict = {_AM.NO_ARG: 0x2B}
 
 
 class PLP(_NormalInstruction):
-    '''PulL Processor status register'''
+    """PulL Processor status register"""
     _opcode_dict = {_AM.NO_ARG: 0x28}
 
 
 class STP(_NormalInstruction):
-    '''SToP the clock'''
+    """SToP the clock"""
     _opcode_dict = {_AM.NO_ARG: 0xDB}
 
 
 class WAI(_NormalInstruction):
-    '''WAit for Interrupt'''
+    """WAit for Interrupt"""
     _opcode_dict = {_AM.NO_ARG: 0xCB}
 
 
 class TAX(_NormalInstruction):
-    '''Transfer Accumulator to X register'''
+    """Transfer Accumulator to X register"""
     _opcode_dict = {_AM.NO_ARG: 0xAA}
 
 
 class TAY(_NormalInstruction):
-    '''Transfer Accumulator to Y register'''
+    """Transfer Accumulator to Y register"""
     _opcode_dict = {_AM.NO_ARG: 0xA8}
 
 
 class TSX(_NormalInstruction):
-    '''Transfer Stack pointer to X register'''
+    """Transfer Stack pointer to X register"""
     _opcode_dict = {_AM.NO_ARG: 0xBA}
 
 
 class TXA(_NormalInstruction):
-    '''Transfer X register to Accumulator'''
+    """Transfer X register to Accumulator"""
     _opcode_dict = {_AM.NO_ARG: 0x8A}
 
 
 class TXS(_NormalInstruction):
-    '''Transfer X register to Stack pointer'''
+    """Transfer X register to Stack pointer"""
     _opcode_dict = {_AM.NO_ARG: 0x9A}
 
 
 class TXY(_NormalInstruction):
-    '''Transfer X register to Y register'''
+    """Transfer X register to Y register"""
     _opcode_dict = {_AM.NO_ARG: 0x9B}
 
 
 class TYA(_NormalInstruction):
-    '''Transfer Y register to Accumulator'''
+    """Transfer Y register to Accumulator"""
     _opcode_dict = {_AM.NO_ARG: 0x98}
 
 
 class TYX(_NormalInstruction):
-    '''Transfer Y register to X register'''
+    """Transfer Y register to X register"""
     _opcode_dict = {_AM.NO_ARG: 0xBB}
 
 
 class TCD(_NormalInstruction):
-    '''Transfer C accumulator to Direct register'''
+    """Transfer C accumulator to Direct register"""
     _opcode_dict = {_AM.NO_ARG: 0x5B}
 
 
 class TCS(_NormalInstruction):
-    '''Transfer C accumulator to Stack pointer'''
+    """Transfer C accumulator to Stack pointer"""
     _opcode_dict = {_AM.NO_ARG: 0x1B}
 
 
 class TDC(_NormalInstruction):
-    '''Transfer Direct register to C accumulator'''
+    """Transfer Direct register to C accumulator"""
     _opcode_dict = {_AM.NO_ARG: 0x7B}
 
 
 class TSC(_NormalInstruction):
-    '''Transfer Stack pointer to C accumulator'''
+    """Transfer Stack pointer to C accumulator"""
     _opcode_dict = {_AM.NO_ARG: 0x3B}
 
 
 class XBA(_NormalInstruction):
-    '''eXchange B and A accumulator'''
+    """eXchange B and A accumulator"""
     _opcode_dict = {_AM.NO_ARG: 0xEB}
 
 
 class XCE(_NormalInstruction):
-    '''eXchange Carry and Emulation flags'''
+    """eXchange Carry and Emulation flags"""
     _opcode_dict = {_AM.NO_ARG: 0xFB}
 
 
 # For parsing, have a reverse dictionary of Opcode -> (Instruction, Mode)
 @dataclass
 class InstructionData:
-    '''Class with data for determining an instruction'''
+    """Class with data for determining an instruction"""
     instruction_type: Type[_Instruction]
     addressing_mode: AddressingMode
 
@@ -1037,9 +1045,13 @@ for _name, _obj in inspect.getmembers(sys.modules[__name__]):
                 _opcode_instruction_dict[_opcode] = \
                     InstructionData(_obj, _mode)
 
-
 def main():
-    pass
+    cmd = LDA(0x54, _AM.IMM8)
+    print(cmd)
+
+    cmd2 = BCC('LABEL')
+    cmd2.argument = 4
+    print(cmd2)
 
 
 if __name__ == '__main__':

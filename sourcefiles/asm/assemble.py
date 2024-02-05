@@ -1,16 +1,16 @@
-'''
+"""
 Module for assembling instructions into binary
-'''
-from __future__ import annotations
+"""
 from dataclasses import dataclass
-from typing import Union, List
+from typing import Union
 
 from asm import instructions as inst
 from asm.instructions import _BranchInstruction, _NormalInstruction
 
+import byteops
 
 Instruction = Union[_BranchInstruction, _NormalInstruction]
-ASMList = List[Union[Instruction, str]]
+ASMList = list[Union[Instruction, str]]
 _AM = inst.AddressingMode
 
 
@@ -21,7 +21,7 @@ class SnippetRecord:
 
 
 class ASMSnippet:
-    '''
+    """
     Class for storing a list of instructions and labels and converting to
     binary.
 
@@ -29,16 +29,16 @@ class ASMSnippet:
       - This does not support insertion/deletion of instructions after the
         object has been created.  The idea is for this to be self-contained
         subroutine.
-    '''
+    """
 
-    def __init__(self, instruction_list: List[Union[Instruction, str]]):
+    def __init__(self, instruction_list: ASMList):
         self._label_dict: dict[str, int] = {}
-        self.instruction_list: List[SnippetRecord] = []
+        self.instruction_list: list[SnippetRecord] = []
 
         cur_offset = 0
         prev_length = 0
 
-        unresolved_jump_indices: List[int] = []
+        unresolved_jump_indices: list[int] = []
 
         for ind, instruction in enumerate(instruction_list):
             cur_offset += prev_length
@@ -63,12 +63,9 @@ class ASMSnippet:
             for ind, record in enumerate(self.instruction_list)
         }
 
-        # TODO: properly find last command
-        last_entry = self.instruction_list[-1]
-        if isinstance(last_entry.data, str):
-            end = last_entry.offset
-        else:
-            end = last_entry.offset + len(last_entry.data)
+        last_inst = next(record for record in reversed(self.instruction_list)
+                         if not isinstance(record, str))
+        end_offset = last_inst.offset + len(last_inst.data)
 
         for ind, record in enumerate(self.instruction_list):
             data = record.data
@@ -78,21 +75,18 @@ class ASMSnippet:
                     label_offset = self.instruction_list[label_index].offset
                     jump_len = label_offset - \
                         (record.offset + len(record.data))
-                    data.argument = jump_len
+                    data._argument = jump_len
 
                 if data.argument is None:
                     raise inst.InvalidArgumentException
 
                 jump_target = record.offset + len(data) + data.argument
-                if jump_target not in cmd_starts:
-                    # Separating this because it's not perfect
-                    # The idea is to allow jumps outside of the snippet's range but
-                    # catch bad jumps within the range.
-                    if jump_target >= 0 and jump_target <= end:
-                        # print("ERROR:"+str(data)+f'{jump_target:04X}')
-                        raise inst.InvalidArgumentException(
-                            "Branch is not to the start of a command."
-                        )
+                if jump_target not in cmd_starts and \
+                        (0 <= jump_target < end_offset):
+                    # print("ERROR:"+str(data)+f'{jump_target:04X}')
+                    raise inst.InvalidArgumentException(
+                        "Branch is not to the start of a command."
+                    )
 
     def to_bytes(self) -> bytes:
 
@@ -132,16 +126,44 @@ class ASMSnippet:
         return ret_str
 
 
-def assemble(instruction_list: List[Union[Instruction, str]]) -> bytes:
-    '''
+def assemble(instruction_list: ASMList) -> bytes:
+    """
     Turns a list of instructions and labels and produces binary code.
-    '''
+    """
     snippet = ASMSnippet(instruction_list)
     return snippet.to_bytes()
 
 
 def main():
-    pass
+    AM = inst.AddressingMode
+
+    snippet = [
+        inst.LDA(0x9EE3, AM.ABS),
+        inst.TAX(),
+        inst.LDA(0x5F8000, AM.LNG_X),
+        inst.PHA(),
+        inst.TDC(),
+        inst.TAX(),
+        "BEGIN",
+        inst.LDA(0x2980, AM.ABS_X),
+        inst.CMP(0x01, AM.STK),
+        inst.BEQ("SUCCESS"),
+        inst.INX(),
+        inst.CPX(0x0003, AM.IMM16),
+        inst.BNE("BEGIN"),
+        inst.PLA(),
+        inst.JMP(0xC122B6, AM.LNG),
+        "SUCCESS",
+        inst.PLA(),
+        inst.JMP(0xC122B7, AM.LNG)
+    ]
+
+    stuff = ASMSnippet(snippet)
+    print(stuff)
+
+    print("Assembled:")
+    stuff_b = stuff.to_bytes()
+    byteops.print_bytes(stuff_b, 16)
 
 
 if __name__ == '__main__':
