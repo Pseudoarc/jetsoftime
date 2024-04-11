@@ -433,7 +433,7 @@ def set_ending_after_ozzies_fort(ct_rom: ctrom.CTRom):
     )
     end_str_b = orig_tg_script.strings[1]
     end_str = ctstrings.CTString.ct_bytes_to_ascii(end_str_b)
-    end_str = end_str.replace('Lavos', 'FalconHit')
+    end_str = end_str.replace('Lavos', 'akuheish')
     new_end_str_b = ctstrings.CTString.from_str(end_str)
     new_end_str_b.compress()
     orig_tg_script.strings[1] = new_end_str_b
