@@ -1453,11 +1453,6 @@ class Randomizer:
         char_rando = rset.GameFlags.CHAR_RANDO in self.settings.gameflags
         tech_db = self.config.tech_db
 
-        # Fix volt bite damage error.
-        tech = tech_db.get_tech(ctenums.TechID.VOLT_BITE)
-        tech['control'][1] |= 1  # control which effects get damage displayed
-        tech_db.set_tech(tech, ctenums.TechID.VOLT_BITE)
-
         for char_id in range(7):
             pc_id = CharID(char_id)
             file_object.write(f"{CharID(char_id)}:")
@@ -2075,6 +2070,14 @@ class Randomizer:
             falcon_hit = tech_db.get_tech(ctenums.TechID.FALCON_HIT)
             falcon_hit['lrn_req'][0] = int(ctenums.TechID.SPINCUT)
             tech_db.set_tech(falcon_hit, ctenums.TechID.FALCON_HIT)
+
+            # Fix volt bite damage error.
+            tech = tech_db.get_tech(ctenums.TechID.VOLT_BITE)
+            # orig: 0x40 - Ignore hit/evd (set for all combo techs)
+            # Add 0x20: Something similar for magic attacks?  Set for all similar techs
+            # Add 0x01: Control which effects get damage displayed (not precisely known)
+            tech['control'][1] = 0x61
+            tech_db.set_tech(tech, ctenums.TechID.VOLT_BITE)
 
             # Change Cure to ReRaise, Speed to 9 for Marle
             cure = tech_db.get_tech(ctenums.TechID.CURE)

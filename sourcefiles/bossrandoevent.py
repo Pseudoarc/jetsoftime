@@ -438,8 +438,7 @@ def reassign_charms_drops(settings: rset.Settings,
 def make_weak_obstacle_copies(config: cfg.RandoConfig):
     '''
     If an obstacle-using boss is found before guaranteed amulets, make the
-    obstacle have a weaker status.  All early obstacles will share the same
-    weaker status.
+    obstacle single target.
     '''
     BSID = bt.BossSpotID
     endgame_spots = [
@@ -461,16 +460,17 @@ def make_weak_obstacle_copies(config: cfg.RandoConfig):
         atk_db = config.enemy_atk_db
         enemy_ai_db = config.enemy_ai_db
 
-        new_obstacle = atk_db.get_tech(0x58)
+        strong_obstacle = atk_db.get_tech(0x58)
+        single_target_obstacle = atk_db.get_tech(0x77)
+
         # Choose a status that doesn't incapacitate the team.
         # But also no point choosing poison because mega has shadow slay
-        new_status = random.choice(
-            (StatusEffect.LOCK, StatusEffect.SLOW)
-        )
-        new_obstacle.effect.status_effect = new_status  # type: ignore
+        new_status = strong_obstacle.effect.status_effect
+        single_target_obstacle.effect.status_effect = new_status # type: ignore
+        single_target_obstacle.effect.power = strong_obstacle.effect.power
 
         new_id = enemy_ai_db.unused_techs[-1]
-        atk_db.set_tech(new_obstacle, new_id)
+        atk_db.set_tech(single_target_obstacle, new_id)
 
         for boss in early_obstacle_bosses:
             scheme = config.boss_data_dict[boss]
