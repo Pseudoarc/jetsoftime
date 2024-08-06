@@ -685,7 +685,10 @@ def restore_cyrus_grave_script(ct_rom: ctrom.CTRom):
 def restore_magus_castle_decedents(config: cfg.RandoConfig):
     '''Copy Decedent to Frog King spot'''
     decedent_stats = config.enemy_dict[ctenums.EnemyID.DECEDENT].get_copy()
+    decedent_sprite = config.enemy_sprite_dict[ctenums.EnemyID.DECEDENT].get_copy()
+
     config.enemy_dict[ctenums.EnemyID.DECEDENT_II] = decedent_stats
+    config.enemy_sprite_dict[ctenums.EnemyID.DECEDENT_II] = decedent_sprite
     config.enemy_ai_db.change_enemy_ai(
         ctenums.EnemyID.DECEDENT_II, ctenums.EnemyID.DECEDENT
     )
