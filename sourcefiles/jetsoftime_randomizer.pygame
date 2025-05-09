@@ -78,16 +78,24 @@ flags =  {name:False for name in GameFlags._member_names_}
 active_panel_dict = {}
 active_panel_dict['presets'] = dict(options=presets,
                                     setting_attribute = 'presets',
-                                    categories = [])
+                                    categories = [], 
+                                    location = 0,
+                                    length = len(presets))
 active_panel_dict['mode'] = dict(options=GameMode.inv_str_dict(),
                                  setting_attribute = 'game_mode',
-                                    categories = [])
+                                 categories = [], 
+                                 location = 1,
+                                 length = len(GameMode.inv_str_dict()))
 active_panel_dict['difficulty'] = dict(options={'item':Difficulty.inv_str_dict(),'enemy':Difficulty.inv_str_dict()},
                                        setting_attribute = {'item':'item_difficulty','enemy':'enemy_difficulty'},
-                                    categories = ['item', 'enemy'])
+                                       categories = ['item', 'enemy'], 
+                                       location = 2,
+                                       length = len(Difficulty.inv_str_dict())*2 )
 active_panel_dict['flags'] = dict(options = None,
                                   setting_attribute = None,
-                                    categories = [])
+                                  categories = [], 
+                                  location = 3,
+                                  length = len(flags))
 
 
 # —————— Navigation state ——————
@@ -144,6 +152,7 @@ class RadioButton(Widget):
         global preset_choice, settings
         pygame.draw.circle(screen, DARK, self.pos, self.radius, 1)
 
+        # TODO:  Generalize this
         if self.group == "presets":
             sel = preset_choice
         elif self.group == "mode":
@@ -233,27 +242,27 @@ class CheckBox(Widget):
 def on_presets():
     global active_panel, focused_idx
     active_panel = 'presets'
-    focused_idx = 0
+    focused_idx = active_panel_dict[active_panel]['location']
     rebuild_focusables()
 
 def on_mode():
     global active_panel, focused_idx
     active_panel = 'mode'
-    focused_idx = 1
+    focused_idx = active_panel_dict[active_panel]['location']
     rebuild_focusables()
 
 
 def on_difficulty():
     global active_panel, focused_idx
     active_panel = 'difficulty'
-    focused_idx = 2
+    focused_idx = active_panel_dict[active_panel]['location']
     rebuild_focusables()
 
 
 def on_flags():
     global active_panel, focused_idx
     active_panel = 'flags'
-    focused_idx = 3
+    focused_idx = active_panel_dict[active_panel]['location']
     rebuild_focusables()
 
 
@@ -349,12 +358,33 @@ while True:
             continue
 
         if evt.type == pygame.KEYDOWN:
-            if evt.key == pygame.K_TAB:
-                focused_idx = (focused_idx + (-1 if evt.mod & pygame.KMOD_SHIFT else 1)) % len(focusables)
-            elif evt.key in (pygame.K_UP, pygame.K_LEFT):
-                focused_idx = (focused_idx - 1) % len(focusables)
-            elif evt.key in (pygame.K_DOWN, pygame.K_RIGHT):
-                focused_idx = (focused_idx + 1) % len(focusables)
+            # get focus location
+            if focused_idx < len(buttons): # if left side
+                column = -1
+                column_start = 0
+                column_end = len(buttons)-1
+            else:
+                column = 1
+                column_start = len(buttons)
+                column_end = column_start + active_panel_dict[active_panel]['length'] -1
+
+            if evt.key == pygame.K_UP:
+                if focused_idx == column_start:
+                    focused_idx = column_end
+                else:
+                    focused_idx-=1
+            elif evt.key == pygame.K_DOWN:
+                if focused_idx == column_end:
+                    focused_idx = column_start
+                else:
+                    focused_idx+=1    
+
+            elif evt.key in (pygame.K_LEFT, pygame.K_RIGHT):
+                if column<0:
+                    focused_idx = len(buttons)
+                else:
+                    focused_idx = active_panel_dict[active_panel]['location']
+
             elif evt.key in (pygame.K_RETURN, pygame.K_SPACE):
                 focusables[focused_idx].activate()
         elif evt.type == pygame.JOYBUTTONDOWN and evt.button == 0:
