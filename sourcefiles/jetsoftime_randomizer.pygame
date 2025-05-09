@@ -9,9 +9,7 @@ from randomizer import *
 TODO List
 
 Add more options
-Fix navigation of the app, to allow for left and right movements
 Test on anbernic device
-Enhance readability
 Add comments
 Clean up code
 Commit
@@ -38,11 +36,13 @@ screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 screen_width, screen_height = screen.get_size()
 pygame.display.set_caption("Pygame GUI Demo")
 font = pygame.font.SysFont(None, 24)
+font_flags = pygame.font.SysFont(None, 20)
 
 # —————— Layout positions ——————
 # Divider at one-third, panel content offset
 DIVIDER_X = screen_width // 3
 PANEL_X = DIVIDER_X + 20
+column_start_location = 20
 
 # —————— Colors ——————
 WHITE = (255, 255, 255)
@@ -103,7 +103,7 @@ focusables = []  # dynamically rebuilt
 focused_idx = 0  # index in focusables
 
 # —————— Helpers ——————
-def draw_text(text, pos, color=DARK):
+def draw_text(text, pos, font, color=DARK):
     img = font.render(text, True, color)
     screen.blit(img, pos)
 
@@ -128,7 +128,7 @@ class Button(Widget):
     def draw(self, is_focused=False):
         color = BLUE if self.rect.collidepoint(pygame.mouse.get_pos()) else GRAY
         pygame.draw.rect(screen, color, self.rect)
-        draw_text(self.text, (self.rect.x + 10, self.rect.y + 8))
+        draw_text(self.text, (self.rect.x + 10, self.rect.y + 8), font)
         if is_focused:
             pygame.draw.rect(screen, RED, self.rect, 2)
 
@@ -168,7 +168,7 @@ class RadioButton(Widget):
         if sel_label == self.label.lower():
             pygame.draw.circle(screen, DARK, self.pos, self.radius - 3)
 
-        draw_text(self.label.capitalize(), (self.pos[0] + 15, self.pos[1] - 8))
+        draw_text(self.label.capitalize(), (self.pos[0] + 15, self.pos[1] - 8), font)
 
         if is_focused:
             pygame.draw.circle(screen, RED, self.pos, self.radius + 4, 2)
@@ -197,9 +197,11 @@ class RadioButton(Widget):
 
 # —————— CheckBox ——————
 class CheckBox(Widget):
-    def __init__(self, pos, label):
-        self.rect = pygame.Rect(pos[0], pos[1], 16, 16)
+    def __init__(self, pos, label, font):
+        self.radius = int(font.get_height())
+        self.rect = pygame.Rect(pos[0], pos[1], self.radius, self.radius)
         self.label = label
+        self.font = font
 
     def draw(self, is_focused=False):
         global flags
@@ -215,15 +217,15 @@ class CheckBox(Widget):
             pygame.draw.line(screen, DARK, self.rect.topleft, self.rect.bottomright, 2)
             pygame.draw.line(screen, DARK, self.rect.topright, self.rect.bottomleft, 2)
 
-        draw_text(self.label, (self.rect.x + 25, self.rect.y - 2))
+        draw_text(self.label, (self.rect.x + 20, self.rect.y), self.font)
 
         if is_focused:
             pygame.draw.rect(screen, RED, self.rect.inflate(6, 6), 2)
 
     def handle_event(self, evt):
         if evt.type == pygame.MOUSEBUTTONDOWN and evt.button == 1:
-            label_rect = font.render(self.label, True, DARK).get_rect(
-                topleft=(self.rect.x + 25, self.rect.y - 2)
+            label_rect = self.font.render(self.label, True, DARK).get_rect(
+                topleft=(self.rect.x + 15, self.rect.y - 2)
             )
 
             if self.rect.collidepoint(evt.pos) or label_rect.collidepoint(evt.pos):
@@ -319,8 +321,8 @@ enemy_radios = [ RadioButton((PANEL_X, y), lbl, "enemy")  for y, lbl in enemy_bu
 
 active_panel_dict['difficulty']['widgets'] =  {"Item Difficulty": item_radios, 'Enemy Difficulty': enemy_radios}
 
-flag_buttons = [(button_start + button_step*i, s) for i, s in  enumerate(flags)]
-active_panel_dict['flags']['widgets'] = [ CheckBox((PANEL_X, y), lbl) for y, lbl in flag_buttons]
+flag_buttons = [(column_start_location + (font_flags.get_height()+6)*i, s) for i, s in  enumerate(flags)]
+active_panel_dict['flags']['widgets'] = [ CheckBox((PANEL_X, y), lbl, font_flags) for y, lbl in flag_buttons]
 
 # —————— Build focusables ——————
 def rebuild_focusables():
@@ -354,7 +356,7 @@ while True:
         if generating_rom:
             continue
         elif complete_time and now - complete_time <= 2000:
-            draw_text(complete_text, (PANEL_X, screen_height - 40), BLUE)
+            draw_text(complete_text, (PANEL_X, screen_height - 40), font, BLUE)
             continue
 
         if evt.type == pygame.KEYDOWN:
@@ -402,9 +404,9 @@ while True:
 
     active_widgets = active_panel_dict[active_panel]['widgets']
     if isinstance(active_widgets,dict):
-        category_location = 20
+        category_location = column_start_location
         for category, category_widgets in active_widgets.items():
-            draw_text(category, (PANEL_X, category_location))
+            draw_text(category, (PANEL_X-category_widgets[0].radius, category_location), font)
             for w in category_widgets:
                 w.draw(is_focused=(focusables[focused_idx] is w))
                 category_location=w.pos[1] + button_step
