@@ -41,9 +41,13 @@ pygame.init()
 # Fullscreen mode
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 screen_width, screen_height = screen.get_size()
-pygame.display.set_caption("Pygame GUI Demo")
 font = pygame.font.SysFont(None, 24)
 font_flags = pygame.font.SysFont(None, 20)
+
+# —————— Input init ——————
+pygame.joystick.init()
+for i in range(pygame.joystick.get_count()):
+    pygame.joystick.Joystick(i).init()
 
 # —————— Layout positions ——————
 # Divider at one-third, panel content offset
@@ -58,27 +62,7 @@ DARK = (50, 50, 50)
 BLUE = (0, 120, 215)
 RED = (200, 0, 0)
 
-# —————— GUI state ——————
-# active_panel: 1=Presets, 2=Mode, 3=Difficulty, 4=Flags
-
-# Lock state while generating
-complete_time = None
-complete_text = ''
-
-settings = Settings()
-
-# Current choices
-preset_choice = "Default"
-
-# —————— Preset configurations ——————
-presets = {'Default':Settings(),
-           'New Player':Settings.get_new_player_presets(),
-           'Race':Settings.get_race_presets(),
-           'Tourney T8':Settings.get_tourney_top8_preset(),
-           'Lost Worlds':Settings.get_lost_worlds_presets(),
-           'Hard':Settings.get_hard_presets()}
-flags =  {name:False for name in GameFlags._member_names_}
-
+# —————— Class definitions ——————
 
 class ActivePanel():
     def __init__(self, **kwargs):
@@ -103,29 +87,7 @@ class ActivePanel():
         game_state.focused_idx = self.location
         game_state.set_focusables()
 
-
-active_panel_dict = {}
-active_panel_dict['presets'] = ActivePanel(options=presets,
-                                    setting_attribute = 'presets',
-                                    location = 0,
-                                    name = 'presets')
-active_panel_dict['mode'] = ActivePanel(options=GameMode.inv_str_dict(),
-                                 setting_attribute = 'game_mode',
-                                 location = 1,
-                                 name = 'mode')
-active_panel_dict['difficulty'] = ActivePanel(options={'item':Difficulty.inv_str_dict(),'enemy':Difficulty.inv_str_dict()},
-                                       setting_attribute = {'item':'item_difficulty','enemy':'enemy_difficulty'},
-                                       categories = ['item', 'enemy'], 
-                                       location = 2,
-                                       name = 'difficulty')
-active_panel_dict['flags'] = ActivePanel(options = flags,
-                                  location = 3,
-                                  name = 'flags')
-
-
-# —————— Navigation state ——————
 class GameState():
-
 
     def __init__(self, **kwargs):
         self.focusables = []
@@ -322,6 +284,44 @@ def on_generate():
     complete_time = pygame.time.get_ticks()
     game_state.set_focusables()
 
+# —————— Game Settings ——————
+
+# Lock state while generating
+complete_time = None
+complete_text = ''
+
+settings = Settings()
+
+# Current choices
+preset_choice = "Default"
+
+# —————— Preset configurations ——————
+presets = {'Default':Settings(),
+           'New Player':Settings.get_new_player_presets(),
+           'Race':Settings.get_race_presets(),
+           'Tourney T8':Settings.get_tourney_top8_preset(),
+           'Lost Worlds':Settings.get_lost_worlds_presets(),
+           'Hard':Settings.get_hard_presets()}
+flags =  {name:False for name in GameFlags._member_names_}
+
+active_panel_dict = {}
+active_panel_dict['presets'] = ActivePanel(options=presets,
+                                    setting_attribute = 'presets',
+                                    location = 0,
+                                    name = 'presets')
+active_panel_dict['mode'] = ActivePanel(options=GameMode.inv_str_dict(),
+                                 setting_attribute = 'game_mode',
+                                 location = 1,
+                                 name = 'mode')
+active_panel_dict['difficulty'] = ActivePanel(options={'item':Difficulty.inv_str_dict(),'enemy':Difficulty.inv_str_dict()},
+                                       setting_attribute = {'item':'item_difficulty','enemy':'enemy_difficulty'},
+                                       categories = ['item', 'enemy'], 
+                                       location = 2,
+                                       name = 'difficulty')
+active_panel_dict['flags'] = ActivePanel(options = flags,
+                                  location = 3,
+                                  name = 'flags')
+
 # TODO:  Can I move this up?
 # —————— Instantiate widgets ——————
 button_start = 50
@@ -356,16 +356,14 @@ active_panel_dict['difficulty'].widgets =  {"Item Difficulty": item_radios, 'Ene
 flag_buttons = [(column_start_location + (font_flags.get_height()+6)*i, s) for i, s in  enumerate(flags)]
 active_panel_dict['flags'].widgets = [ CheckBox((PANEL_X, y), lbl, font_flags) for y, lbl in flag_buttons]
 
+
+# —————— Instantiate game state ——————
 game_state = GameState()
 game_state.menu_buttons = buttons
 game_state.panels = active_panel_dict
 game_state.active_panel_name = 'presets'
 game_state.set_focusables()
 
-# —————— Input init ——————
-pygame.joystick.init()
-for i in range(pygame.joystick.get_count()):
-    pygame.joystick.Joystick(i).init()
 
 # —————— Main loop ——————
 clock = pygame.time.Clock()
