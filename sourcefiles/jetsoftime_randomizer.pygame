@@ -8,14 +8,21 @@ from randomizer import *
 '''
 TODO List
 
-Add more options
-Test on anbernic device
-Add comments
 Clean up code
-Commit
+Organize Code
+Add more options
+Add code comments
 Add TODOs as needed for feature development
 Address AB button selection in GUI
 Setup process for deployment to avoid copying over the entire repo
+Test on anbernic device
+Add Readme / doc string / example use
+Submit Pull request
+
+
+Refactor Tests TODOS
+- need to fix navigation,  arrow keys don't work
+- generation doesn't work
 
 '''
 
@@ -53,10 +60,8 @@ RED = (200, 0, 0)
 
 # —————— GUI state ——————
 # active_panel: 1=Presets, 2=Mode, 3=Difficulty, 4=Flags
-active_panel = 'presets'
 
 # Lock state while generating
-generating_rom = False
 complete_time = None
 complete_text = ''
 
@@ -75,51 +80,104 @@ presets = {'Default':Settings(),
 flags =  {name:False for name in GameFlags._member_names_}
 
 
+class ActivePanel():
+    def __init__(self, **kwargs):
+
+        self.options = {}
+        self.setting_attribute = ''
+        self.categories = []
+        self.location = 0
+        self.length = 0
+        self.widgets = []
+
+        self.__dict__.update(kwargs)
+
+        if self.categories:
+            self.length = sum([len(d) for d in self.options.items()])
+        else:
+            self.length = len(self.options)
+
+    def callback(self):
+        global game_state
+        game_state.active_panel_name = self.name
+        game_state.focused_idx = self.location
+        game_state.set_focusables()
+
+
 active_panel_dict = {}
-active_panel_dict['presets'] = dict(options=presets,
+active_panel_dict['presets'] = ActivePanel(options=presets,
                                     setting_attribute = 'presets',
-                                    categories = [], 
                                     location = 0,
-                                    length = len(presets))
-active_panel_dict['mode'] = dict(options=GameMode.inv_str_dict(),
+                                    name = 'presets')
+active_panel_dict['mode'] = ActivePanel(options=GameMode.inv_str_dict(),
                                  setting_attribute = 'game_mode',
-                                 categories = [], 
                                  location = 1,
-                                 length = len(GameMode.inv_str_dict()))
-active_panel_dict['difficulty'] = dict(options={'item':Difficulty.inv_str_dict(),'enemy':Difficulty.inv_str_dict()},
+                                 name = 'mode')
+active_panel_dict['difficulty'] = ActivePanel(options={'item':Difficulty.inv_str_dict(),'enemy':Difficulty.inv_str_dict()},
                                        setting_attribute = {'item':'item_difficulty','enemy':'enemy_difficulty'},
                                        categories = ['item', 'enemy'], 
                                        location = 2,
-                                       length = len(Difficulty.inv_str_dict())*2 )
-active_panel_dict['flags'] = dict(options = None,
-                                  setting_attribute = None,
-                                  categories = [], 
+                                       name = 'difficulty')
+active_panel_dict['flags'] = ActivePanel(options = flags,
                                   location = 3,
-                                  length = len(flags))
+                                  name = 'flags')
 
 
 # —————— Navigation state ——————
-focusables = []  # dynamically rebuilt
-focused_idx = 0  # index in focusables
+class GameState():
+
+
+    def __init__(self, **kwargs):
+        self.focusables = []
+        self.focusable = None
+        self._focused_idx = 0
+
+        self.menu_buttons = None
+
+        self.panels = []
+        self._active_panel_name = ''
+        self.active_panel = None
+
+        self.generating_rom = False
+        self.__dict__.update(kwargs)
+
+
+    @property
+    def focused_idx(self):
+        return self._focused_idx
+
+    @focused_idx.setter
+    def focused_idx(self, value):
+        self._focused_idx = value
+        if self.focusables:
+            self.focusable = self.focusables[value]
+
+    @property
+    def active_panel_name(self):
+        return self._active_panel_name
+
+    @active_panel_name.setter
+    def active_panel_name(self, value):
+        self._active_panel_name = value
+        if self.panels:
+            self.active_panel = self.panels[value]
+
+    def set_focusables(self):
+        self.focusables = self.menu_buttons.copy()
+
+        active_widgets = self.active_panel.widgets
+        if isinstance(active_widgets,dict):
+            active_widgets = [v for value in active_widgets.values() for v in value]
+
+        self.focusables += active_widgets
 
 # —————— Helpers ——————
 def draw_text(text, pos, font, color=DARK):
     img = font.render(text, True, color)
     screen.blit(img, pos)
 
-# —————— Widget base ——————
-class Widget:
-    def draw(self, is_focused=False):
-        pass
-
-    def handle_event(self, evt):
-        pass
-
-    def activate(self):
-        pass
-
 # —————— Button ——————
-class Button(Widget):
+class Button():
     def __init__(self, rect, text, callback):
         self.rect = pygame.Rect(rect)
         self.text = text
@@ -141,7 +199,7 @@ class Button(Widget):
         self.callback()
 
 # —————— RadioButton ——————
-class RadioButton(Widget):
+class RadioButton():
     def __init__(self, pos, label, group):
         self.pos = pos
         self.label = label
@@ -181,22 +239,22 @@ class RadioButton(Widget):
                 self.activate()
 
     def activate(self):
-        global preset_choice, settings, flags
+        global preset_choice, settings, flags, game_state
 
-        if self.group in active_panel_dict:
+        if self.group in game_state.panels:
             
-            if active_panel_dict[self.group]['setting_attribute'] == 'presets': # Preset
+            if game_state.panels[self.group].setting_attribute == 'presets': # Preset
                 preset_choice = self.label # TODO:  try to remove this
-                settings = active_panel_dict[self.group]['options'][self.label]
+                settings = game_state.panels[self.group].options[self.label]
             else: # Single Category
-                settings.__setattr__(active_panel_dict[self.group]['setting_attribute'], active_panel_dict[self.group]['options'][self.label])
+                settings.__setattr__(game_state.panels[self.group].setting_attribute, game_state.panels[self.group].options[self.label])
         else: # Multi Category
-            for g in active_panel_dict.values(): # active panel consists of several categoies
-                if g['categories'] and self.group in g['options']:
-                    settings.__setattr__(g['setting_attribute'][self.group], g['options'][self.group][self.label])
+            for g in game_state.panels.values(): # active panel consists of several categoies
+                if g.categories and self.group in g.options:
+                    settings.__setattr__(g.setting_attribute[self.group], g.options[self.group][self.label])
 
 # —————— CheckBox ——————
-class CheckBox(Widget):
+class CheckBox():
     def __init__(self, pos, label, font):
         self.radius = int(font.get_height())
         self.rect = pygame.Rect(pos[0], pos[1], self.radius, self.radius)
@@ -240,39 +298,12 @@ class CheckBox(Widget):
         settings.fix_flag_conflicts()
 
 # —————— Callbacks ——————
-
-def on_presets():
-    global active_panel, focused_idx
-    active_panel = 'presets'
-    focused_idx = active_panel_dict[active_panel]['location']
-    rebuild_focusables()
-
-def on_mode():
-    global active_panel, focused_idx
-    active_panel = 'mode'
-    focused_idx = active_panel_dict[active_panel]['location']
-    rebuild_focusables()
-
-
-def on_difficulty():
-    global active_panel, focused_idx
-    active_panel = 'difficulty'
-    focused_idx = active_panel_dict[active_panel]['location']
-    rebuild_focusables()
-
-
-def on_flags():
-    global active_panel, focused_idx
-    active_panel = 'flags'
-    focused_idx = active_panel_dict[active_panel]['location']
-    rebuild_focusables()
-
-
+# TODO: Make method of game state
 def on_generate():
-    global generating_rom,complete_time,complete_text
-    generating_rom=True
+    global complete_time,complete_text, game_state
+    game_state.generating_rom=True
 
-    rebuild_focusables()
+    game_state.set_focusables()
 
     names = read_names()
     settings.seed = "".join(random.choice(names) for i in range(2))
@@ -286,10 +317,10 @@ def on_generate():
     writer = RandomizerWriter(rando, base_name=base_name)
     writer.write_output_rom(Path(output_path))
     
-    generating_rom=False
+    game_state.generating_rom=False
     complete_text = f"ROM Complete: {writer.out_string}.sfc"
     complete_time = pygame.time.get_ticks()
-    rebuild_focusables()
+    game_state.set_focusables()
 
 # TODO:  Can I move this up?
 # —————— Instantiate widgets ——————
@@ -297,19 +328,20 @@ button_start = 50
 button_step = 30
 buttons = [
     #       x   y   h    l
-    Button((20, 20, 100, 30), "Presets", on_presets),
-    Button((20, 60, 100, 30), "Mode", on_mode),
-    Button((20, 100, 100, 30), "Difficulty", on_difficulty),
-    Button((20, 140, 100, 30), "Flags", on_flags),
+    Button((20, 20, 100, 30), "Presets", active_panel_dict['presets'].callback),
+    Button((20, 60, 100, 30), "Mode", active_panel_dict['mode'].callback),
+    Button((20, 100, 100, 30), "Difficulty", active_panel_dict['difficulty'].callback),
+    Button((20, 140, 100, 30), "Flags", active_panel_dict['flags'].callback),
     Button((20, screen_height - 60, 100, 30), "Generate", on_generate)
 ]
 
+# TODO:  Can I move this to the class level?  Seems like a lot of duplicate code
 
 preset_buttons = [(button_start + button_step*i, mode) for i, mode in  enumerate(presets)]
-active_panel_dict['presets']['widgets'] = [ RadioButton((PANEL_X, y), lbl, "presets")  for y, lbl in preset_buttons]
+active_panel_dict['presets'].widgets = [ RadioButton((PANEL_X, y), lbl, "presets")  for y, lbl in preset_buttons]
 
 mode_buttons = [(button_start + button_step*i, s) for i, s in  enumerate(GameMode.str_dict().values())]
-active_panel_dict['mode']['widgets'] = [ RadioButton((PANEL_X, y), lbl, "mode") for y, lbl in mode_buttons]
+active_panel_dict['mode'].widgets = [ RadioButton((PANEL_X, y), lbl, "mode") for y, lbl in mode_buttons]
 
 item_buttons = [(button_start + button_step*i, s) for i, s in  enumerate(Difficulty.str_dict().values())]
 item_radios = [ RadioButton((PANEL_X, y), lbl, "item")  for y, lbl in item_buttons]
@@ -319,23 +351,16 @@ cstart = item_radios[-1].pos[1]+button_step*2 # Leave room for title
 enemy_buttons = [(cstart + button_step*i, s) for i, s in  enumerate(Difficulty.str_dict().values())]
 enemy_radios = [ RadioButton((PANEL_X, y), lbl, "enemy")  for y, lbl in enemy_buttons]
 
-active_panel_dict['difficulty']['widgets'] =  {"Item Difficulty": item_radios, 'Enemy Difficulty': enemy_radios}
+active_panel_dict['difficulty'].widgets =  {"Item Difficulty": item_radios, 'Enemy Difficulty': enemy_radios}
 
 flag_buttons = [(column_start_location + (font_flags.get_height()+6)*i, s) for i, s in  enumerate(flags)]
-active_panel_dict['flags']['widgets'] = [ CheckBox((PANEL_X, y), lbl, font_flags) for y, lbl in flag_buttons]
+active_panel_dict['flags'].widgets = [ CheckBox((PANEL_X, y), lbl, font_flags) for y, lbl in flag_buttons]
 
-# —————— Build focusables ——————
-def rebuild_focusables():
-    global focusables
-    focusables = buttons.copy()
-
-    active_widgets = active_panel_dict[active_panel]['widgets'] 
-    if isinstance(active_widgets,dict):
-        active_widgets = [v for value in active_widgets.values() for v in value]
-
-    focusables += active_widgets
-
-rebuild_focusables()
+game_state = GameState()
+game_state.menu_buttons = buttons
+game_state.panels = active_panel_dict
+game_state.active_panel_name = 'presets'
+game_state.set_focusables()
 
 # —————— Input init ——————
 pygame.joystick.init()
@@ -353,46 +378,49 @@ while True:
             sys.exit()
 
         screen.fill(WHITE)
-        if generating_rom:
+        if game_state.generating_rom:
             continue
         elif complete_time and now - complete_time <= 2000:
-            draw_text(complete_text, (PANEL_X, screen_height - 40), font, BLUE)
+            draw_text(complete_text, (PANEL_X, screen_height - 60), font, BLUE)
             continue
 
         if evt.type == pygame.KEYDOWN:
             # get focus location
-            if focused_idx < len(buttons): # if left side
+            focus_idx = game_state.focused_idx
+            if focus_idx < len(buttons): # if left side
                 column = -1
                 column_start = 0
                 column_end = len(buttons)-1
             else:
                 column = 1
                 column_start = len(buttons)
-                column_end = column_start + active_panel_dict[active_panel]['length'] -1
+                column_end = column_start + game_state.active_panel.length -1
 
             if evt.key == pygame.K_UP:
-                if focused_idx == column_start:
-                    focused_idx = column_end
+                if focus_idx == column_start:
+                    focus_idx = column_end
                 else:
-                    focused_idx-=1
+                    focus_idx-=1
             elif evt.key == pygame.K_DOWN:
-                if focused_idx == column_end:
-                    focused_idx = column_start
+                if focus_idx == column_end:
+                    focus_idx = column_start
                 else:
-                    focused_idx+=1    
+                    focus_idx+=1    
 
             elif evt.key in (pygame.K_LEFT, pygame.K_RIGHT):
                 if column<0:
-                    focused_idx = len(buttons)
+                    focus_idx = len(buttons)
                 else:
-                    focused_idx = active_panel_dict[active_panel]['location']
+                    focus_idx = game_state.active_panel.location
 
             elif evt.key in (pygame.K_RETURN, pygame.K_SPACE):
-                focusables[focused_idx].activate()
-        elif evt.type == pygame.JOYBUTTONDOWN and evt.button == 0:
-            focusables[focused_idx].activate()
+                game_state.focusable.activate()
+            game_state.focused_idx = focus_idx
 
-        active_widgets = active_panel_dict[active_panel]['widgets']
+        elif evt.type == pygame.JOYBUTTONDOWN and evt.button == 0:
+            game_state.focusable.activate()
+
+        active_widgets = game_state.active_panel.widgets
         if isinstance(active_widgets,dict):
             active_widgets = [v for value in active_widgets.values() for v in value]
         for w in buttons + active_widgets:
@@ -400,19 +428,19 @@ while True:
 
     pygame.draw.line(screen, DARK, (DIVIDER_X, 0), (DIVIDER_X, screen_height), 2)
     for w in buttons:
-        w.draw(is_focused=(focusables[focused_idx] is w))
+        w.draw(is_focused=(game_state.focusable is w))
 
-    active_widgets = active_panel_dict[active_panel]['widgets']
+    active_widgets = game_state.active_panel.widgets
     if isinstance(active_widgets,dict):
         category_location = column_start_location
         for category, category_widgets in active_widgets.items():
             draw_text(category, (PANEL_X-category_widgets[0].radius, category_location), font)
             for w in category_widgets:
-                w.draw(is_focused=(focusables[focused_idx] is w))
+                w.draw(is_focused=(game_state.focusable is w))
                 category_location=w.pos[1] + button_step
     else:
         for w in active_widgets:
-            w.draw(is_focused=(focusables[focused_idx] is w))
+            w.draw(is_focused=(game_state.focusable is w))
 
     pygame.display.flip()
     clock.tick(60)
