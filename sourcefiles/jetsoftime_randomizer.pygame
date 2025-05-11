@@ -313,14 +313,22 @@ active_panel_dict['mode'] = ActivePanel(options=GameMode.inv_str_dict(),
                                  setting_attribute = 'game_mode',
                                  location = 1,
                                  name = 'mode')
+                                 
 active_panel_dict['difficulty'] = ActivePanel(options={'item':Difficulty.inv_str_dict(),'enemy':Difficulty.inv_str_dict()},
                                        setting_attribute = {'item':'item_difficulty','enemy':'enemy_difficulty'},
                                        categories = ['item', 'enemy'], 
                                        location = 2,
                                        name = 'difficulty')
+
+active_panel_dict['techshop'] = ActivePanel(options={'tech':TechOrder.inv_str_dict(),'shop':ShopPrices.inv_str_dict()},
+                                       setting_attribute = {'tech':'techorder','shop':'shopprices'},
+                                       categories = ['tech', 'shop'], 
+                                       location = 3,
+                                       name = 'techshop')         
+
 active_panel_dict['flags'] = ActivePanel(options = flags,
-                                  location = 3,
-                                  name = 'flags')
+                                  location = 4,
+                                  name = 'flags')            
 
 # TODO:  Can I move this up?
 # —————— Instantiate widgets ——————
@@ -331,28 +339,43 @@ buttons = [
     Button((20, 20, 100, 30), "Presets", active_panel_dict['presets'].callback),
     Button((20, 60, 100, 30), "Mode", active_panel_dict['mode'].callback),
     Button((20, 100, 100, 30), "Difficulty", active_panel_dict['difficulty'].callback),
-    Button((20, 140, 100, 30), "Flags", active_panel_dict['flags'].callback),
+    Button((20, 140, 100, 30), "Tech/Shop", active_panel_dict['techshop'].callback),
+    Button((20, 180, 100, 30), "Flags", active_panel_dict['flags'].callback),
     Button((20, screen_height - 60, 100, 30), "Generate", on_generate)
 ]
 
 # TODO:  Can I move this to the class level?  Seems like a lot of duplicate code
 
-preset_buttons = [(button_start + button_step*i, mode) for i, mode in  enumerate(presets)]
-active_panel_dict['presets'].widgets = [ RadioButton((PANEL_X, y), lbl, "presets")  for y, lbl in preset_buttons]
+# Presets
+option_buttons = [(button_start + button_step*i, mode) for i, mode in  enumerate(presets)]
+active_panel_dict['presets'].widgets = [ RadioButton((PANEL_X, y), lbl, "presets")  for y, lbl in option_buttons]
 
-mode_buttons = [(button_start + button_step*i, s) for i, s in  enumerate(GameMode.str_dict().values())]
-active_panel_dict['mode'].widgets = [ RadioButton((PANEL_X, y), lbl, "mode") for y, lbl in mode_buttons]
+# Game Modes
+option_buttons = [(button_start + button_step*i, s) for i, s in  enumerate(GameMode.str_dict().values())]
+active_panel_dict['mode'].widgets = [ RadioButton((PANEL_X, y), lbl, "mode") for y, lbl in option_buttons]
 
-item_buttons = [(button_start + button_step*i, s) for i, s in  enumerate(Difficulty.str_dict().values())]
-item_radios = [ RadioButton((PANEL_X, y), lbl, "item")  for y, lbl in item_buttons]
+# Difficulties
+option_buttons = [(button_start + button_step*i, s) for i, s in  enumerate(Difficulty.str_dict().values())]
+item_radios = [ RadioButton((PANEL_X, y), lbl, "item")  for y, lbl in option_buttons]
 
-# generalize button start
 cstart = item_radios[-1].pos[1]+button_step*2 # Leave room for title
-enemy_buttons = [(cstart + button_step*i, s) for i, s in  enumerate(Difficulty.str_dict().values())]
-enemy_radios = [ RadioButton((PANEL_X, y), lbl, "enemy")  for y, lbl in enemy_buttons]
+option_buttons = [(cstart + button_step*i, s) for i, s in  enumerate(Difficulty.str_dict().values())]
+enemy_radios = [ RadioButton((PANEL_X, y), lbl, "enemy")  for y, lbl in option_buttons]
 
 active_panel_dict['difficulty'].widgets =  {"Item Difficulty": item_radios, 'Enemy Difficulty': enemy_radios}
 
+# Tech Order and Shop Prices
+
+option_buttons = [(button_start + button_step*i, s) for i, s in  enumerate(TechOrder.str_dict().values())]
+tech_radios = [ RadioButton((PANEL_X, y), lbl, "tech")  for y, lbl in option_buttons]
+
+cstart = item_radios[-1].pos[1]+button_step*2 # Leave room for title
+option_buttons = [(cstart + button_step*i, s) for i, s in  enumerate(ShopPrices.str_dict().values())]
+shop_radios = [ RadioButton((PANEL_X, y), lbl, "shop")  for y, lbl in option_buttons]
+
+active_panel_dict['techshop'].widgets =  {"Tech Order": tech_radios, 'Shop Prices': shop_radios}
+
+# Game flags
 flag_buttons = [(column_start_location + (font_flags.get_height()+6)*i, s) for i, s in  enumerate(flags)]
 active_panel_dict['flags'].widgets = [ CheckBox((PANEL_X, y), lbl, font_flags) for y, lbl in flag_buttons]
 
@@ -376,14 +399,20 @@ while True:
             sys.exit()
 
         screen.fill(WHITE)
+
+        # When generating ROM, lock controls
         if game_state.generating_rom:
             continue
         elif complete_time and now - complete_time <= 2000:
             draw_text(complete_text, (PANEL_X, screen_height - 60), font, BLUE)
             continue
 
+        # —————— User Input and Navigation ——————
+
+        # Check for user input and update focus location
         if evt.type == pygame.KEYDOWN:
-            # get focus location
+  
+            # Check if focus location is on the left or right side and get column length to determine when to wrap around
             focus_idx = game_state.focused_idx
             if focus_idx < len(buttons): # if left side
                 column = -1
@@ -394,41 +423,54 @@ while True:
                 column_start = len(buttons)
                 column_end = column_start + game_state.active_panel.length -1
 
+
             if evt.key == pygame.K_UP:
-                if focus_idx == column_start:
+                if focus_idx == column_start: # Check to wrap around
                     focus_idx = column_end
                 else:
                     focus_idx-=1
+
             elif evt.key == pygame.K_DOWN:
-                if focus_idx == column_end:
+                if focus_idx == column_end: # Check to wrap around
                     focus_idx = column_start
                 else:
                     focus_idx+=1    
 
             elif evt.key in (pygame.K_LEFT, pygame.K_RIGHT):
-                if column<0:
+                if column<0: # If on the left side, go to top of the right side
                     focus_idx = len(buttons)
-                else:
+                else: # If on the right side, current active menu button
                     focus_idx = game_state.active_panel.location
 
-            elif evt.key in (pygame.K_RETURN, pygame.K_SPACE):
+            elif evt.key in (pygame.K_RETURN, pygame.K_SPACE,97,98):  # 97 and 98 are A&B buttons on Anbernic Devices, typically
                 game_state.focusable.activate()
+
             game_state.focused_idx = focus_idx
 
         elif evt.type == pygame.JOYBUTTONDOWN and evt.button == 0:
             game_state.focusable.activate()
 
+        # Handle button selection events
         active_widgets = game_state.active_panel.widgets
         if isinstance(active_widgets,dict):
             active_widgets = [v for value in active_widgets.values() for v in value]
+
         for w in buttons + active_widgets:
             w.handle_event(evt)
 
+    # —————— Draw Menu ——————
+
+    # Create divider line to split menu and option buttons
     pygame.draw.line(screen, DARK, (DIVIDER_X, 0), (DIVIDER_X, screen_height), 2)
+
+    # Draw Menu Buttons
     for w in buttons:
         w.draw(is_focused=(game_state.focusable is w))
 
+    # Draw Option Buttons
     active_widgets = game_state.active_panel.widgets
+
+    # Multi Category
     if isinstance(active_widgets,dict):
         category_location = column_start_location
         for category, category_widgets in active_widgets.items():
@@ -436,6 +478,8 @@ while True:
             for w in category_widgets:
                 w.draw(is_focused=(game_state.focusable is w))
                 category_location=w.pos[1] + button_step
+
+    # Single Category
     else:
         for w in active_widgets:
             w.draw(is_focused=(game_state.focusable is w))
