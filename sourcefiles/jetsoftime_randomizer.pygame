@@ -5,20 +5,31 @@ import os
 from randosettings import *
 from randomizer import *
 
-'''
-TODO List
+"""
+Setup and Use Instructions
 
-Address AB button selection in GUI
-Setup process for deployment to avoid copying over the entire repo
-Test on anbernic device
-Add Readme / doc string / example use
-Submit Pull request
-'''
+<----- Assumptions ----->
+Assuming you have a Chrono Trigger rom (legally obtained) and have it working on a hand held...
+Assuming you have the ability to run pygames (anbernic devices already setup to do this)...
 
-# TODO:  Autodetect location of rom
-snes_rom_path = '/home/nausea911/Downloads/romhacks/jetsoftime' # TODO:  Add in manually
-# snes_rom_path = '/userdata/roms/snes' # TODO:  Add in manually
-rom_file='ct.sfc' # TODO  Add in manually
+<----- Setup ----->
+Update the `snes_rom_path` to be the absolute path to your snes rom folder.  The Chrono Trigger rom should be in this folder
+Update the `rom_file` to match the file name of the Chrono Trigger rom
+scp the entire jets of time repo into the pygame folder on the device
+Update the game list on the device (or restart the device)
+Run `jetsoftime_randomizer` game on the pygame menu
+This will launch the GUI interface.
+
+<----- Use Instructions ----->
+On the left side are different menu buttons, when selected will bring up different option buttons
+There are presets available, when selected will auto populate the settings to the presets.  These can then be further edited
+In general, go through the different menu categories to configure the different randomizer options
+The capability is good to generate randomized runs for most use cases, but does not have the same capabilities of the desktop or web applications
+If more customization is desired, generate the roms using desktop/web applications and scp them to handheld
+"""
+
+snes_rom_path = '/userdata/roms/snes' # TODO(user):  Update if needed
+rom_file='ct.sfc' # TODO(user): Update if needed
 output_path = os.path.join(snes_rom_path,'jetsoftime_rom')
 
 if not os.path.isdir(output_path):
@@ -31,7 +42,7 @@ pygame.init()
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 screen_width, screen_height = screen.get_size()
 font = pygame.font.SysFont(None, 24)
-font_flags = pygame.font.SysFont(None, 20)
+font_flags = pygame.font.SysFont(None, 15)
 
 # —————— Input init ——————
 pygame.joystick.init()
@@ -368,7 +379,7 @@ shop_radios = [ RadioButton((PANEL_X, y), lbl, "shop")  for y, lbl in option_but
 active_panel_dict['techshop'].widgets =  {"Tech Order": tech_radios, 'Shop Prices': shop_radios}
 
 # Game flags
-flag_buttons = [(column_start_location + (font_flags.get_height()+6)*i, s) for i, s in  enumerate(flags)]
+flag_buttons = [(column_start_location + (font_flags.get_height()+1)*i, s) for i, s in  enumerate(flags)]
 active_panel_dict['flags'].widgets = [ CheckBox((PANEL_X, y), lbl, font_flags) for y, lbl in flag_buttons]
 
 
@@ -383,20 +394,20 @@ game_state.set_focusables()
 clock = pygame.time.Clock()
 while True:
     now = pygame.time.get_ticks()
+    
+    # When generating ROM, lock controls
+    if game_state.generating_rom:
+        continue
+    elif game_state.rom_timer and now - game_state.rom_timer <= 2000:
+        draw_text(f"ROM Complete: {game_state.rom_name}", (PANEL_X, screen_height - 60), font, BLUE)
+        pygame.display.flip()
+        continue
 
+    screen.fill(WHITE)
     for evt in pygame.event.get():
         if evt.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-
-        screen.fill(WHITE)
-
-        # When generating ROM, lock controls
-        if game_state.generating_rom:
-            continue
-        elif game_state.rom_timer and now - game_state.rom_timer <= 2000:
-            draw_text(f"ROM Complete: {game_state.rom_name}", (PANEL_X, screen_height - 60), font, BLUE)
-            continue
 
         # —————— User Input and Navigation ——————
 
@@ -477,3 +488,11 @@ while True:
 
     pygame.display.flip()
     clock.tick(60)
+
+
+'''
+Developer TODO List
+Auto detect rom and snes rom path on device
+Setup process for deployment to avoid copying over the entire repo
+Add another column for flags so that more can be displayed on screen, or split them up into different flag categories (such as Qol)
+'''
