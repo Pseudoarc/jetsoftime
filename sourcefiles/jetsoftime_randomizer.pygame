@@ -8,22 +8,11 @@ from randomizer import *
 '''
 TODO List
 
-Clean up code
-Organize Code
-Add more options
-Add code comments
-Add TODOs as needed for feature development
 Address AB button selection in GUI
 Setup process for deployment to avoid copying over the entire repo
 Test on anbernic device
 Add Readme / doc string / example use
 Submit Pull request
-
-
-Refactor Tests TODOS
-- need to fix navigation,  arrow keys don't work
-- generation doesn't work
-
 '''
 
 # TODO:  Autodetect location of rom
@@ -77,7 +66,7 @@ class ActivePanel():
         self.__dict__.update(kwargs)
 
         if self.categories:
-            self.length = sum([len(d) for d in self.options.items()])
+            self.length = sum([len(d) for d in self.options.values()])
         else:
             self.length = len(self.options)
 
@@ -101,6 +90,8 @@ class GameState():
         self.active_panel = None
 
         self.generating_rom = False
+        self.rom_name = ''
+        self.rom_timer = None
         self.__dict__.update(kwargs)
 
 
@@ -132,6 +123,30 @@ class GameState():
             active_widgets = [v for value in active_widgets.values() for v in value]
 
         self.focusables += active_widgets
+
+    def generate_rom(self):
+        global settings
+
+        self.generating_rom=True
+
+        self.set_focusables()
+
+        names = read_names()
+        settings.seed = "".join(random.choice(names) for i in range(2))
+
+        rom = Path(os.path.join(snes_rom_path, rom_file)).read_bytes()
+        
+        rando = Randomizer(rom, is_vanilla=False, settings=settings, config=None)
+        rando.set_random_config()
+
+        base_name, _ = os.path.splitext(rom_file)
+        writer = RandomizerWriter(rando, base_name=base_name)
+        writer.write_output_rom(Path(output_path))
+        
+        self.generating_rom=False
+        self.rom_name = f'{writer.out_string}.sfc'
+        self.rom_timer = pygame.time.get_ticks()
+        self.set_focusables()
 
 # —————— Helpers ——————
 def draw_text(text, pos, font, color=DARK):
@@ -169,26 +184,29 @@ class RadioButton():
         self.radius = 8
 
     def draw(self, is_focused=False):
-        global preset_choice, settings
+        global settings
+
+        # Create radio button for option
         pygame.draw.circle(screen, DARK, self.pos, self.radius, 1)
+        button_text = ' '.join([s.capitalize() for s in self.label.split(' ')])
+        draw_text(button_text, (self.pos[0] + 15, self.pos[1] - 8), font)
 
-        # TODO:  Generalize this
-        if self.group == "presets":
-            sel = preset_choice
-        elif self.group == "mode":
-            sel = settings.game_mode.name
-        elif self.group == "item":
-            sel = settings.item_difficulty.name
-        elif self.group == 'enemy':
-            sel = settings.enemy_difficulty.name
-        else:
-            return
+        if self.group in game_state.panels:
+            settings_attribute = settings.__dict__[game_state.panels[self.group].setting_attribute]
+            if isinstance(settings_attribute,str):
+                selected_option = settings_attribute
+            else:
+                selected_option = settings.__dict__[game_state.panels[self.group].setting_attribute].name
+        else: # Multi Category
+            for g in game_state.panels.values():
+                if g.categories and self.group in g.options:
+                    selected_option = settings.__dict__[g.setting_attribute[self.group]].name
+                    break
 
-        sel_label = ' '.join(sel.lower().split('_'))
-        if sel_label == self.label.lower():
+        # If button match what is in the current settings.  Fill it in
+        selected_label = ' '.join(selected_option.lower().split('_'))
+        if selected_label == self.label.lower():
             pygame.draw.circle(screen, DARK, self.pos, self.radius - 3)
-
-        draw_text(self.label.capitalize(), (self.pos[0] + 15, self.pos[1] - 8), font)
 
         if is_focused:
             pygame.draw.circle(screen, RED, self.pos, self.radius + 4, 2)
@@ -201,15 +219,16 @@ class RadioButton():
                 self.activate()
 
     def activate(self):
-        global preset_choice, settings, flags, game_state
-
+        global settings, game_state
+        
         if self.group in game_state.panels:
-            
-            if game_state.panels[self.group].setting_attribute == 'presets': # Preset
-                preset_choice = self.label # TODO:  try to remove this
+
+            if game_state.panels[self.group].setting_attribute == 'preset_choice': # Preset
                 settings = game_state.panels[self.group].options[self.label]
+                settings.preset_choice = self.label 
             else: # Single Category
                 settings.__setattr__(game_state.panels[self.group].setting_attribute, game_state.panels[self.group].options[self.label])
+
         else: # Multi Category
             for g in game_state.panels.values(): # active panel consists of several categoies
                 if g.categories and self.group in g.options:
@@ -237,7 +256,8 @@ class CheckBox():
             pygame.draw.line(screen, DARK, self.rect.topleft, self.rect.bottomright, 2)
             pygame.draw.line(screen, DARK, self.rect.topright, self.rect.bottomleft, 2)
 
-        draw_text(self.label, (self.rect.x + 20, self.rect.y), self.font)
+        button_text = ' '.join([s.capitalize() for s in self.label.split('_')])
+        draw_text(button_text, (self.rect.x + 20, self.rect.y), self.font)
 
         if is_focused:
             pygame.draw.rect(screen, RED, self.rect.inflate(6, 6), 2)
@@ -259,41 +279,13 @@ class CheckBox():
         settings.gameflags = GameFlags(flags_value)
         settings.fix_flag_conflicts()
 
-# —————— Callbacks ——————
-# TODO: Make method of game state
-def on_generate():
-    global complete_time,complete_text, game_state
-    game_state.generating_rom=True
-
-    game_state.set_focusables()
-
-    names = read_names()
-    settings.seed = "".join(random.choice(names) for i in range(2))
-
-    rom = Path(os.path.join(snes_rom_path, rom_file)).read_bytes()
-    
-    rando = Randomizer(rom, is_vanilla=False, settings=settings, config=None)
-    rando.set_random_config()
-
-    base_name, _ = os.path.splitext(rom_file)
-    writer = RandomizerWriter(rando, base_name=base_name)
-    writer.write_output_rom(Path(output_path))
-    
-    game_state.generating_rom=False
-    complete_text = f"ROM Complete: {writer.out_string}.sfc"
-    complete_time = pygame.time.get_ticks()
-    game_state.set_focusables()
 
 # —————— Game Settings ——————
-
-# Lock state while generating
-complete_time = None
-complete_text = ''
-
+game_state = GameState()
 settings = Settings()
+settings.preset_choice = "Default"
 
 # Current choices
-preset_choice = "Default"
 
 # —————— Preset configurations ——————
 presets = {'Default':Settings(),
@@ -306,7 +298,7 @@ flags =  {name:False for name in GameFlags._member_names_}
 
 active_panel_dict = {}
 active_panel_dict['presets'] = ActivePanel(options=presets,
-                                    setting_attribute = 'presets',
+                                    setting_attribute = 'preset_choice',
                                     location = 0,
                                     name = 'presets')
 active_panel_dict['mode'] = ActivePanel(options=GameMode.inv_str_dict(),
@@ -330,7 +322,7 @@ active_panel_dict['flags'] = ActivePanel(options = flags,
                                   location = 4,
                                   name = 'flags')            
 
-# TODO:  Can I move this up?
+
 # —————— Instantiate widgets ——————
 button_start = 50
 button_step = 30
@@ -341,7 +333,7 @@ buttons = [
     Button((20, 100, 100, 30), "Difficulty", active_panel_dict['difficulty'].callback),
     Button((20, 140, 100, 30), "Tech/Shop", active_panel_dict['techshop'].callback),
     Button((20, 180, 100, 30), "Flags", active_panel_dict['flags'].callback),
-    Button((20, screen_height - 60, 100, 30), "Generate", on_generate)
+    Button((20, screen_height - 60, 100, 30), "Generate", game_state.generate_rom)
 ]
 
 # TODO:  Can I move this to the class level?  Seems like a lot of duplicate code
@@ -369,7 +361,7 @@ active_panel_dict['difficulty'].widgets =  {"Item Difficulty": item_radios, 'Ene
 option_buttons = [(button_start + button_step*i, s) for i, s in  enumerate(TechOrder.str_dict().values())]
 tech_radios = [ RadioButton((PANEL_X, y), lbl, "tech")  for y, lbl in option_buttons]
 
-cstart = item_radios[-1].pos[1]+button_step*2 # Leave room for title
+cstart = tech_radios[-1].pos[1]+button_step*2 # Leave room for title
 option_buttons = [(cstart + button_step*i, s) for i, s in  enumerate(ShopPrices.str_dict().values())]
 shop_radios = [ RadioButton((PANEL_X, y), lbl, "shop")  for y, lbl in option_buttons]
 
@@ -380,8 +372,7 @@ flag_buttons = [(column_start_location + (font_flags.get_height()+6)*i, s) for i
 active_panel_dict['flags'].widgets = [ CheckBox((PANEL_X, y), lbl, font_flags) for y, lbl in flag_buttons]
 
 
-# —————— Instantiate game state ——————
-game_state = GameState()
+# —————— Initialize game state ——————
 game_state.menu_buttons = buttons
 game_state.panels = active_panel_dict
 game_state.active_panel_name = 'presets'
@@ -403,8 +394,8 @@ while True:
         # When generating ROM, lock controls
         if game_state.generating_rom:
             continue
-        elif complete_time and now - complete_time <= 2000:
-            draw_text(complete_text, (PANEL_X, screen_height - 60), font, BLUE)
+        elif game_state.rom_timer and now - game_state.rom_timer <= 2000:
+            draw_text(f"ROM Complete: {game_state.rom_name}", (PANEL_X, screen_height - 60), font, BLUE)
             continue
 
         # —————— User Input and Navigation ——————
@@ -414,13 +405,13 @@ while True:
   
             # Check if focus location is on the left or right side and get column length to determine when to wrap around
             focus_idx = game_state.focused_idx
-            if focus_idx < len(buttons): # if left side
+            if focus_idx < len(game_state.menu_buttons): # if left side
                 column = -1
                 column_start = 0
-                column_end = len(buttons)-1
+                column_end = len(game_state.menu_buttons)-1
             else:
                 column = 1
-                column_start = len(buttons)
+                column_start = len(game_state.menu_buttons)
                 column_end = column_start + game_state.active_panel.length -1
 
 
@@ -438,7 +429,7 @@ while True:
 
             elif evt.key in (pygame.K_LEFT, pygame.K_RIGHT):
                 if column<0: # If on the left side, go to top of the right side
-                    focus_idx = len(buttons)
+                    focus_idx = len(game_state.menu_buttons)
                 else: # If on the right side, current active menu button
                     focus_idx = game_state.active_panel.location
 
@@ -455,7 +446,7 @@ while True:
         if isinstance(active_widgets,dict):
             active_widgets = [v for value in active_widgets.values() for v in value]
 
-        for w in buttons + active_widgets:
+        for w in game_state.menu_buttons + active_widgets:
             w.handle_event(evt)
 
     # —————— Draw Menu ——————
@@ -464,7 +455,7 @@ while True:
     pygame.draw.line(screen, DARK, (DIVIDER_X, 0), (DIVIDER_X, screen_height), 2)
 
     # Draw Menu Buttons
-    for w in buttons:
+    for w in game_state.menu_buttons:
         w.draw(is_focused=(game_state.focusable is w))
 
     # Draw Option Buttons
