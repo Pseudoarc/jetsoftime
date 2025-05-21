@@ -7,7 +7,7 @@ Wiki: https://wiki.ctjot.com/  (May be out of date for some beta changes)
 
 ## USAGE
 
-Run `python3 randomizer.py -h` for a full list of options.  The most simple invokation is `python3 randomizer.py -i ct.sfc` where `ct.sfc` is a vanilla US Chrono Trigger rom.  A gui can be invoked with `python3 randomizergui.pypy`.   Windows users should use `python.exe` rather than `python3`.    Python >=3.8 is required and can be obtained for free at https://www.python.org/downloads/.  
+Run `python3 randomizer.py -h` for a full list of options.  The most simple invokation is `python3 randomizer.py -i ct.sfc` where `ct.sfc` is a vanilla US Chrono Trigger rom.  A gui can be invoked with `python3 randomizergui.py`.   Windows users should use `python.exe` rather than `python3`.  Python >=3.8 is required and can be obtained for free at https://www.python.org/downloads/. An alternate gui which is designed to work with handhelds can be found here: https://github.com/Aerovet/JetsOfTimeTravel.
 
 ## Building
 Excecutables are packaged with each release.  Windows users who desire to build their own executable can follow the following steps:
