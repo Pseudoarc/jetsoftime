@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Tuple
 import random
 
-from ctenums import TreasureID as TID, StrIntEnum, ItemID
+from ctenums import TreasureID as TID, StrIntEnum, ItemID, EraID
 
 import randosettings as rset
 
@@ -25,7 +25,7 @@ class TreasureLocTier(StrIntEnum):
     MID_HIGH = 3
     HIGH_AWESOME = 4
     SEALED = 5
-
+    TABS = 6
 
 class ItemTier(StrIntEnum):
     LOW_GEAR = 0
@@ -215,11 +215,9 @@ _treasure_loc_tier_list[TreasureLocTier.SEALED] = [
     TID.MAGIC_CAVE_SEALED,
 ]
 
-
 # This is how other modules should get the TreasureIDs in each tier
 def get_treasures_in_tier(tier: TreasureLocTier):
     return _treasure_loc_tier_list[tier].copy()
-
 
 _item_tier_list: dict[ItemTier, list[ItemID]] = {
     tier: [] for tier in list(ItemTier)
@@ -391,6 +389,67 @@ _item_tier_list[ItemTier.JERKY_REWARD] = [
     ItemID.MOON_ARMOR, ItemID.NOVA_ARMOR,
 ]
 
+
+#  Tabs location and type by Era
+_tab_era_dict: dict[EraID, dict[TID,ItemID]] = {
+    era: {} for era in list(EraID)
+}
+
+_tab_era_dict[EraID.FUTURE] = {
+    TID.GENO_DOME_LABS_SPEED_TAB:ItemID.SPEED_TAB,
+    TID.KEEPERS_DOME_MAGIC_TAB:ItemID.MAGIC_TAB,
+    TID.ARRIS_DOME_SEALED_POWER_TAB:ItemID.POWER_TAB,
+    TID.DEATH_PEAK_POWER_TAB:ItemID.POWER_TAB,
+    TID.GENO_DOME_ATROPOS_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.GENO_DOME_LABS_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.GENO_DOME_CORRIDOR_POWER_TAB:ItemID.POWER_TAB,
+    TID.TRANN_DOME_SEALED_MAGIC_TAB: ItemID.MAGIC_TAB,
+}
+
+_tab_era_dict[EraID.PRESENT] = {
+    TID.GUARDIA_FOREST_POWER_TAB_1000:ItemID.POWER_TAB,
+    TID.MEDINA_ELDER_SPEED_TAB:ItemID.SPEED_TAB,
+    TID.MEDINA_ELDER_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.TOMAS_GRAVE_SPEED_TAB:ItemID.SPEED_TAB,
+}
+
+_tab_era_dict[EraID.MIDDLE_AGES] = {
+    TID.GUARDIA_FOREST_POWER_TAB_600: ItemID.POWER_TAB,
+    TID.DENADORO_MTS_SPEED_TAB: ItemID.SPEED_TAB,
+    TID.OZZIES_FORT_GUILLOTINES_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.MOUNTAINS_RE_NICE_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.GIANTS_CLAW_CAVERNS_POWER_TAB:ItemID.POWER_TAB,
+    TID.GIANTS_CLAW_ENTRANCE_POWER_TAB:ItemID.POWER_TAB,
+    TID.GIANTS_CLAW_TRAPS_POWER_TAB:ItemID.POWER_TAB,
+    TID.MAGUS_CASTLE_FLEA_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.MAGUS_CASTLE_DUNGEONS_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.SUNKEN_DESERT_POWER_TAB:ItemID.POWER_TAB,
+    TID.PORRE_MARKET_600_POWER_TAB:ItemID.POWER_TAB,
+    TID.SUN_KEEP_600_POWER_TAB:ItemID.POWER_TAB,
+    TID.MANORIA_CONFINEMENT_POWER_TAB:ItemID.POWER_TAB,
+}
+
+_tab_era_dict[EraID.DARK_AGES] = {
+    TID.MT_WOE_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.BEAST_NEST_POWER_TAB:ItemID.POWER_TAB,
+}
+
+_tab_era_dict[EraID.ZEAL] = {
+    TID.KAJAR_SPEED_TAB:ItemID.SPEED_TAB,
+    TID.ENHASA_NU_BATTLE_SPEED_TAB:ItemID.SPEED_TAB,
+    TID.OCEAN_PALACE_ELEVATOR_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.BLACKBIRD_DUCTS_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.ENHASA_NU_BATTLE_MAGIC_TAB: ItemID.MAGIC_TAB,
+    TID.KAJAR_NU_SCRATCH_MAGIC_TAB: ItemID.MAGIC_TAB,
+}
+
+# Unused in JoT
+# _tab_era_dict[EraID.PREHISTORY] = {
+#     TID.LAST_VILLAGE_NU_SHOP_MAGIC_TAB,
+# }
+
+def get_tab_dict(era: EraID):
+    return _tab_era_dict[era].copy()
 
 # public way to access the treasure tiers.  Eventually this may change so that
 # settings/config can be passed in if different settings want to change the
@@ -566,7 +625,7 @@ _treas_dists[rset.Difficulty.HARD][TreasureLocTier.HIGH_AWESOME] = \
         (525, _mid_gear + _good_gear + _high_gear)
     )
 
-_tab_dist = TreasureDist(
+_tab_treasure_dist = TreasureDist(
     (1, [ItemID.SPEED_TAB]),
     (10, [ItemID.POWER_TAB]),
     (10, [ItemID.MAGIC_TAB])
@@ -574,6 +633,13 @@ _tab_dist = TreasureDist(
 
 _sealed_dist = TreasureDist(
     (1, _item_tier_list[ItemTier.SEALED_TREASURE])
+)
+
+# For tab randomization
+_tab_rando_dist = TreasureDist(
+    (16, [ItemID.SPEED_TAB]),
+    (42, [ItemID.POWER_TAB]),
+    (42, [ItemID.MAGIC_TAB])
 )
 
 
@@ -584,11 +650,13 @@ def get_treasure_distribution(settings: rset.Settings,
     tab_treasures = rset.GameFlags.TAB_TREASURES in settings.gameflags
 
     if tab_treasures:
-        return _tab_dist
+        return _tab_treasure_dist
     if treasure_tier in [LTier.LOW, LTier.LOW_MID, LTier.MID,
                          LTier.MID_HIGH, LTier.HIGH_AWESOME]:
         return _treas_dists[difficulty][treasure_tier]
     if treasure_tier == LTier.SEALED:
         return _sealed_dist
-
+    if treasure_tier == LTier.TABS:
+        return _tab_rando_dist
+    
     raise ValueError(f"{treasure_tier} is not a valid TreasureLocTier")

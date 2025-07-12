@@ -12,6 +12,7 @@ import vanillarando.vrtreasure as vrtreasure
 
 TID = ctenums.TreasureID
 ItemID = ctenums.ItemID
+EraID = ctenums.EraID
 
 
 # When LW is selected and Frog/Robo is in the game, add their key item gear
@@ -199,6 +200,37 @@ def write_treasures_to_config(settings: rset.Settings,
     for ind, tid in enumerate(specials):
         items = item_lists[ind]
         assign[tid].reward = rand.choice(items)
+
+
+    # Randomize Tabs
+    if rset.GameFlags.TAB_SHUFFLE in settings.gameflags or rset.GameFlags.TAB_RANDO in settings.gameflags:
+        if settings.game_mode == rset.GameMode.LEGACY_OF_CYRUS:
+            eras = [EraID.PRESENT, EraID.MIDDLE_AGES, EraID.DARK_AGES]
+        elif settings.game_mode == rset.GameMode.ICE_AGE:
+            eras = [] # TODO
+        elif settings.game_mode == rset.GameMode.LOST_WORLDS:
+            eras = [] # TODO
+        else:
+            eras = [EraID.FUTURE, EraID.PRESENT, EraID.MIDDLE_AGES, EraID.DARK_AGES, EraID.ZEAL]
+        
+        # Group all tabs into single list for randomization
+        #    ( Could also shuffle each era individually if desired )
+        active_tabs = {}
+        for era in eras: # Try all eras
+            active_tabs = {**active_tabs, **td.get_tab_dict(era)}
+
+        tab_locations, tab_types = zip(*active_tabs.items())
+
+        if rset.GameFlags.TAB_SHUFFLE in settings.gameflags:
+            tab_types = list(tab_types)
+            rand.shuffle(tab_types)
+            for ind, tid in enumerate(tab_locations):
+                assign[tid].reward = tab_types[ind]
+        else:        
+            dist = td.get_treasure_distribution(settings,td.TreasureLocTier.TABS)
+            for tid in tab_locations:
+                assign[tid].reward = dist.get_random_item()
+
 
     # finally rocks
     if rset.GameFlags.ROCKSANITY in settings.gameflags:

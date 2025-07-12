@@ -15,6 +15,7 @@ import ctenums
 import ctrom
 import ctstrings
 import cttypes as ctt
+from ctevent import FunctionID as FID
 
 import eventcommand
 
@@ -327,12 +328,13 @@ class ScriptTreasure(Treasure):
         while True:
             # Commands:
             #   0x4E - Set script memory.  Look for setting 0x7F0200 (item)
+            #   0xC7 - Add item from memory.
             #   0xCA - Add item.
             #   0xCD - Add gold.
 
             # Loop until we reach the appropriate number of set memory and
             # add gold/item commands
-            pos, cmd = script.find_command_opt([0x4F, 0xCA, 0xCD], pos, fn_end)
+            pos, cmd = script.find_command_opt([0x4F, 0xCA, 0xCD, 0xC7], pos, fn_end)
 
             if pos is None:
                 # print(self)
@@ -347,7 +349,7 @@ class ScriptTreasure(Treasure):
                     num_mem_set_cmds_found += 1
                     if num_mem_set_cmds_found == self.item_num+1:
                         mem_set_pos = pos
-            elif cmd.command in (0xCA, 0xCD):
+            elif cmd.command in (0xCA, 0xCD, 0xC7):
                 num_add_rwd_cmds_found += 1
                 if num_add_rwd_cmds_found == self.item_num+1:
                     add_rwd_pos = pos
@@ -1003,9 +1005,237 @@ def get_base_treasure_dict() -> dict[ctenums.TreasureID, Treasure]:
             object_id=0x08,
             function_id=0x01
         ),
+
+        #
+        # Add tabs with default assignments
+        # 
+
+        # TODO: Method to randomize bromide reward tabs
+        # TID.DORINO_BROMIDE_MAGIC_TAB: ScriptTreasure(
+        #     location=LocID.DORINO_PERVERT_RESIDENCE,
+        #     object_id=0x0C,
+        #     function_id=FID.ACTIVATE,
+        #     reward = ctenums.ItemID.MAGIC_TAB, 
+        #     item_num=0,
+        # ),
+        # TID.DORINO_BROMIDE_POWER_TAB: ScriptTreasure(
+        #     location=LocID.DORINO_PERVERT_RESIDENCE,
+        #     object_id=0x0C,
+        #     function_id=FID.ACTIVATE,
+        #     reward = ctenums.ItemID.POWER_TAB, 
+        #     item_num=1,
+        # ),
+        # TID.DORINO_BROMIDE_SPEED_TAB: ScriptTreasure(
+        #     location=LocID.DORINO_PERVERT_RESIDENCE,
+        #     object_id=0x0C,
+        #     function_id=FID.ACTIVATE,
+        #     reward = ctenums.ItemID.SPEED_TAB,
+        #     item_num=2,
+        # ),
+        TID.GUARDIA_FOREST_POWER_TAB_600: ScriptTreasure(
+            location=LocID.GUARDIA_FOREST_600,
+            object_id=0x3F - 6,  # Removed objects vs vanilla
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.GUARDIA_FOREST_POWER_TAB_1000: ScriptTreasure(
+            location=LocID.GUARDIA_FOREST_1000, 
+            object_id=0x26, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.MANORIA_CONFINEMENT_POWER_TAB: ScriptTreasure(
+            location=LocID.MANORIA_CONFINEMENT, 
+            object_id=0x0A, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.PORRE_MARKET_600_POWER_TAB: ScriptTreasure(
+            location=LocID.PORRE_MARKET_600, 
+            object_id=0x0C, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.DENADORO_MTS_SPEED_TAB: ScriptTreasure(
+            location=LocID.DENADORO_WEST_FACE, 
+            object_id=0x09, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.SPEED_TAB
+        ),
+        TID.TOMAS_GRAVE_SPEED_TAB: ScriptTreasure(
+            location=LocID.WEST_CAPE, 
+            object_id=0x08, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.SPEED_TAB
+        ),
+        TID.GIANTS_CLAW_CAVERNS_POWER_TAB: ScriptTreasure(
+            location=LocID.GIANTS_CLAW_CAVERNS, 
+            object_id=0x0D, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.GIANTS_CLAW_ENTRANCE_POWER_TAB: ScriptTreasure(
+            location=LocID.GIANTS_CLAW_ENTRANCE,
+            object_id=0x0B,
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.GIANTS_CLAW_TRAPS_POWER_TAB: ScriptTreasure(
+            location=LocID.ANCIENT_TYRANO_LAIR_TRAPS,
+            object_id=0x15,
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.SUN_KEEP_600_POWER_TAB: ScriptTreasure(
+            location=LocID.SUN_KEEP_600, 
+            object_id=0x0A, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.MEDINA_ELDER_SPEED_TAB: ScriptTreasure(
+            location=LocID.MEDINA_ELDER_1F, 
+            object_id=0x0C, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.SPEED_TAB
+        ),
+        TID.MEDINA_ELDER_MAGIC_TAB: ScriptTreasure(
+            location=LocID.MEDINA_ELDER_2F, 
+            object_id=0x09, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.MAGUS_CASTLE_FLEA_MAGIC_TAB: ScriptTreasure(
+            location=LocID.MAGUS_CASTLE_FLEA, 
+            object_id=0x0D, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.MAGUS_CASTLE_DUNGEONS_MAGIC_TAB: ScriptTreasure(
+            location=LocID.MAGUS_CASTLE_DUNGEONS, 
+            object_id=0x08, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.TRANN_DOME_SEALED_MAGIC_TAB: ScriptTreasure(
+            location=LocID.TRANN_DOME_SEALED_ROOM, 
+            object_id=0x08, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.ARRIS_DOME_SEALED_POWER_TAB: ScriptTreasure(
+            location=LocID.ARRIS_DOME_SEALED_ROOM, 
+            object_id=0x08, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.DEATH_PEAK_POWER_TAB: ScriptTreasure(
+            location=LocID.DEATH_PEAK_ENTRANCE, 
+            object_id=0x0A, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.BLACKBIRD_DUCTS_MAGIC_TAB: ScriptTreasure(
+            location=LocID.BLACKBIRD_DUCTS, 
+            object_id=0x07, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.KEEPERS_DOME_MAGIC_TAB: ScriptTreasure(
+            location=LocID.KEEPERS_DOME_CORRIDOR, 
+            object_id=0x12, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.GENO_DOME_ATROPOS_MAGIC_TAB: ScriptTreasure(
+            location=LocID.GENO_DOME_MAINFRAME, 
+            object_id=0x26, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.GENO_DOME_CORRIDOR_POWER_TAB: ScriptTreasure(
+            location=LocID.GENO_DOME_LONG_CORRIDOR, 
+            object_id=0x08, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.GENO_DOME_LABS_MAGIC_TAB: ScriptTreasure(
+            location=LocID.GENO_DOME_LABS, 
+            object_id=0x30, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.GENO_DOME_LABS_SPEED_TAB: ScriptTreasure(
+            location=LocID.GENO_DOME_LABS, 
+            object_id=0x32, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.SPEED_TAB
+        ),
+        TID.ENHASA_NU_BATTLE_MAGIC_TAB: ScriptTreasure(
+            location=LocID.ENHASA_NU_ROOM, 
+            object_id=0x08, 
+            function_id=FID.ACTIVATE, 
+            item_num=0,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.ENHASA_NU_BATTLE_SPEED_TAB: ScriptTreasure(
+            location=LocID.ENHASA_NU_ROOM, 
+            object_id=0x08, 
+            function_id=FID.ACTIVATE, 
+            item_num=1,
+            reward = ctenums.ItemID.SPEED_TAB
+        ),
+        TID.KAJAR_SPEED_TAB: ScriptTreasure(
+            location=LocID.KAJAR_MAGIC_LAB, 
+            object_id=0x08, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.SPEED_TAB
+            ),
+        TID.KAJAR_NU_SCRATCH_MAGIC_TAB: ScriptTreasure(
+            location=LocID.KAJAR_MAGIC_LAB, 
+            object_id=0x11, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.SUNKEN_DESERT_POWER_TAB: ScriptTreasure(
+            location=LocID.SUNKEN_DESERT_PARASITES, 
+            object_id=0x0D, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.MOUNTAINS_RE_NICE_MAGIC_TAB: ScriptTreasure(
+            location=LocID.DENADORO_MTN_VISTA, 
+            object_id=0x0D, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.BEAST_NEST_POWER_TAB: ScriptTreasure(
+            location=LocID.BEAST_NEST, 
+            object_id=0x09, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.POWER_TAB
+        ),
+        TID.MT_WOE_MAGIC_TAB: ScriptTreasure(
+            location=LocID.MT_WOE_UPPER_EASTERN_FACE, 
+            object_id=0x09, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.OCEAN_PALACE_ELEVATOR_MAGIC_TAB: ScriptTreasure(
+            location=LocID.OCEAN_PALACE_EASTERN_ACCESS_LIFT, 
+            object_id=0x08, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+        TID.OZZIES_FORT_GUILLOTINES_MAGIC_TAB: ScriptTreasure(
+            location=LocID.OZZIES_FORT_GUILLOTINE, 
+            object_id=0x0D, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
+
         # VanillaRando/Extended Keys treausures
         # These will not be valid outside of VanillaRando
-        # TID.BEKKLER_KEY: BekklerTreasure(
+        # TID.BEKKLER_KEY: BekklerTreasure('
         #     location=LocID.CRONOS_ROOM,
         #     object_id=0x13, function_id=1,
         #     item_num=0,
@@ -1022,12 +1252,6 @@ def get_base_treasure_dict() -> dict[ctenums.TreasureID, Treasure]:
         # TID.OZZIES_FORT_KEY: ScriptTreasure(
         #     LocID.OZZIES_FORT_THRONE_INCOMPETENCE, 8, 2
         # )
-        # Tabs later if they're going to be randomized
-        # GUARDIA_FOREST_POWER_TAB_600: auto()
-        # GUARDIA_FOREST_POWER_TAB_1000: auto()
-        # SUN_KEEP_POWER_TAB_600: auto()
-        # MEDINA_ELDER_SPEED_TAB: auto()
-        # MEDINA_ELDER_MAGIC_TAB: auto()
     }
 
     return ret_dict

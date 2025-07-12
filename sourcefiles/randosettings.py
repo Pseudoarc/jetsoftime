@@ -101,6 +101,8 @@ class GameFlags(SerializableFlag):
     CHRONOSANITY = auto()
     ROCKSANITY = auto()
     TAB_TREASURES = auto()  # Maybe needs to be part of treasure page?
+    TAB_RANDO = auto()
+    TAB_SHUFFLE = auto()
     BOSS_RANDO = auto()
     CHAR_RANDO = auto()
     DUPLICATE_CHARS = auto()

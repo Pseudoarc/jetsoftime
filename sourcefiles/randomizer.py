@@ -1808,6 +1808,7 @@ class Randomizer:
         # rom_data.patch_ips_file('./patches/chrono_msu1.ips')
 
         basepatch.apply_tf_compressed_enemy_gfx_hack(ctrom)
+        basepatch.patch_tabs(ctrom)
 
     @classmethod
     def __apply_settings_patches(cls, ctrom: CTRom,

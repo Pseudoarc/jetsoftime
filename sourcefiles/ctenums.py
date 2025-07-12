@@ -30,6 +30,15 @@ class CharID(StrIntEnum):
     AYLA = 5
     MAGUS = 6
 
+class EraID(StrIntEnum):
+    """Era enumeration"""
+    END_OF_TIME = 0
+    FUTURE = 1
+    PRESENT = 2
+    MIDDLE_AGES = 3
+    DARK_AGES = 4
+    ZEAL = 6
+    PREHISTORY = 7
 
 class LocID(StrIntEnum):
     # Boss Rando Locations
@@ -111,6 +120,21 @@ class LocID(StrIntEnum):
     ANCIENT_TYRANO_LAIR_TRAPS = 0x6E
     ARRIS_DOME_SEALED_ROOM = 0xDC
     TRANN_DOME_SEALED_ROOM = 0xD3
+
+    # Additional Tab Locations
+    SUN_KEEP_600 = 0xBF
+    MEDINA_ELDER_1F = 0x21
+    MEDINA_ELDER_2F = 0x22
+    DEATH_PEAK_ENTRANCE = 0xF4
+    BLACKBIRD_DUCTS = 0x178
+    GENO_DOME_LONG_CORRIDOR = 0x80
+    DORINO_PERVERT_RESIDENCE = 0x88
+    ENHASA_NU_ROOM = 0x169
+    KAJAR_MAGIC_LAB = 0x168
+    LAST_VILLAGE_SHOP = 0x1AA
+    DENADORO_MTN_VISTA = 0x94
+    BEAST_NEST = 0x184
+    OCEAN_PALACE_EASTERN_ACCESS_LIFT = 0x1A1
 
     # Rocks
     DENADORO_MTS_MASAMUNE_EXTERIOR = 0x8F
@@ -807,24 +831,47 @@ class TreasureID(StrIntEnum):
     DACTYL_NEST_3 = auto()
     MELCHIOR_KEY = auto()
     FROGS_BURROW_LEFT = auto()
-    # Tabs later if they're going to be randomized
+    # Power Tabs
+    DORINO_BROMIDE_POWER_TAB = auto()
     GUARDIA_FOREST_POWER_TAB_600 = auto()
     GUARDIA_FOREST_POWER_TAB_1000 = auto()
     MANORIA_CONFINEMENT_POWER_TAB = auto()
     PORRE_MARKET_600_POWER_TAB = auto()
-    DENADORO_MTS_SPEED_TAB = auto()
-    TOMAS_GRAVE_SPEED_TAB = auto()
     GIANTS_CLAW_CAVERNS_POWER_TAB = auto()
     GIANTS_CLAW_ENTRANCE_POWER_TAB = auto()
     GIANTS_CLAW_TRAPS_POWER_TAB = auto()
     SUN_KEEP_600_POWER_TAB = auto()
-    MEDINA_ELDER_SPEED_TAB = auto()
+    ARRIS_DOME_SEALED_POWER_TAB = auto()
+    DEATH_PEAK_POWER_TAB = auto()
+    GENO_DOME_CORRIDOR_POWER_TAB = auto()
+    SUNKEN_DESERT_POWER_TAB = auto()
+    BEAST_NEST_POWER_TAB = auto()
+    PROTO_DOME_PORTAL_POWER_TAB = auto()
+    # Magic Tabs
+    DORINO_BROMIDE_MAGIC_TAB = auto()
     MEDINA_ELDER_MAGIC_TAB = auto()
     MAGUS_CASTLE_FLEA_MAGIC_TAB = auto()
     MAGUS_CASTLE_DUNGEONS_MAGIC_TAB = auto()
     TRANN_DOME_SEALED_MAGIC_TAB = auto()
-    ARRIS_DOME_SEALED_POWER_TAB = auto()
-    DEATH_PEAK_POWER_TAB = auto()
+    BLACKBIRD_DUCTS_MAGIC_TAB = auto()
+    GENO_DOME_ATROPOS_MAGIC_TAB = auto()
+    GENO_DOME_LABS_MAGIC_TAB = auto()
+    ENHASA_NU_BATTLE_MAGIC_TAB = auto()
+    KAJAR_NU_SCRATCH_MAGIC_TAB = auto()
+    LAST_VILLAGE_NU_SHOP_MAGIC_TAB = auto()
+    MOUNTAINS_RE_NICE_MAGIC_TAB = auto()
+    MT_WOE_MAGIC_TAB = auto()
+    OCEAN_PALACE_ELEVATOR_MAGIC_TAB = auto()
+    KEEPERS_DOME_MAGIC_TAB = auto() 
+    OZZIES_FORT_GUILLOTINES_MAGIC_TAB = auto()
+    # Speed Tabs
+    DORINO_BROMIDE_SPEED_TAB = auto()
+    DENADORO_MTS_SPEED_TAB = auto()
+    TOMAS_GRAVE_SPEED_TAB = auto()
+    MEDINA_ELDER_SPEED_TAB = auto()
+    GENO_DOME_LABS_SPEED_TAB = auto()
+    ENHASA_NU_BATTLE_SPEED_TAB = auto()
+    KAJAR_SPEED_TAB = auto()
     # Non-Chronosanity chests:
     GUARDIA_JAIL_FRITZ_STORAGE = auto()
     GUARDIA_JAIL_CELL = auto()

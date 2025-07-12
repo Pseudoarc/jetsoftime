@@ -453,6 +453,14 @@ class EventCommand:
         return EventCommand.generic_one_arg(0xCA, item_id)
 
     @staticmethod
+    def add_item_memory(script_addr: int) -> EventCommand:
+        """
+        Returns a command which gives the player the item id in the given address.
+        """
+        offset = get_offset(script_addr)
+        return EventCommand.generic_command(0xC7, offset)
+
+    @staticmethod
     def remove_item(item_id: int) -> EventCommand:
         return EventCommand.generic_command(0xCB, item_id)
 
