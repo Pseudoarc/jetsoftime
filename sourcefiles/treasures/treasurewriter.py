@@ -206,11 +206,9 @@ def write_treasures_to_config(settings: rset.Settings,
     if rset.GameFlags.TAB_SHUFFLE in settings.gameflags or rset.GameFlags.TAB_RANDO in settings.gameflags:
         if settings.game_mode == rset.GameMode.LEGACY_OF_CYRUS:
             eras = [EraID.PRESENT, EraID.MIDDLE_AGES, EraID.DARK_AGES]
-        elif settings.game_mode == rset.GameMode.ICE_AGE:
-            eras = []
         elif settings.game_mode == rset.GameMode.LOST_WORLDS:
             eras = [EraID.FUTURE, EraID.DARK_AGES, EraID.ZEAL, EraID.PREHISTORY]
-        else:
+        else: # Default, includes Ice Age game mode
             eras = [EraID.FUTURE, EraID.PRESENT, EraID.MIDDLE_AGES, EraID.DARK_AGES, EraID.ZEAL, EraID.PREHISTORY]
         
         # Group all tabs into single list for randomization
