@@ -1232,10 +1232,16 @@ def get_base_treasure_dict() -> dict[ctenums.TreasureID, Treasure]:
             function_id=FID.ACTIVATE,
             reward = ctenums.ItemID.MAGIC_TAB
         ),
+        TID.LAST_VILLAGE_NU_SHOP_MAGIC_TAB: ScriptTreasure(
+            location=LocID.LAST_VILLAGE_SHOP, 
+            object_id=0x0A, 
+            function_id=FID.ACTIVATE,
+            reward = ctenums.ItemID.MAGIC_TAB
+        ),
 
         # VanillaRando/Extended Keys treausures
         # These will not be valid outside of VanillaRando
-        # TID.BEKKLER_KEY: BekklerTreasure('
+        # TID.BEKKLER_KEY: BekklerTreasure(
         #     location=LocID.CRONOS_ROOM,
         #     object_id=0x13, function_id=1,
         #     item_num=0,

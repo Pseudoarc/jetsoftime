@@ -443,10 +443,9 @@ _tab_era_dict[EraID.ZEAL] = {
     TID.KAJAR_NU_SCRATCH_MAGIC_TAB: ItemID.MAGIC_TAB,
 }
 
-# Unused in JoT
-# _tab_era_dict[EraID.PREHISTORY] = {
-#     TID.LAST_VILLAGE_NU_SHOP_MAGIC_TAB,
-# }
+_tab_era_dict[EraID.PREHISTORY] = {
+    TID.LAST_VILLAGE_NU_SHOP_MAGIC_TAB,
+}
 
 def get_tab_dict(era: EraID):
     return _tab_era_dict[era].copy()
