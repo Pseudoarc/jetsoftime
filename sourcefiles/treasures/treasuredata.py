@@ -444,7 +444,7 @@ _tab_era_dict[EraID.ZEAL] = {
 }
 
 _tab_era_dict[EraID.PREHISTORY] = {
-    TID.LAST_VILLAGE_NU_SHOP_MAGIC_TAB,
+    TID.LAST_VILLAGE_NU_SHOP_MAGIC_TAB: ItemID.MAGIC_TAB,
 }
 
 def get_tab_dict(era: EraID):
