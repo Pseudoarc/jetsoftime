@@ -620,7 +620,8 @@ class RandoGUI:
             self.zeal_end_checkbox, self.boss_scaling_checkbox,
             self.unlocked_magic_checkbox,
             self.locked_chars_checkbox, self.fast_pendant_checkbox,
-            self.boss_rando_checkbox
+            self.boss_rando_checkbox, 
+            self.tab_rando_checkbox, self.tab_shuffle_checkbox
         )
 
         scales = (
@@ -1820,6 +1821,43 @@ class RandoGUI:
         self.tab_prob_scale.grid(row=1, column=1, columnspan=3)
 
         frame.pack()
+
+
+        frame = tk.Frame(page)
+
+
+        tk.Label(
+            frame, text="Tab Randomizer Options:"
+        ).pack(side='top', anchor=tk.W)
+
+        # Tab Randomization
+        self.tab_rando_checkbox = tk.Checkbutton(
+            frame,
+            text="Tab Randomization (tr)",
+            variable=self.flag_dict[GameFlags.TAB_RANDO],
+            command=self.verify_settings
+        )
+        self.tab_rando_checkbox.pack(anchor=tk.W)
+        CreateToolTip(
+            self.tab_rando_checkbox,
+            'Randomizes tab type at each location'
+        )
+
+        # Tab Shuffle
+        self.tab_shuffle_checkbox = tk.Checkbutton(
+            frame,
+            text="Tab Shuffle (ts)",
+            variable=self.flag_dict[GameFlags.TAB_SHUFFLE],
+            command=self.verify_settings
+        )
+        self.tab_shuffle_checkbox.pack(anchor=tk.W)
+        CreateToolTip(
+            self.tab_shuffle_checkbox,
+            'Shuffles existing tabs within an era between locations'
+            'while maintaining the number of tab types'
+        )
+        
+        frame.pack(anchor=tk.W)
 
         return page
 
