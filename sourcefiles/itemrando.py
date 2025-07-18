@@ -10,6 +10,10 @@ from common.distribution import Distribution as Dist
 import itemdata
 import ctenums
 import ctstrings
+from ctevent import FunctionID as FID 
+from eventcommand import EventCommand as EC
+from eventfunction import EventFunction as EF
+import ctrom
 
 from treasures import treasuredata
 
@@ -54,6 +58,38 @@ def write_item_prices_to_config(settings: rset.Settings,
             price = 0
 
         config.item_db[item].price = price
+
+
+def write_snail_stop_price_to_rom(ct_rom: ctrom.CTRom, settings: rset.Settings):
+    # Modify Snail Stop Item Price
+    base_price = 0x26AC
+    OID = 0x09
+
+    script = ct_rom.script_manager.get_script(ctenums.LocID.SNAIL_STOP)
+    pos = script.get_function_start(OID, FID.ACTIVATE)
+
+    if settings.shopprices == rset.ShopPrices.FREE:
+        price = 0
+    else:
+        price = random.randint(int(base_price)*0.75, int(base_price)*1.25)
+
+    # Update Text in Decision Box
+    pos, _ = script.find_command([0xC0], pos)
+    str_id = script.data[pos+1]
+    script.strings[str_id] = ctstrings.CTString.from_str(
+        rf"I might let some go for, say, {price}.{{line break}}"
+          "How about it?{line break}"
+          "    Yes.{line break}"
+          "    No.{null}"
+    )
+
+    # Updated Gold Check
+    pos = script.delete_command_from_function([0xCC], OID, FID.ACTIVATE,pos)
+    script.insert_commands(EF().add( EC.if_gold_greater_equals(price,2)).get_bytearray(), pos)
+
+    # Updated Price Payed
+    pos = script.delete_command_from_function([0xCE], OID, FID.ACTIVATE,pos)
+    script.insert_commands(EF().add( EC.sub_gold(price)).get_bytearray(), pos)
 
 
 # TODO: Separate settings check from the randomization itself.

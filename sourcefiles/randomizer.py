@@ -1148,6 +1148,8 @@ class Randomizer:
 
         elementrando.update_ctrom(self.out_rom, self.config)
 
+        itemrando.write_snail_stop_price_to_rom(self.out_rom, self.settings)
+
         if epoch_fail:
             epochfail.apply_epoch_fail(self.out_rom, self.settings)
 
