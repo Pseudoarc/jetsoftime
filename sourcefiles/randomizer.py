@@ -222,7 +222,7 @@ class Randomizer:
         fastmagic.write_config(self.settings, self.config)
 
         # Treasure config.
-        treasurewriter.write_treasures_to_config(self.settings, self.config)
+        treasurewriter.write_treasures_to_config(self.base_ctrom, self.settings, self.config)
 
         # Enemy rewards
         enemyrewards.write_enemy_rewards_to_config(self.settings, self.config)
