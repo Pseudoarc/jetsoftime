@@ -60,18 +60,17 @@ def write_item_prices_to_config(settings: rset.Settings,
         config.item_db[item].price = price
 
 
-def write_snail_stop_price_to_rom(ct_rom: ctrom.CTRom, settings: rset.Settings):
+def update_snail_stop_price(ct_rom: ctrom.CTRom):
     # Modify Snail Stop Item Price
-    base_price = 0x26AC
     OID = 0x09
 
     script = ct_rom.script_manager.get_script(ctenums.LocID.SNAIL_STOP)
     pos = script.get_function_start(OID, FID.ACTIVATE)
 
-    if settings.shopprices == rset.ShopPrices.FREE:
-        price = 0
-    else:
-        price = random.randint(int(base_price)*0.75, int(base_price)*1.25)
+    # Price range 
+    #   - Lower: 7500 (which is about %75 original)
+    #   - Upper: 17500 (which is about %175 original)
+    price = random.randint(7500, 17500)//100*100 # Round to nearest 100
 
     # Update Text in Decision Box
     pos, _ = script.find_command([0xC0], pos)
@@ -87,7 +86,7 @@ def write_snail_stop_price_to_rom(ct_rom: ctrom.CTRom, settings: rset.Settings):
     pos = script.delete_command_from_function([0xCC], OID, FID.ACTIVATE,pos)
     script.insert_commands(EF().add( EC.if_gold_greater_equals(price,2)).get_bytearray(), pos)
 
-    # Updated Price Payed
+    # Updated Price Paid
     pos = script.delete_command_from_function([0xCE], OID, FID.ACTIVATE,pos)
     script.insert_commands(EF().add( EC.sub_gold(price)).get_bytearray(), pos)
 
