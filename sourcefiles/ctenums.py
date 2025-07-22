@@ -982,8 +982,7 @@ class TreasureID(StrIntEnum):
             cls.MT_WOE_KEY
         ]
 
-
-class EnemyID(StrIntEnum):
+class BossID(StrIntEnum):
     # Boss IDs
     KRAWLIE = 0x04
     YAKRA = 0x90
@@ -1021,45 +1020,38 @@ class EnemyID(StrIntEnum):
     RETINITE_BOTTOM = 0xB5
     SON_OF_SUN_EYE = 0xF6
     SON_OF_SUN_FLAME = 0xF7
+
+class MobID(StrIntEnum):
     # Normal Enemies
     NU = 0x00
     REPTITE_GREEN = 0x01
     TERRASAUR = 0x02
     KILWALA = 0x03
-    # KRAWLIE = 0x04
     HENCH_PURPLE = 0x05
     OMICRONE = 0x06
     MARTELLO = 0x07
     BELLBIRD = 0x08
     PANEL = 0x09
-    MAMMON_M = 0x0A
-    LAVOS_3_CENTER_UNK_0B = 0x0B
     BLUE_IMP = 0x0C
     GREEN_IMP = 0x0D
     STONE_IMP = 0x0E
-    MUD_IMP = 0x0F
     ROLY = 0x10
     POLY = 0x11
     ROLYPOLY = 0x12
     ROLY_RIDER = 0x13
-    LAVOS_GIGA_GAIA_RIGHT = 0x14
     BLUE_EAGLET = 0x15
     GOLD_EAGLET = 0x16
     RED_EAGLET = 0x17
-    LAVOS_GIGA_GAIA_LEFT = 0x18
     AVIAN_CHAOS = 0x19
     IMP_ACE = 0x1A
     BANTAM_IMP = 0x1B
     GNASHER = 0x1C
     GNAWER = 0x1D
     NAGA_ETTE = 0x1E
-    LAVOS_SUPPORT_UNK_1F = 0x1F
     RUMINATOR = 0x20
-    LAVOS_SUPPORT_UNK_21 = 0x21
     OCTOPOD = 0x22
     OCTOBLUSH = 0x23
     OCTOBINO = 0x24
-    ZEAL = 0x25
     FLY_TRAP = 0x26
     MEAT_EATER = 0x27
     MAN_EATER = 0x28
@@ -1075,14 +1067,9 @@ class EnemyID(StrIntEnum):
     SENTRY = 0x32
     FREE_LANCER = 0x33
     OUTLAW = 0x34
-    # GIGA_MUTANT = 0x35
-    #  = 0x36
-    # TERRAMUTANT = 0x37
-    #  = 0x38
     JUGGLER = 0x39
     RETINITE = 0x3A
     MAGE = 0x3B
-    UNKNOWN_3C = 0x3C
     REPTITE_PURPLE = 0x3D
     BLUE_SHIELD = 0x3E
     YODU_DE = 0x3F
@@ -1090,7 +1077,6 @@ class EnemyID(StrIntEnum):
     PEEPINGDOOM = 0x41
     BOSS_ORB = 0x42
     SIDE_KICK = 0x43
-    UNKNOWN_44 = 0x44
     JINN_BOTTLE = 0x45
     EVILWEEVIL = 0x46
     TEMPURITE = 0x47
@@ -1101,7 +1087,6 @@ class EnemyID(StrIntEnum):
     T_POLE = 0x4C
     CROAKER = 0x4D
     AMPHIBITE = 0x4E
-    # BULL_FROG = 0x4F  # Changed to a Golem
     MAD_BAT = 0x50
     VAMP = 0x51
     SCOUTER = 0x52
@@ -1112,28 +1097,23 @@ class EnemyID(StrIntEnum):
     SORCERER = 0x57
     JINN = 0x58
     BARGHEST = 0x59
-    UNKNOWN_5A = 0x5A
     CRATER = 0x5B
     VOLCANO = 0x5C
     SHITAKE = 0x5D
     HETAKE = 0x5E
     RUBBLE = 0x5F
-    UNKNOWN_60 = 0x60
     SHIST = 0x61
     PAHOEHOE = 0x62
     NEREID = 0x63
     SAVE_POINT_ENEMY = 0x64
     MOHAVOR = 0x65
     SHADOW = 0x66
-    LAVOS_SUPPORT_UNK_67 = 0x67
     BASE = 0x68
     ACID = 0x69
     ALKALINE = 0x6A
     ION = 0x6B
     ANION = 0x6C
     THRASHER = 0x6D
-    # = 0x6E
-    # LAVOS_SPAWN = 0x6F
     LASHER = 0x70
     GOBLIN = 0x71
     OGRE = 0x72
@@ -1141,15 +1121,11 @@ class EnemyID(StrIntEnum):
     OGAN = 0x74
     FLUNKY = 0x75
     GROUPIE = 0x76
-    LAVOS_SUPPORT_UNK_77 = 0x77
-    LAVOS_SUPPORT_UNK_78 = 0x78
     WINGED_APE = 0x79
     CAVE_APE = 0x7A
     MEGASAUR = 0x7B
     OMNICRONE = 0x7C
     BEAST = 0x7D
-    BLUE_BEAST = 0x7E
-    RED_BEAST = 0x7F
     TURRET = 0x80
     LIZARDACTYL = 0x81
     NU_2 = 0x82
@@ -1165,64 +1141,71 @@ class EnemyID(StrIntEnum):
     BUG = 0x8C
     BEETLE = 0x8D
     GOON = 0x8E
-    CYRUS = 0x8F
-    # YAKRA = 0x90
     RAIN_FROG = 0x91
     GATO = 0x92
-    DRAGON_TANK = 0x93
     GRINDER = 0x94
-    # GOLEM = 0x95
     SYNCHRITE = 0x96
-    MASA = 0x97
-    MUNE = 0x98
-    # MASA_MUNE = 0x99
-    AZALA = 0x9A
-    # NIZBEL = 0x9B
-    # NIZBEL_II = 0x9C
-    # SLASH = 0x9D
-    # SLASH = 0x9E
-    # FLEA = 0x9F
-    FLEA_PLUS_TRIO = 0xA0
-    # DALTON = 0xA1
-    # DALTON_PLUS = 0xA2
     MUTANT = 0xA3
     METAL_MUTE = 0xA4
+    GIGASAUR = 0xAA
+    LEAPER = 0xAB
+    FOSSIL_APE = 0xAC
+    DECEDENT_II = 0xAE
+    OCTORIDER = 0xAF
+    CYBOT = 0xC1
+    TUBSTER = 0xC8
+    GUARDIAN = 0xD4
+    RED_SCOUT = 0xD5
+    BLUE_SCOUT = 0xD6
+    LASER_GUARD = 0xD9
+    HEXAPOD = 0xEE
+    ROLY_BOMBER = 0xF2
+    BASHER = 0xF5
+
+
+class EnemyID(StrIntEnum):
+    
+    # Not Mods and Not Boss IDs
+    MAMMON_M = 0x0A
+    MUD_IMP = 0x0F
+    LAVOS_3_CENTER_UNK_0B = 0x0B
+    LAVOS_GIGA_GAIA_RIGHT = 0x14
+    LAVOS_GIGA_GAIA_LEFT = 0x18
+    LAVOS_SUPPORT_UNK_1F = 0x1F
+    LAVOS_SUPPORT_UNK_21 = 0x21
+    ZEAL = 0x25
+    UNKNOWN_3C = 0x3C
+    UNKNOWN_44 = 0x44
+    UNKNOWN_5A = 0x5A
+    UNKNOWN_60 = 0x60
+    LAVOS_SUPPORT_UNK_67 = 0x67
+    LAVOS_SUPPORT_UNK_77 = 0x77
+    LAVOS_SUPPORT_UNK_78 = 0x78
+    BLUE_BEAST = 0x7E
+    RED_BEAST = 0x7F
+    CYRUS = 0x8F
+    DRAGON_TANK = 0x93
+    MASA = 0x97
+    MUNE = 0x98
+    AZALA = 0x9A
+    FLEA_PLUS_TRIO = 0xA0
     SUPER_SLASH_TRIO = 0xA5
     OZZIE_ZENAN = 0xA6
     OZZIE_FORT = 0xA7
     GREAT_OZZIE = 0xA8
-    # HECKRAN = 0xA9
-    GIGASAUR = 0xAA
-    LEAPER = 0xAB
-    FOSSIL_APE = 0xAC
     TANK_HEAD = 0xAD
-    DECEDENT_II = 0xAE
-    OCTORIDER = 0xAF
     ZEAL_2_CENTER = 0xB0
     ZEAL_2_LEFT = 0xB1
     ZEAL_2_RIGHT = 0xB2
-    # ZOMBOR = 0xB3
-    #  = 0xB4
-    #  = 0xB5  # RETINITE
-    #  = 0xB6
     DISPLAY = 0xB7
-    # MEGA_MUTANT = 0xB8
-    #  = 0xB9
-    # SUPER_SLASH = 0xBA
-    # FLEA_PLUS = 0xBB
     BLACKTYRANO = 0xBC
-    # RUST_TYRANO = 0xBD
     MOTHERBRAIN = 0xBE
     UNKNOWN_BF = 0xBF
-    # ATROPOS_XR = 0xC0
-    CYBOT = 0xC1
     LAVOS_GUARDIAN = 0xC2
     LAVOS_HECKRAN = 0xC3
     LAVOS_ZOMBOR_UPPER = 0xC4
     LAVOS_MASA_MUNE = 0xC5
     LAVOS_NIZBEL = 0xC6
-    # YAKRA_XIII = 0xC7
-    TUBSTER = 0xC8
     LAVOS_MAGUS = 0xC9
     LAVOS_TANK_HEAD = 0xCA
     LAVOS_2_HEAD = 0xCB
@@ -1234,12 +1217,6 @@ class EnemyID(StrIntEnum):
     GIGA_GAIA_HEAD = 0xD1
     GIGA_GAIA_LEFT = 0xD2
     GIGA_GAIA_RIGHT = 0xD3
-    GUARDIAN = 0xD4
-    RED_SCOUT = 0xD5
-    BLUE_SCOUT = 0xD6
-    # LAVOS_SPAWN = 0xD7
-    #  = 0xD8
-    LASER_GUARD = 0xD9
     LAVOS_TANK_LEFT = 0xDA
     LAVOS_TANK_RIGHT = 0xDB
     LAVOS_GUARDIAN_LEFT = 0xDC
@@ -1260,16 +1237,10 @@ class EnemyID(StrIntEnum):
     LAVOS_OCEAN_PALACE = 0xEB
     LAVOS_1 = 0xEC
     LAVOS_3_LEFT = 0xED
-    HEXAPOD = 0xEE
     LAVOS_3_RIGHT = 0xEF
     FAKE_FLEA = 0xF0
     OZZIE_MAGUS_CHAINS = 0xF1
-    ROLY_BOMBER = 0xF2
-    # GOLEM_BOSS = 0xF3
     JOHNNY = 0xF4
-    BASHER = 0xF5
-    # SON_OF_SUN = 0xF6
-    #  = 0xF7
     R_SERIES = 0xF8
     MAGUS = 0xF9
     MAGUS_NORTH_CAPE = 0xFA
@@ -1278,7 +1249,10 @@ class EnemyID(StrIntEnum):
     UNUSED_FD = 0xFD
     UNUSED_FE = 0xFE
     UNUSED_FF = 0xFF
-
+    
+# Combine all IDs
+EnemyID = StrIntEnum( "EnemyID", {**EnemyID.__members__, **MobID.__members__, **BossID.__members__})
+  
 
 class ShopID(StrIntEnum):
 

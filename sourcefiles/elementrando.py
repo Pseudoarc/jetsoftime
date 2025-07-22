@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict
 import re
-
+import random
 import byteops
 from asm import instructions as inst
 from asm.instructions import AddressingMode as AM
@@ -10,7 +10,7 @@ from asm import assemble
 import ctenums
 import ctrom
 from freespace import FSWriteType as FSW
-from ctenums import Element as El, TechID as T, LocID as L, CharID as C
+from ctenums import Element as El, TechID as T, LocID as L, CharID as C, EnemyID
 from techdb import TechDB
 import ctstrings
 
@@ -106,8 +106,49 @@ def update_element_placards_on_ctrom(ct_rom: ctrom.CTRom, config: cfg.RandoConfi
     rom.write(routine_b)  # Replacing 4 bytes for 4 bytes.
 
 
+def update_enemy_resistances(config: cfg.RandoConfig):
 
+    all_elements = [El.LIGHTNING,El.SHADOW,El.ICE,El.FIRE]
+    elem_weights = [20,20,20,20,10] # TODO:  Allow for custom weights?
+    elem_pallet_enem = [
+    ('Fi',[El.FIRE], EnemyID.RED_BEAST),
+    ('Wa',[El.ICE], EnemyID.BLUE_BEAST),
+    ('Sh',[El.SHADOW], EnemyID.MAD_BAT),
+    ('Li',[El.LIGHTNING], EnemyID.GOLD_EAGLET), # EnemyID.GOLD_EAGLET
+    ('Rbow', all_elements, EnemyID.MOTHERBRAIN) # EnemyID.MAD_BAT
+    ]
 
+    weak_value = 3
+    strong_value = 132
+
+    rando_percent = 0.5 # TODO:  Make Scale?
+    enemy_randomize = list(ctenums.MobID)
+    random.shuffle(enemy_randomize)
+    enemy_randomize = enemy_randomize[0:int(len(enemy_randomize)*rando_percent)]
+
+    for enemy in enemy_randomize:
+        sprite_data = config.enemy_sprite_dict[enemy]
+        stats = config.enemy_dict[enemy]
+        prefix, element_resists, enemy_palette = random.choices(elem_pallet_enem, weights=elem_weights)[0]
+
+        # Update name to indicate resistance type
+        stats.name = f'{prefix}. {stats.name}'
+
+        # Remove all predefined resistances
+        for element in all_elements:
+            stats.set_resistance(element,weak_value)
+            
+        # Set new resistances
+        for element_resist in element_resists:
+            stats.set_resistance(element_resist,strong_value)
+        if len(element_resists) == 4:
+            pass # TODO:  for enemies that are typically high defense,  lower defenses when resistant to all elements
+
+        # Swap palette to match elemental resistance
+        sprite_data.palette = config.enemy_sprite_dict[enemy_palette].palette
+
+        config.enemy_sprite_dict[enemy] = sprite_data
+        config.enemy_dict[enemy] = stats
 
 def update_ctrom(ct_rom: ctrom.CTRom, config: cfg.RandoConfig):
     update_scripts(ct_rom, config)
