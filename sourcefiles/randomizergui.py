@@ -131,6 +131,7 @@ class RandoGUI:
 
         self.tab_rando_scheme = tk.StringVar()
         self.tab_success_chance = tk.DoubleVar()
+        self.tab_rando_flags = tk.StringVar()
 
         # RC stuff
         # By default, rc puts no restrictions on assignment
@@ -423,6 +424,18 @@ class RandoGUI:
                 speed_min=self.speed_tab_min.get(),
                 speed_max=self.speed_tab_max.get()
             )
+        
+        # Tab Rando Flags
+        if self.tab_rando_flags == 'Tab Rando':
+            self.settings.gameflags |= GameFlags.TAB_RANDO
+            self.settings.gameflags &= ~GameFlags.TAB_SHUFFLE
+        elif self.tab_rando_flags == 'Tab Shuffle':
+            self.settings.gameflags |= GameFlags.TAB_SHUFFLE
+            self.settings.gameflags &= ~GameFlags.TAB_RANDO
+        else: # Normal
+            self.settings.gameflags &= ~GameFlags.TAB_SHUFFLE
+            self.settings.gameflags &= ~GameFlags.TAB_RANDO
+
 
         # RC (dup duals already taken, just char choices)
         for i in range(7):
@@ -552,6 +565,13 @@ class RandoGUI:
 
         self.tab_success_chance.set(self.settings.tab_settings.binom_success)
 
+        if GameFlags.TAB_RANDO in self.settings.gameflags:
+            self.tab_rando_flags.set('Tab Rando')
+        elif GameFlags.TAB_SHUFFLE in self.settings.gameflags:
+            self.tab_rando_flags.set('Tab Shuffle')
+        else:
+            self.tab_rando_flags.set('Normal')
+
         # RC char choices
         for i in range(7):
             for j in range(7):
@@ -620,8 +640,7 @@ class RandoGUI:
             self.zeal_end_checkbox, self.boss_scaling_checkbox,
             self.unlocked_magic_checkbox,
             self.locked_chars_checkbox, self.fast_pendant_checkbox,
-            self.boss_rando_checkbox, 
-            self.tab_rando_checkbox, self.tab_shuffle_checkbox
+            self.boss_rando_checkbox
         )
 
         scales = (
@@ -1822,41 +1841,29 @@ class RandoGUI:
 
         frame.pack()
 
+       # Tab Randomization
 
         frame = tk.Frame(page)
 
 
-        tk.Label(
-            frame, text="Tab Randomizer Options:"
-        ).pack(side='top', anchor=tk.W)
+        tab_rando_flags = ['Normal', 'Tab Rando', 'Tab Shuffle']
+        label = tk.Label(frame, text="Tab Randomizer Flags:")
+        label.pack(side='top', anchor=tk.W)
 
-        # Tab Randomization
-        self.tab_rando_checkbox = tk.Checkbutton(
+        self.tab_rando_flag_dropdown = tk.OptionMenu(
             frame,
-            text="Tab Randomization (tr)",
-            variable=self.flag_dict[GameFlags.TAB_RANDO],
-            command=self.verify_settings
-        )
-        self.tab_rando_checkbox.pack(anchor=tk.W)
-        CreateToolTip(
-            self.tab_rando_checkbox,
-            'Randomizes tab type at each location'
+            self.tab_rando_flags,
+            *tab_rando_flags
         )
 
-        # Tab Shuffle
-        self.tab_shuffle_checkbox = tk.Checkbutton(
-            frame,
-            text="Tab Shuffle (ts)",
-            variable=self.flag_dict[GameFlags.TAB_SHUFFLE],
-            command=self.verify_settings
-        )
-        self.tab_shuffle_checkbox.pack(anchor=tk.W)
         CreateToolTip(
-            self.tab_shuffle_checkbox,
-            'Shuffles existing tabs within an era between locations'
-            'while maintaining the number of tab types'
+            self.tab_rando_flag_dropdown,
+            'Normal:  Default JoT Settings\n'
+            'Tab Rando:  Randomizes tab type at each location\n'
+            'Tab Shuffle:  Shuffles existing tabs within an era between locations\n'
         )
-        
+        self.tab_rando_flag_dropdown.pack(anchor=tk.W)
+
         frame.pack(anchor=tk.W)
 
         return page
