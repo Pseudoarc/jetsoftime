@@ -1068,7 +1068,6 @@ class MobID(StrIntEnum):
     FREE_LANCER = 0x33
     OUTLAW = 0x34
     JUGGLER = 0x39
-    RETINITE = 0x3A
     MAGE = 0x3B
     REPTITE_PURPLE = 0x3D
     BLUE_SHIELD = 0x3E
@@ -1154,7 +1153,6 @@ class MobID(StrIntEnum):
     OCTORIDER = 0xAF
     CYBOT = 0xC1
     TUBSTER = 0xC8
-    GUARDIAN = 0xD4
     RED_SCOUT = 0xD5
     BLUE_SCOUT = 0xD6
     LASER_GUARD = 0xD9
@@ -1174,6 +1172,7 @@ class EnemyID(StrIntEnum):
     LAVOS_SUPPORT_UNK_1F = 0x1F
     LAVOS_SUPPORT_UNK_21 = 0x21
     ZEAL = 0x25
+    RETINITE = 0x3A
     UNKNOWN_3C = 0x3C
     UNKNOWN_44 = 0x44
     UNKNOWN_5A = 0x5A
@@ -1217,6 +1216,7 @@ class EnemyID(StrIntEnum):
     GIGA_GAIA_HEAD = 0xD1
     GIGA_GAIA_LEFT = 0xD2
     GIGA_GAIA_RIGHT = 0xD3
+    GUARDIAN = 0xD4
     LAVOS_TANK_LEFT = 0xDA
     LAVOS_TANK_RIGHT = 0xDB
     LAVOS_GUARDIAN_LEFT = 0xDC
