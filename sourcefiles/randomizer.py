@@ -51,6 +51,7 @@ import scriptshortener
 import bucketlist
 import techdescs
 import techdamagerando
+import enemyrandotypes
 
 import byteops
 import ctenums
@@ -1147,6 +1148,9 @@ class Randomizer:
         prismshard.update_prismshard_quest(self.out_rom)
 
         elementrando.update_ctrom(self.out_rom, self.config)
+
+        if rset.GameFlags.ENEMY_TYPE_RANDO in self.settings.gameflags:
+            enemyrandotypes.enemy_type_rando(self.out_rom)
 
         if epoch_fail:
             epochfail.apply_epoch_fail(self.out_rom, self.settings)
