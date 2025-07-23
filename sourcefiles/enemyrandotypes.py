@@ -14,7 +14,7 @@ import ctrom
 from ctenums import EnemyID, MobID, LocID
 
 def enemy_type_rando( ct_rom: ctrom.CTRom,):
-    excluded_mobs = [EnemyID.PANEL, EnemyID.LASER_GUARD, EnemyID.NU]
+    excluded_mobs = [EnemyID.PANEL, EnemyID.LASER_GUARD, EnemyID.NU, EnemyID.NU_2]
     enemy_loc_dict = {}
     enemy_pool = {}
     for location in LocID:

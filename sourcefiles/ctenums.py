@@ -1142,7 +1142,6 @@ class MobID(StrIntEnum):
     GOON = 0x8E
     RAIN_FROG = 0x91
     GATO = 0x92
-    GRINDER = 0x94
     SYNCHRITE = 0x96
     MUTANT = 0xA3
     METAL_MUTE = 0xA4
@@ -1184,6 +1183,7 @@ class EnemyID(StrIntEnum):
     RED_BEAST = 0x7F
     CYRUS = 0x8F
     DRAGON_TANK = 0x93
+    GRINDER = 0x94
     MASA = 0x97
     MUNE = 0x98
     AZALA = 0x9A
