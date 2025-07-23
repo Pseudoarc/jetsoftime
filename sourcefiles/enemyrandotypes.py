@@ -15,15 +15,28 @@ from ctenums import EnemyID, MobID, LocID
 
 def enemy_type_rando( ct_rom: ctrom.CTRom,):
     excluded_mobs = [EnemyID.PANEL, EnemyID.LASER_GUARD, EnemyID.NU, EnemyID.NU_2]
+    excluded_locations = [LocID.TRUCE_INN_1000,LocID.CREDITS_4, LocID.CRONOS_ROOM,
+                          LocID.CRONOS_KITCHEN] # These have NPCs that trigger events which have id < 10
     enemy_loc_dict = {}
     enemy_pool = {}
     for location in LocID:
+
+        if location in excluded_locations:
+            # Exclude some locations.
+            # These locations register mobs which aren't real, but also don't have an enemy index >10
+            # These locations don't have any mobs in general, easier to exclude them all together
+            continue
+
         pos = 0
         enemy_loc_dict[location] = []
 
         while True:
-            script = ct_rom.script_manager.get_script(location)
-            pos,cmd = script.find_command_opt([0x83],pos)
+            try:
+                script = ct_rom.script_manager.get_script(location)
+                pos,cmd = script.find_command_opt([0x83],pos)
+            except:
+                print(location)
+                break
             
             if pos == None:
                 break
@@ -33,10 +46,11 @@ def enemy_type_rando( ct_rom: ctrom.CTRom,):
             enemy_id = EnemyID(cmd.args[0])
             enemy_index = cmd.args[1]
             pos = cmd_end
-            header_enemies = [EnemyID.HENCH_PURPLE,EnemyID.TERRASAUR,EnemyID.KILWALA,EnemyID.REPTITE_PURPLE,
-                              EnemyID.OMICRONE,EnemyID.MARTELLO,EnemyID.REPTITE_GREEN]
-            if enemy_id not in list(MobID) or enemy_id in excluded_mobs or ( enemy_id in header_enemies and cmd_start < 1100):
-                    continue
+            if enemy_id not in list(MobID) or enemy_id in excluded_mobs or enemy_index > 10:
+                # Only include enemies which are considered mobs
+                # Exclude some mobs from getting randomized.  These are ones which are integral to some scenes
+                # Any enemy which has an index greater then 10 isn't a real mob
+                continue
             
             enemy_data = [cmd, cmd_start, cmd_end, enemy_id, enemy_index]                                   
             enemy_loc_dict[location].append(enemy_data)
