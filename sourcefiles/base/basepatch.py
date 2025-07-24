@@ -369,6 +369,16 @@ def patch_tabs(ct_rom: ctrom.CTRom):
     Update text to be consistent with other tab items
     """
 
+    """
+    Algorithm for normalizing tabs was originally written by Psuedoarc as a part of ctrando project.
+    The original source code can be found here:
+    https://github.com/Pseudoarc/ctrando/blob/main/src/ctrando/base/openworldutils.py#L862
+    SHA1:9c97db1246094f8910cb6d9c84dfa75539
+    The ctrando project, and this algorithm within it, are MIT licensed.
+    Credit to Psuedoarc for the original implementation
+    Thanks for allowing its use in JoT 
+    """
+
     # Tabs which don't follow typical command convention, but share the same convention
     location_tab_id = [
         (LocID.SUN_KEEP_600,0x0A), # TID.SUN_KEEP_600_POWER_TAB
@@ -424,6 +434,16 @@ def patch_tabs(ct_rom: ctrom.CTRom):
         ins_pos += len(new_block)
         script.delete_commands(ins_pos, 1)
 
+
+    """
+    Algorithm for normalizing the Enhasa tabs was originally written by Psuedoarc as a part of ctrando project.
+    The original source code can be found here:
+    https://github.com/Pseudoarc/ctrando/blob/main/src/ctrando/base/openworld/enhasabalthasarstudy.py#L23
+    SHA1:9c97db1246094f8910cb6d9c84dfa75539
+    The ctrando project, and this algorithm within it, are MIT licensed.
+    Credit to Psuedoarc for the original implementation
+    Thanks for allowing its use in JoT 
+    """
 
     # Enhasa Nu battle tabs require special handling
     # (LocID.ENHASA_NU_ROOM,0x08), # TID.ENHASA_NU_BATTLE_TABS
