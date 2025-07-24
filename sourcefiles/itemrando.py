@@ -60,7 +60,8 @@ def write_item_prices_to_config(settings: rset.Settings,
         config.item_db[item].price = price
 
 
-def update_snail_stop_price(ct_rom: ctrom.CTRom):
+def update_snail_stop_price(ct_rom: ctrom.CTRom,
+                            config: cfg.RandoConfig):
     # Modify Snail Stop Item Price
     OID = 0x09
 
@@ -91,6 +92,8 @@ def update_snail_stop_price(ct_rom: ctrom.CTRom):
     # Updated Price Paid
     pos = script.delete_command_from_function([0xCE], OID, FID.ACTIVATE,pos)
     script.insert_commands(EF().add( EC.sub_gold(price)).get_bytearray(), pos)
+
+    config.item_db[ctenums.ItemID.JERKY].price = price
 
 
 # TODO: Separate settings check from the randomization itself.
