@@ -70,21 +70,23 @@ def update_snail_stop_price(ct_rom: ctrom.CTRom):
     # Price range 
     #   - Lower: 7500 (which is about %75 original)
     #   - Upper: 17500 (which is about %175 original)
-    price = random.randint(7500, 17500)//100*100 # Round to nearest 100
+    # TODO:  Consult with JoT community on upper limit
+    price = random.randrange(7500, 17501, 100)# Round to nearest 100
 
     # Update Text in Decision Box
     pos, _ = script.find_command([0xC0], pos)
     str_id = script.data[pos+1]
     script.strings[str_id] = ctstrings.CTString.from_str(
-        rf"I might let some go for, say, {price}.{{line break}}"
+        rf"I might let some go for, say, {price}G.{{line break}}"
           "How about it?{line break}"
           "    Yes.{line break}"
           "    No.{null}"
     )
 
     # Updated Gold Check
+    _ , cmd = script.find_command_opt([0xCC], pos) # Get command for jump byte.  Needed if player does not have enough gold
     pos = script.delete_command_from_function([0xCC], OID, FID.ACTIVATE,pos)
-    script.insert_commands(EF().add( EC.if_gold_greater_equals(price,2)).get_bytearray(), pos)
+    script.insert_commands(EF().add( EC.if_gold_greater_equals(price,cmd.args[-1])).get_bytearray(), pos)
 
     # Updated Price Paid
     pos = script.delete_command_from_function([0xCE], OID, FID.ACTIVATE,pos)
