@@ -14,7 +14,8 @@ import ctrom
 from ctenums import EnemyID, MobID, LocID
 
 def enemy_type_rando( ct_rom: ctrom.CTRom,):
-    excluded_mobs = [EnemyID.PANEL, EnemyID.LASER_GUARD, EnemyID.NU, EnemyID.NU_2]
+    excluded_mobs = [EnemyID.PANEL, EnemyID.LASER_GUARD, EnemyID.NU, EnemyID.NU_2,
+                     EnemyID.BLUE_SHIELD, EnemyID.YODU_DE, EnemyID.INCOGNITO, EnemyID.PEEPINGDOOM]
     excluded_locations = [LocID.TRUCE_INN_1000,LocID.CREDITS_4, LocID.CRONOS_ROOM,
                           LocID.CRONOS_KITCHEN] # These have NPCs that trigger events which have id < 10
     enemy_loc_dict = {}
@@ -49,6 +50,7 @@ def enemy_type_rando( ct_rom: ctrom.CTRom,):
             if enemy_id not in list(MobID) or enemy_id in excluded_mobs or enemy_index > 10:
                 # Only include enemies which are considered mobs
                 # Exclude some mobs from getting randomized.  These are ones which are integral to some scenes
+                # Also, shields need to be excluded for now since they are two seperate enemies.  Maybe replace them with something else?
                 # Any enemy which has an index greater then 10 isn't a real mob
                 continue
             
