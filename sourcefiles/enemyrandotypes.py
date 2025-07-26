@@ -17,7 +17,8 @@ def enemy_type_rando( ct_rom: ctrom.CTRom,):
     excluded_mobs = [EnemyID.PANEL, EnemyID.LASER_GUARD, EnemyID.NU, EnemyID.NU_2,
                      EnemyID.BLUE_SHIELD, EnemyID.YODU_DE, EnemyID.INCOGNITO, EnemyID.PEEPINGDOOM]
     excluded_locations = [LocID.TRUCE_INN_1000,LocID.CREDITS_4, LocID.CRONOS_ROOM,
-                          LocID.CRONOS_KITCHEN] # These have NPCs that trigger events which have id < 10
+                          LocID.CRONOS_KITCHEN, # These have NPCs that trigger events which have id < 10, but may have been fixed my obj start implementation
+                          LocID.HECKRAN_CAVE_PASSAGEWAYS] # Get color crash here in this location, need to understand why
     enemy_loc_dict = {}
     enemy_pool = {}
     for location in LocID:
@@ -27,17 +28,17 @@ def enemy_type_rando( ct_rom: ctrom.CTRom,):
             # These locations register mobs which aren't real, but also don't have an enemy index >10
             # These locations don't have any mobs in general, easier to exclude them all together
             continue
+        
+        try:
+            script = ct_rom.script_manager.get_script(location)
+            pos = script.get_object_start(0)
+        except:
+            print(location)
+            break
 
-        pos = 0
         enemy_loc_dict[location] = []
-
         while True:
-            try:
-                script = ct_rom.script_manager.get_script(location)
-                pos,cmd = script.find_command_opt([0x83],pos)
-            except:
-                print(location)
-                break
+            pos,cmd = script.find_command_opt([0x83],pos)
             
             if pos == None:
                 break
