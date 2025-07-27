@@ -20,6 +20,7 @@ import eventcommand
 from ctenums import ItemID
 import random
 from eventcommand import EventCommand as EC
+from treasuredata import get_vanilla_treasure_list
 
 
 RewardType = typing.Union[ctenums.ItemID, int]
@@ -1040,48 +1041,7 @@ def get_base_treasure_dict() -> dict[ctenums.TreasureID, Treasure]:
 
     return ret_dict
 
-def get_vanilla_treasure_dict(ct_rom: ctrom.CTRom) -> dict[ctenums.TreasureID,ctenums.ItemID]:
-
-    TID: typing.TypeAlias = ctenums.TreasureID
-
-    # List of Treasure IDs which will be excluded from treasure dictionary
-    # These will be populated later in treasurewriter.py
-    excluded_item_tid = [
-    TID.REPTITE_LAIR_KEY, TID.MELCHIOR_KEY, TID.FROGS_BURROW_LEFT, 
-    TID.MT_WOE_KEY, TID.FIONA_KEY, TID.ARRIS_DOME_DOAN_KEY, 
-    TID.SUN_PALACE_KEY, TID.GENO_DOME_KEY, TID.GIANTS_CLAW_KEY, 
-    TID.KINGS_TRIAL_KEY, TID.ZENAN_BRIDGE_KEY, TID.SNAIL_STOP_KEY, 
-    TID.LAZY_CARPENTER, TID.TABAN_KEY, TID.DENADORO_MTS_KEY,
-    TID.JERKY_GIFT,TID.DENADORO_ROCK, TID.LARUBA_ROCK,TID.KAJAR_ROCK,
-    TID.TABAN_GIFT_HELM, TID.TABAN_GIFT_WEAPON,
-    TID.TRADING_POST_ARMOR, TID.TRADING_POST_HELM,
-    TID.TRADING_POST_ACCESSORY,
-    TID.TRADING_POST_MELEE_WEAPON,
-    TID.TRADING_POST_RANGED_WEAPON,
-    TID.TRADING_POST_TAB,
-    ]
-
-    # Iterate through base treasure list and query rom for vanilla reward at that location
-    tid_chest_dict = get_base_treasure_dict()
-    ret_dict = {}
-    for tid, chest in tid_chest_dict.items():
-        if tid in excluded_item_tid:
-            continue
-
-        if isinstance(chest,ChestTreasure):
-            ret_dict[tid] = chest.get_chest_data(ct_rom).reward
-        else: # Script treasure
-
-            script = ct_rom.script_manager.get_script(chest.location)
-            pos = script.get_function_start(chest.object_id, chest.function_id)
-            item_pos, _ = script.find_command([0xCA], pos)
-
-            item_id = script.data[item_pos + 1]
-            ret_dict[tid] = ItemID(item_id)
-
-    return ret_dict
-
-def get_shuffled_treasure_dict(ct_rom: ctrom.CTRom) -> dict[ctenums.TreasureID,ctenums.ItemID]:
+def get_shuffled_treasure_dict() -> dict[ctenums.TreasureID,ctenums.ItemID]:
 
     TID: typing.TypeAlias = ctenums.TreasureID
 
@@ -1120,42 +1080,59 @@ def get_shuffled_treasure_dict(ct_rom: ctrom.CTRom) -> dict[ctenums.TreasureID,c
     ItemID.NONE,  ItemID.OBJ_COUNT, 
     }
 
-    # - Get vanilla treasure dictionary and compare it to item pool set
+    # List of Treasure IDs which will be excluded from treasure dictionary
+    # These will be populated later in treasurewriter.py
+    excluded_item_tid = [
+    TID.REPTITE_LAIR_KEY, TID.MELCHIOR_KEY, TID.FROGS_BURROW_LEFT, 
+    TID.MT_WOE_KEY, TID.FIONA_KEY, TID.ARRIS_DOME_DOAN_KEY, 
+    TID.SUN_PALACE_KEY, TID.GENO_DOME_KEY, TID.GIANTS_CLAW_KEY, 
+    TID.KINGS_TRIAL_KEY, TID.ZENAN_BRIDGE_KEY, TID.SNAIL_STOP_KEY, 
+    TID.LAZY_CARPENTER, TID.TABAN_KEY, TID.DENADORO_MTS_KEY,
+    TID.JERKY_GIFT,TID.DENADORO_ROCK, TID.LARUBA_ROCK,TID.KAJAR_ROCK,
+    TID.TABAN_GIFT_HELM, TID.TABAN_GIFT_WEAPON,
+    TID.TRADING_POST_ARMOR, TID.TRADING_POST_HELM,
+    TID.TRADING_POST_ACCESSORY,
+    TID.TRADING_POST_MELEE_WEAPON,
+    TID.TRADING_POST_RANGED_WEAPON,
+    TID.TRADING_POST_TAB,
+    ]
+
+    # initialize shuffled treasure dictionary
+    treasure_ids = [tid for tid in get_base_treasure_dict() if tid not in excluded_item_tid]
+    shuffled_dict = {tid:ItemID.MOP for tid in treasure_ids}
+
+    # - Get vanilla treasure pool and compare it to item set
     # - Get subset of items which are not found in the vanilla treasure pool
-    # - Exclude predefined items
+    # - Exclude some items defined above
     # - Items which are not found in the vanilla treasure pool will be added back in so that 
     #   it contains at least one of every valid item
-    vanilla_dict = get_vanilla_treasure_dict(ct_rom)
-    unused_items = set(ItemID) - set(vanilla_dict.values())
+    vanilla_treaure = get_vanilla_treasure_list()
+    unused_items = set(ItemID) - set(vanilla_treaure)
     unused_items = {item for item in unused_items if not 'unused' in str(item).lower()}
     unused_items = list(unused_items-excluded_items)
 
-    # Remove duplicates and gold values
+    # Get at least one of every item in vanilla pool and seperate out extras
     found_rewards = []
     duplicate_rewards = []
-    for tid, reward in vanilla_dict.items():
-        if not isinstance(reward,ItemID): # Remove gold
-            vanilla_dict[tid] = None
-        elif reward in found_rewards: # Remove duplicates
-            vanilla_dict[tid] = None
+    for reward in vanilla_treaure:
+        if reward in found_rewards: # Remove duplicates
             duplicate_rewards.append(reward)
-        found_rewards.append(reward)
+        else:
+            found_rewards.append(reward)
 
     # Shuffle Remaining Gear
     random.shuffle(duplicate_rewards)
-    remaining_rewards = duplicate_rewards + unused_items + [ItemID.NONE]*2 # Add place holders for rocks
+    remaining_rewards = duplicate_rewards + unused_items + found_rewards + [ItemID.NONE]*2 # Add place holders for rocks
 
-    for tid, _ in vanilla_dict.items():
-        if remaining_rewards and vanilla_dict[tid]==None:
-            vanilla_dict[tid] = remaining_rewards.pop() # Pop removes from end, so unused items are prioritized
-        elif vanilla_dict[tid]==None: # This condition should technically never be hit
-            vanilla_dict[tid] = ItemID.MOP
+    for tid in shuffled_dict:
+        if remaining_rewards and shuffled_dict[tid]==ItemID.MOP:
+            shuffled_dict[tid] = remaining_rewards.pop() # Pop removes from end, so unused items are prioritized
 
     # Shuffle rewards
-    item_pool = list(vanilla_dict.values())
+    item_pool = list(shuffled_dict.values())
     random.shuffle(item_pool)
 
-    shuffled_dict = {tid:item for tid, item in zip(vanilla_dict, item_pool)}
+    shuffled_dict = {tid:item for tid, item in zip(shuffled_dict, item_pool)}
     return shuffled_dict
 
 _treasure_count_dict: dict[ctenums.LocID, int] = {

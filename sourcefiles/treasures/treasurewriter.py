@@ -142,7 +142,7 @@ def write_treasures_to_config(ct_rom: ctrom.CTRom,
 
     if rset.GameFlags.TREASURE_SHUFFLE in settings.gameflags:
         # Assign awards from shuffled treasure dictionary
-        shuffled_treasure_dict = tt.get_shuffled_treasure_dict(ct_rom)
+        shuffled_treasure_dict = tt.get_shuffled_treasure_dict()
         for treasure, reward in shuffled_treasure_dict.items():
             assign[treasure].reward = reward
 
