@@ -112,6 +112,7 @@ def update_enemy_resistances(config: cfg.RandoConfig):
     elem_percent = 0.66 # TODO:  Make Scale?  2/3 element resist 1/3 vanilla resists
     weak_value = 3 # Elemental Weakness Value
     strong_value = 132 # Elemental Resistance Value
+    all_elem_defense = 127
 
     # Define color palette
     elem_resist_data = [
@@ -154,8 +155,8 @@ def update_enemy_resistances(config: cfg.RandoConfig):
         for element_resist in element_resists:
             stats.set_resistance(element_resist,strong_value)
 
-        if len(element_resists) == 4:
-            pass # TODO:  for enemies that are typically high defense,  lower defenses when resistant to all elements
+        if set(element_resists) == set(all_elements) and stats.defense > all_elem_defense:
+            stats.defense = all_elem_defense # Lower defenses when resistant to all elements
 
         # Swap palette to match elemental resistance
         sprite_data.palette = config.enemy_sprite_dict[enemy_palette].palette
