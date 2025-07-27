@@ -20,7 +20,7 @@ import eventcommand
 from ctenums import ItemID
 import random
 from eventcommand import EventCommand as EC
-from treasuredata import get_vanilla_treasure_list
+from treasures.treasuredata import get_vanilla_treasure_list
 
 
 RewardType = typing.Union[ctenums.ItemID, int]
