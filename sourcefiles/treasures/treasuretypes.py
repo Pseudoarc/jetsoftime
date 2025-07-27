@@ -1078,6 +1078,7 @@ def get_shuffled_treasure_dict() -> dict[ctenums.TreasureID,ctenums.ItemID]:
     ItemID.BUCKETFRAG, ItemID.SEED,
     ItemID.JETSOFTIME, ItemID.MASAMUNE_0_ATK,
     ItemID.NONE,  ItemID.OBJ_COUNT, 
+    ItemID.RACE_LOG,
     }
 
     # List of Treasure IDs which will be excluded from treasure dictionary

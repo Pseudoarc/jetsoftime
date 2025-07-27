@@ -316,7 +316,6 @@ ItemID.LAPIS: 9,
 ItemID.BARRIER: 5,
 ItemID.SHIELD: 2,
 ItemID.SPEED_TAB: 5,
-ItemID.RACE_LOG: 1
 }
 
 def get_vanilla_treasure_list():
