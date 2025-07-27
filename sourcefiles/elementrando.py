@@ -108,28 +108,40 @@ def update_element_placards_on_ctrom(ct_rom: ctrom.CTRom, config: cfg.RandoConfi
 
 def update_enemy_resistances(config: cfg.RandoConfig):
 
-    all_elements = [El.LIGHTNING,El.SHADOW,El.ICE,El.FIRE]
-    elem_weights = [20,20,20,20,10] # TODO:  Allow for custom weights?
-    elem_pallet_enem = [
-    ('Fi',[El.FIRE], EnemyID.RED_BEAST),
-    ('Wa',[El.ICE], EnemyID.BLUE_BEAST),
-    ('Sh',[El.SHADOW], EnemyID.MAD_BAT),
-    ('Li',[El.LIGHTNING], EnemyID.GOLD_EAGLET), # EnemyID.GOLD_EAGLET
-    ('Rbow', all_elements, EnemyID.MOTHERBRAIN) # EnemyID.MAD_BAT
+    all_elements = [El.LIGHTNING, El.SHADOW, El.ICE, El.FIRE]
+    elem_percent = 0.66 # TODO:  Make Scale?  2/3 element resist 1/3 vanilla resists
+    weak_value = 3 # Elemental Weakness Value
+    strong_value = 132 # Elemental Resistance Value
+
+    # Define color palette
+    elem_resist_data = [
+    # Prefix  # Element       # Element Palette
+    ('Fi',    [El.FIRE],      EnemyID.RED_BEAST),
+    ('Wa',    [El.ICE],       EnemyID.BLUE_BEAST),
+    ('Li',    [El.LIGHTNING], EnemyID.GOLD_EAGLET),
+    ('Sh',    [El.SHADOW],    EnemyID.MAD_BAT),
+    ('Rbow',  all_elements,   EnemyID.MOTHERBRAIN),
+    ('',      [],             None)
     ]
 
-    weak_value = 3
-    strong_value = 132
+    elem_weights = [
+    elem_percent*23, # FIRE
+    elem_percent*23, # ICE
+    elem_percent*23, # LIGHTNING
+    elem_percent*23, # SHADOW
+    elem_percent*8,  # ALL (Rainbow)
+    (1-elem_percent)*100, # NONE (Vanilla)
+    ]
 
-    rando_percent = 0.5 # TODO:  Make Scale?
-    enemy_randomize = list(ctenums.MobID)
-    random.shuffle(enemy_randomize)
-    enemy_randomize = enemy_randomize[0:int(len(enemy_randomize)*rando_percent)]
+    for enemy in list(ctenums.MobID):
 
-    for enemy in enemy_randomize:
+        prefix, element_resists, enemy_palette = random.choices(elem_resist_data, weights=elem_weights)[0]
+
+        if not element_resists: # Vanilla Stats
+            continue
+
         sprite_data = config.enemy_sprite_dict[enemy]
         stats = config.enemy_dict[enemy]
-        prefix, element_resists, enemy_palette = random.choices(elem_pallet_enem, weights=elem_weights)[0]
 
         # Update name to indicate resistance type
         stats.name = f'{prefix}. {stats.name}'
@@ -141,6 +153,7 @@ def update_enemy_resistances(config: cfg.RandoConfig):
         # Set new resistances
         for element_resist in element_resists:
             stats.set_resistance(element_resist,strong_value)
+
         if len(element_resists) == 4:
             pass # TODO:  for enemies that are typically high defense,  lower defenses when resistant to all elements
 
