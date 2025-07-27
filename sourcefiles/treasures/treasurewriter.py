@@ -131,8 +131,7 @@ def get_treasure_tier_dict(settings: rset.Settings):
     return treasure_tier_dict
 
 
-def write_treasures_to_config(ct_rom: ctrom.CTRom,
-                              settings: rset.Settings,
+def write_treasures_to_config(settings: rset.Settings,
                               config: cfg.RandoConfig):
 
     gil = td.get_item_list
