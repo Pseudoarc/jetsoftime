@@ -2254,6 +2254,21 @@ class RandoGUI:
             'Shuffle the 4 elements among characters and Robo techs.'
         )
 
+        checkbox = tk.Checkbutton(
+            frame,
+            text='Enemy Element Resist Randomization',
+            variable=self.flag_dict[GameFlags.ENEMY_ELEM_RES_RANDO]
+        )
+        checkbox.pack(anchor=tk.W)
+
+        CreateToolTip(
+            checkbox,
+            'Randomizes enemy elemental resistances. '
+            'Enemy can either have fire, water, lightning, shadow, or all resistances. '
+            'For enemies which have all resistances, defense is lowered to a value '
+            'to ensure they can be killed by physical attacks. '
+        )
+
         plus_ki_flags = [
             GameFlags.RESTORE_JOHNNY_RACE, GameFlags.RESTORE_TOOLS
         ]
