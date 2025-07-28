@@ -16,8 +16,8 @@ from ctenums import EnemyID, MobID, LocID
 def enemy_type_rando( ct_rom: ctrom.CTRom,):
     excluded_mobs = [EnemyID.PANEL, EnemyID.LASER_GUARD, EnemyID.NU, EnemyID.NU_2,
                      EnemyID.BLUE_SHIELD, EnemyID.YODU_DE, EnemyID.INCOGNITO, EnemyID.PEEPINGDOOM]
-    excluded_locations = [LocID.TRUCE_INN_1000,LocID.CREDITS_4, LocID.CRONOS_ROOM,
-                          LocID.CRONOS_KITCHEN, # These have NPCs that trigger events which have id < 10, but may have been fixed my obj start implementation
+    excluded_locations = [LocID.TRUCE_INN_1000,LocID.CRONOS_KITCHEN,LocID.CREDITS_4, LocID.CRONOS_ROOM, # Locations have purple reptite due to Reptite Alt Ending.  Easier to exclude them
+                          LocID.CREDITS_4, # End credits has a scouter.  Easier to exclude it
                           LocID.HECKRAN_CAVE_PASSAGEWAYS] # Get color crash here in this location, need to understand why
     enemy_loc_dict = {}
     enemy_pool = {}
