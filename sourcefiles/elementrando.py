@@ -107,12 +107,12 @@ def update_element_placards_on_ctrom(ct_rom: ctrom.CTRom, config: cfg.RandoConfi
 
 
 def update_enemy_resistances(config: cfg.RandoConfig):
-
     all_elements = [El.LIGHTNING, El.SHADOW, El.ICE, El.FIRE]
     elem_percent = 0.66 # TODO:  Make Scale?  2/3 element resist 1/3 vanilla resists
     weak_value = 3 # Elemental Weakness Value
     strong_value = 132 # Elemental Resistance Value
     all_elem_defense = 127
+    all_elem_evade = 20
 
     # Define color palette
     elem_resist_data = [
@@ -134,7 +134,10 @@ def update_enemy_resistances(config: cfg.RandoConfig):
     (1-elem_percent)*100, # NONE (Vanilla)
     ]
 
-    for enemy in list(ctenums.MobID):
+    excluded_mobs = {EnemyID.RUBBLE}
+    mob_pool = set(ctenums.MobID) - excluded_mobs
+    for enemy in mob_pool:
+        
 
         prefix, element_resists, enemy_palette = random.choices(elem_resist_data, weights=elem_weights)[0]
 
@@ -155,8 +158,12 @@ def update_enemy_resistances(config: cfg.RandoConfig):
         for element_resist in element_resists:
             stats.set_resistance(element_resist,strong_value)
 
-        if set(element_resists) == set(all_elements) and stats.defense > all_elem_defense:
-            stats.defense = all_elem_defense # Lower defenses when resistant to all elements
+        if set(element_resists) == set(all_elements):  # Ensure that fully resistance enemies can be killed
+            # Lower defenses when resistant to all elements
+            stats.defense = all_elem_defense if stats.defense > all_elem_defense else stats.defense
+            
+            # Lower evasion when resistant to all elements
+            stats.evade = all_elem_evade if stats.evade > all_elem_evade else stats.evade
 
         # Swap palette to match elemental resistance
         sprite_data.palette = config.enemy_sprite_dict[enemy_palette].palette
