@@ -110,6 +110,7 @@ class GameFlags(SerializableFlag):
     BUCKET_LIST = auto()
     MYSTERY = auto()
     BOSS_SIGHTSCOPE = auto()
+    TREASURE_TIER_MARKERS = auto()
     USE_ANTILIFE = auto()
     TACKLE_EFFECTS_ON = auto()
     HEALING_ITEM_RANDO = auto()

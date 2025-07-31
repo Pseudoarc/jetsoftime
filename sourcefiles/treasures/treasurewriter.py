@@ -2,12 +2,17 @@ from __future__ import annotations
 
 import random as rand
 
+import ctrom
 import ctenums
 import logictypes
 from treasures import treasuredata as td
+from treasures import treasuretypes as tt
 import randoconfig as cfg
 import randosettings as rset
 import vanillarando.vrtreasure as vrtreasure
+from eventcommand import EventCommand as EC
+from eventfunction import EventFunction as EF
+from maps.locationtypes import LocationData
 
 
 TID = ctenums.TreasureID
@@ -128,6 +133,48 @@ def get_treasure_tier_dict(settings: rset.Settings):
     #       Let's just handle difficulty by moving boxes up/down in tier
     return treasure_tier_dict
 
+# if rset.GameFlags.TREASURE_TIER_MARKERS in settings.gameflags:
+def write_treasure_tier_markers(ct_rom: ctrom.CTRom,
+                                settings: rset.Settings):
+                
+    treasure_tier_dict = get_treasure_tier_dict(settings)
+    treasure_data = tt.get_base_treasure_dict()
+    treasure_marker_dict = td.get_treasures_tier_marker_dict()
+
+    for tier,marker in treasure_marker_dict.items():
+        treasures = treasure_tier_dict[tier]
+
+        for tid in treasures:
+            chest = treasure_data[tid]
+            chest_data = chest.get_chest_data(ct_rom)
+            location_id = tt.get_chest_loc_id(chest.chest_index)
+
+            # get script
+            script = ct_rom.script_manager.get_script(location_id)
+            obj_id = script.append_empty_object()
+            x_coord = (chest_data.x_coord << 4) + 10
+            y_coord = (chest_data.y_coord << 4) + 10
+
+            script.set_function(
+            obj_id, 0,
+            EF()
+            .add(EC.load_npc(marker)) # Use NPC as Marker
+            .add(EC.set_object_coordinates_pixels(x_coord,y_coord)) # Set marker on chest
+            .add(EC.generic_command(0x8E, 0x3B)) # sprite priority
+            .add(EC.generic_command(0x84,0)) # Make Ethereal / Immovable
+            )
+
+            script.set_function(
+            obj_id, 1,
+            EF().add(EC.return_cmd())
+            )
+
+            script.set_function(
+            obj_id, 2,
+            EF().add(EC.return_cmd())
+            )
+        
+            
 
 def write_treasures_to_config(settings: rset.Settings,
                               config: cfg.RandoConfig):

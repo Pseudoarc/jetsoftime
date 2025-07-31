@@ -168,7 +168,7 @@ class ChestTreasureData(ctt.BinaryData):
 
     @property
     def loc_pointer(self) -> typing.Optional[ctenums.LocID]:
-        if self.x_coord == 0 and self.x_coord == 0:
+        if self.x_coord == 0 and self.y_coord == 0:
             loc_id = int.from_bytes(self[2:4], 'little')
             return ctenums.LocID(loc_id)
 
@@ -223,22 +223,30 @@ class ChestTreasure(Treasure):
                  reward: RewardType = ctenums.ItemID.MOP):
         Treasure.__init__(self, reward)
         self.chest_index = chest_index
+        self._chest_rw = ChestRW(0x00A751)
 
-    def write_to_ctrom(self, ct_rom: ctrom.CTRom,
+    def get_chest_data(self,ct_rom: ctrom.CTRom,
                        data_start: typing.Optional[int] = None):
-
-        chest_rw = ChestRW(0x00A751)
+        
         if data_start is None:
-            data_start = chest_rw.get_data_start(ct_rom)
+            data_start = self._chest_rw.get_data_start(ct_rom)
 
         # Read that current chest on the rom and just update the reward part
         current_data = ChestTreasureData(
-            chest_rw.read_data_from_ctrom(
+            self._chest_rw.read_data_from_ctrom(
                 ct_rom, ChestTreasureData.SIZE, self.chest_index, data_start
             )
         )
+
+        return current_data
+        
+    def write_to_ctrom(self, ct_rom: ctrom.CTRom,
+                       data_start: typing.Optional[int] = None):
+
+        # Read that current chest on the rom and just update the reward part
+        current_data = self.get_chest_data(ct_rom, data_start)
         current_data.reward = self.reward
-        chest_rw.write_data_to_ct_rom(
+        self._chest_rw.write_data_to_ct_rom(
             ct_rom, current_data, self.chest_index, data_start
         )
 

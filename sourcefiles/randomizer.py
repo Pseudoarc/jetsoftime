@@ -1148,6 +1148,9 @@ class Randomizer:
 
         elementrando.update_ctrom(self.out_rom, self.config)
 
+        if rset.GameFlags.TREASURE_TIER_MARKERS in self.settings.gameflags:
+            treasurewriter.write_treasure_tier_markers(self.out_rom,self.settings)
+
         if epoch_fail:
             epochfail.apply_epoch_fail(self.out_rom, self.settings)
 

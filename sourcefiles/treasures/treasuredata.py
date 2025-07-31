@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Tuple
 import random
 
-from ctenums import TreasureID as TID, StrIntEnum, ItemID
+from ctenums import TreasureID as TID, StrIntEnum, ItemID, NpcID
 
 import randosettings as rset
 
@@ -215,11 +215,20 @@ _treasure_loc_tier_list[TreasureLocTier.SEALED] = [
     TID.MAGIC_CAVE_SEALED,
 ]
 
+_treasure_tier_marker_dict = {
+    TreasureLocTier.LOW: NpcID.TRASH_CAN_ON_ITS_SIDE,
+    TreasureLocTier.LOW_MID: NpcID.SODA_CAN,
+    TreasureLocTier.MID: NpcID.BLUE_STAR,
+    TreasureLocTier.MID_HIGH: NpcID.GIANT_BLUE_STAR,
+    TreasureLocTier.HIGH_AWESOME: NpcID.SAVE_POINT,
+}
 
 # This is how other modules should get the TreasureIDs in each tier
 def get_treasures_in_tier(tier: TreasureLocTier):
     return _treasure_loc_tier_list[tier].copy()
 
+def get_treasures_tier_marker_dict():
+    return _treasure_tier_marker_dict.copy()
 
 _item_tier_list: dict[ItemTier, list[ItemID]] = {
     tier: [] for tier in list(ItemTier)

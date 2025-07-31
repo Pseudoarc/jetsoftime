@@ -1279,6 +1279,16 @@ class EnemyID(StrIntEnum):
     UNUSED_FE = 0xFE
     UNUSED_FF = 0xFF
 
+class NpcID(StrIntEnum):
+    SODA_CAN = 0x62
+    TRASH_CAN_ON_ITS_SIDE = 0x6A
+    BLUE_STAR = 0x70
+    GIANT_BLUE_STAR = 0x71
+    RED_STAR = 0xAB
+    SAVE_POINT = 0x79
+    BLUE_SHINING_STAR_SMALL = 0xC2
+    BLUE_SHINING_STAR_LARGE = 0xC3
+    BLUE_GLOWING_LIGHT = 0xE7
 
 class ShopID(StrIntEnum):
 
