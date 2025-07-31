@@ -2254,6 +2254,23 @@ class RandoGUI:
             'Shuffle the 4 elements among characters and Robo techs.'
         )
 
+        checkbox = tk.Checkbutton(
+            frame,
+            text='Treasure Tier Marker',
+            variable=self.flag_dict[GameFlags.TREASURE_TIER_MARKERS]
+        )
+        checkbox.pack(anchor=tk.W)
+
+        CreateToolTip(
+            checkbox,
+            'Places NPC Sprite over chests to indicate tier'
+            'Low Tier - Trash Can'
+            'Low Mid Tier - Soda Can'
+            'Mid Tier - Blue Star'
+            'Mid High Tier - Giant Blue Star'
+            'High Awesome Tier - Save Point'
+        )
+
         plus_ki_flags = [
             GameFlags.RESTORE_JOHNNY_RACE, GameFlags.RESTORE_TOOLS
         ]
