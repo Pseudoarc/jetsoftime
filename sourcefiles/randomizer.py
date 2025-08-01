@@ -9,6 +9,7 @@ import sys
 import json
 import textwrap
 import typing
+import re
 
 from pathlib import Path
 from typing import Optional, Union
@@ -368,6 +369,23 @@ class Randomizer:
             new_ctstr.compress()
             script.strings[ind] = new_ctstr
             script.modified_strings = True
+
+    @classmethod
+    def __promote_wiki(
+            cls, ct_rom: CTRom):
+        mfair_script = ct_rom.script_manager.get_script(ctenums.LocID.MILLENNIAL_FAIR)
+        for i, barr in enumerate(mfair_script.strings):
+            string = ctstrings.CTString(barr).to_ascii()
+            newstr = None
+            if re.search(r'MELCHIOR: I live on the continent', string) is not None:
+                newstr = "MELCHIOR: There's a ton of useful{line break}info on the Jets of Time Wiki.{line break}Check it out sometime...{null}"
+            elif re.search(r'By the way...', string) is not None:
+                newstr = "By the way...{full break}Have you looked at the{line break}Jets of Time Wiki?{line break}   Not yet.{line break}   Yeah!{null}"
+            elif re.search(r'Oh, my!', string) is not None:
+                newstr = "Oh, my!{line break}You really should.{line break}https://wiki.ctjot.com{null}"
+            if newstr is not None:
+                mfair_script.strings[i] = ctstrings.CTString.from_str(newstr)
+                mfair_script.modified_strings = True
 
     @classmethod
     def __clean_lw_loadscreen(cls, ct_rom: CTRom):
@@ -1249,6 +1267,7 @@ class Randomizer:
             green_ambler_name='I\'m All N',
             gi_jogger_name='AzureCale',
         )
+        self.__promote_wiki(self.out_rom)
 
         # Rewrite any scripts changed by post-randomization
         self.out_rom.write_all_scripts_to_rom()
