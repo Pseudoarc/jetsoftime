@@ -135,7 +135,7 @@ def update_enemy_resistances(config: cfg.RandoConfig):
     ]
 
     excluded_mobs = {EnemyID.RUBBLE}
-    mob_pool = set(ctenums.MobID) - excluded_mobs
+    mob_pool = set(EnemyID.get_mob_ids()) - excluded_mobs
     for enemy in mob_pool:
         
 

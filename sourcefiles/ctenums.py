@@ -1279,144 +1279,148 @@ class EnemyID(StrIntEnum):
     UNUSED_FE = 0xFE
     UNUSED_FF = 0xFF
 
-class MobID(StrIntEnum):
-    # Normal Enemies
-    NU = 0x00
-    REPTITE_GREEN = 0x01
-    TERRASAUR = 0x02
-    KILWALA = 0x03
-    HENCH_PURPLE = 0x05
-    OMICRONE = 0x06
-    MARTELLO = 0x07
-    BELLBIRD = 0x08
-    PANEL = 0x09
-    BLUE_IMP = 0x0C
-    GREEN_IMP = 0x0D
-    STONE_IMP = 0x0E
-    ROLY = 0x10
-    POLY = 0x11
-    ROLYPOLY = 0x12
-    ROLY_RIDER = 0x13
-    BLUE_EAGLET = 0x15
-    GOLD_EAGLET = 0x16
-    RED_EAGLET = 0x17
-    AVIAN_CHAOS = 0x19
-    IMP_ACE = 0x1A
-    BANTAM_IMP = 0x1B
-    GNASHER = 0x1C
-    GNAWER = 0x1D
-    NAGA_ETTE = 0x1E
-    RUMINATOR = 0x20
-    OCTOPOD = 0x22
-    OCTOBLUSH = 0x23
-    OCTOBINO = 0x24
-    FLY_TRAP = 0x26
-    MEAT_EATER = 0x27
-    MAN_EATER = 0x28
-    KRAKKER = 0x29
-    EGDER = 0x2A
-    DEFUNCT = 0x2B
-    DEPARTED = 0x2C
-    DECEASED = 0x2D
-    DECEDENT = 0x2E
-    MACABRE = 0x2F
-    REAPER = 0x30
-    GUARD = 0x31
-    SENTRY = 0x32
-    FREE_LANCER = 0x33
-    OUTLAW = 0x34
-    JUGGLER = 0x39
-    MAGE = 0x3B
-    REPTITE_PURPLE = 0x3D
-    BLUE_SHIELD = 0x3E
-    YODU_DE = 0x3F
-    INCOGNITO = 0x40
-    PEEPINGDOOM = 0x41
-    BOSS_ORB = 0x42
-    SIDE_KICK = 0x43
-    JINN_BOTTLE = 0x45
-    EVILWEEVIL = 0x46
-    TEMPURITE = 0x47
-    DIABLOS = 0x48
-    GARGOYLE = 0x49
-    GRIMALKIN = 0x4A
-    HENCH_BLUE = 0x4B
-    T_POLE = 0x4C
-    CROAKER = 0x4D
-    AMPHIBITE = 0x4E
-    MAD_BAT = 0x50
-    VAMP = 0x51
-    SCOUTER = 0x52
-    FLYCLOPS = 0x53
-    BUGGER = 0x54
-    DEBUGGER = 0x55
-    DEBUGGEST = 0x56
-    SORCERER = 0x57
-    JINN = 0x58
-    BARGHEST = 0x59
-    CRATER = 0x5B
-    VOLCANO = 0x5C
-    SHITAKE = 0x5D
-    HETAKE = 0x5E
-    RUBBLE = 0x5F
-    SHIST = 0x61
-    PAHOEHOE = 0x62
-    NEREID = 0x63
-    SAVE_POINT_ENEMY = 0x64
-    MOHAVOR = 0x65
-    SHADOW = 0x66
-    BASE = 0x68
-    ACID = 0x69
-    ALKALINE = 0x6A
-    ION = 0x6B
-    ANION = 0x6C
-    THRASHER = 0x6D
-    LASHER = 0x70
-    GOBLIN = 0x71
-    OGRE = 0x72
-    CAVE_BAT = 0x73
-    OGAN = 0x74
-    FLUNKY = 0x75
-    GROUPIE = 0x76
-    WINGED_APE = 0x79
-    CAVE_APE = 0x7A
-    MEGASAUR = 0x7B
-    OMNICRONE = 0x7C
-    BEAST = 0x7D
-    TURRET = 0x80
-    LIZARDACTYL = 0x81
-    NU_2 = 0x82
-    AVIAN_REX = 0x83
-    BLOB = 0x84
-    ALIEN = 0x85
-    RAT = 0x86
-    GREMLIN = 0x87
-    RUNNER = 0x88
-    PROTO_2 = 0x89
-    PROTO_3 = 0x8A
-    PROTO_4 = 0x8B
-    BUG = 0x8C
-    BEETLE = 0x8D
-    GOON = 0x8E
-    RAIN_FROG = 0x91
-    GATO = 0x92
-    GRINDER = 0x94
-    SYNCHRITE = 0x96
-    MUTANT = 0xA3
-    METAL_MUTE = 0xA4
-    GIGASAUR = 0xAA
-    LEAPER = 0xAB
-    FOSSIL_APE = 0xAC
-    DECEDENT_II = 0xAE
-    OCTORIDER = 0xAF
-    CYBOT = 0xC1
-    TUBSTER = 0xC8
-    RED_SCOUT = 0xD5
-    BLUE_SCOUT = 0xD6
-    LASER_GUARD = 0xD9
-    HEXAPOD = 0xEE
-    ROLY_BOMBER = 0xF2
-    BASHER = 0xF5
+    @classmethod
+    def get_mob_ids(cls) -> StrIntEnum:
+        mob_ids = [
+        cls.NU,
+        cls.REPTITE_GREEN,
+        cls.TERRASAUR,
+        cls.KILWALA,
+        cls.HENCH_PURPLE,
+        cls.OMICRONE,
+        cls.MARTELLO,
+        cls.BELLBIRD,
+        cls.PANEL,
+        cls.BLUE_IMP,
+        cls.GREEN_IMP,
+        cls.STONE_IMP,
+        cls.ROLY,
+        cls.POLY,
+        cls.ROLYPOLY,
+        cls.ROLY_RIDER,
+        cls.BLUE_EAGLET,
+        cls.GOLD_EAGLET,
+        cls.RED_EAGLET,
+        cls.AVIAN_CHAOS,
+        cls.IMP_ACE,
+        cls.BANTAM_IMP,
+        cls.GNASHER,
+        cls.GNAWER,
+        cls.NAGA_ETTE,
+        cls.RUMINATOR,
+        cls.OCTOPOD,
+        cls.OCTOBLUSH,
+        cls.OCTOBINO,
+        cls.FLY_TRAP,
+        cls.MEAT_EATER,
+        cls.MAN_EATER,
+        cls.KRAKKER,
+        cls.EGDER,
+        cls.DEFUNCT,
+        cls.DEPARTED,
+        cls.DECEASED,
+        cls.DECEDENT,
+        cls.MACABRE,
+        cls.REAPER,
+        cls.GUARD,
+        cls.SENTRY,
+        cls.FREE_LANCER,
+        cls.OUTLAW,
+        cls.JUGGLER,
+        cls.MAGE,
+        cls.REPTITE_PURPLE,
+        cls.BLUE_SHIELD,
+        cls.YODU_DE,
+        cls.INCOGNITO,
+        cls.PEEPINGDOOM,
+        cls.BOSS_ORB,
+        cls.SIDE_KICK,
+        cls.JINN_BOTTLE,
+        cls.EVILWEEVIL,
+        cls.TEMPURITE,
+        cls.DIABLOS,
+        cls.GARGOYLE,
+        cls.GRIMALKIN,
+        cls.HENCH_BLUE,
+        cls.T_POLE,
+        cls.CROAKER,
+        cls.AMPHIBITE,
+        cls.MAD_BAT,
+        cls.VAMP,
+        cls.SCOUTER,
+        cls.FLYCLOPS,
+        cls.BUGGER,
+        cls.DEBUGGER,
+        cls.DEBUGGEST,
+        cls.SORCERER,
+        cls.JINN,
+        cls.BARGHEST,
+        cls.CRATER,
+        cls.VOLCANO,
+        cls.SHITAKE,
+        cls.HETAKE,
+        cls.RUBBLE,
+        cls.SHIST,
+        cls.PAHOEHOE,
+        cls.NEREID,
+        cls.SAVE_POINT_ENEMY,
+        cls.MOHAVOR,
+        cls.SHADOW,
+        cls.BASE,
+        cls.ACID,
+        cls.ALKALINE,
+        cls.ION,
+        cls.ANION,
+        cls.THRASHER,
+        cls.LASHER,
+        cls.GOBLIN,
+        cls.OGRE,
+        cls.CAVE_BAT,
+        cls.OGAN,
+        cls.FLUNKY,
+        cls.GROUPIE,
+        cls.WINGED_APE,
+        cls.CAVE_APE,
+        cls.MEGASAUR,
+        cls.OMNICRONE,
+        cls.BEAST,
+        cls.TURRET,
+        cls.LIZARDACTYL,
+        cls.NU_2,
+        cls.AVIAN_REX,
+        cls.BLOB,
+        cls.ALIEN,
+        cls.RAT,
+        cls.GREMLIN,
+        cls.RUNNER,
+        cls.PROTO_2,
+        cls.PROTO_3,
+        cls.PROTO_4,
+        cls.BUG,
+        cls.BEETLE,
+        cls.GOON,
+        cls.RAIN_FROG,
+        cls.GATO,
+        cls.GRINDER,
+        cls.SYNCHRITE,
+        cls.MUTANT,
+        cls.METAL_MUTE,
+        cls.GIGASAUR,
+        cls.LEAPER,
+        cls.FOSSIL_APE,
+        cls.DECEDENT_II,
+        cls.OCTORIDER,
+        cls.CYBOT,
+        cls.TUBSTER,
+        cls.RED_SCOUT,
+        cls.BLUE_SCOUT,
+        cls.LASER_GUARD,
+        cls.HEXAPOD,
+        cls.ROLY_BOMBER,
+        cls.BASHER]
+
+        MobID = StrIntEnum('MobID',{e.name:e.value for e in mob_ids})
+        return MobID
 
 class ShopID(StrIntEnum):
 
