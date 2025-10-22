@@ -4,6 +4,7 @@ The Chrono Trigger: Jets of Time Randomizer
 from __future__ import annotations
 
 import random
+import re
 import pickle
 import sys
 import json
@@ -368,6 +369,22 @@ class Randomizer:
             new_ctstr.compress()
             script.strings[ind] = new_ctstr
             script.modified_strings = True
+
+    @classmethod
+    def __set_alfador_winner(
+            cls, ct_rom: CTRom,
+            alfador_name: str
+            ):
+        script = ct_rom.script_manager.get_script(ctenums.LocID.ZEAL_PALACE_SCHALAS_BEDROOM)
+        for ind, ctstr in enumerate(script.strings):
+            pystr = ctstrings.CTString.ct_bytes_to_ascii(ctstr)
+            if re.search(r'Alfador only likes me', pystr) is not None:
+                pystr = re.sub(r'only likes me', 'only likes ' + alfador_name, pystr)
+                new_ctstr = ctstrings.CTString.from_str(pystr)
+                new_ctstr.compress()
+                script.strings[ind] = new_ctstr
+                script.modified_strings = True
+
 
     @classmethod
     def __clean_lw_loadscreen(cls, ct_rom: CTRom):
@@ -1240,7 +1257,7 @@ class Randomizer:
         self.__apply_cosmetic_patches(self.out_rom, self.settings)
         self.__set_bike_champions(
             self.out_rom,
-            'Xelpher', 'I\'m All N', 'Korenth'
+            'I\'m All N', 'Nate', 'lordbatsy'
         )
         self.__set_fair_racers(
             self.out_rom,
@@ -1248,6 +1265,10 @@ class Randomizer:
             steel_runner_name='Korenth',
             green_ambler_name='I\'m All N',
             gi_jogger_name='AzureCale',
+        )
+        self.__set_alfador_winner(
+            self.out_rom,
+            alfador_name='N',
         )
 
         # Rewrite any scripts changed by post-randomization
