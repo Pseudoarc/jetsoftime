@@ -631,6 +631,18 @@ class Randomizer:
             ctenums.LocID.NORTHERN_RUINS_BACK_ROOM
         )
 
+    def __fix_giants_claw_switch_softlock(self, script_manager: ctevent.ScriptManager):
+        """
+        Fix rare error when moving after pressing the trap door switch.
+          - Reset exploremode when the switch is hit
+        """
+        script = script_manager.get_script(ctenums.LocID.ANCIENT_TYRANO_LAIR)
+
+        pos = script.get_function_start(0xC, ctevent.FunctionID.ACTIVATE)
+        script.insert_commands(
+            ctevent.EC.set_explore_mode(False).to_bytearray(), pos
+        )
+
     def __update_trading_post_string(self, ct_rom: CTRom,
                                      config: cfg.RandoConfig):
         script_man = ct_rom.script_manager
@@ -1207,6 +1219,9 @@ class Randomizer:
 
         # One softlock caused by (presumably) race condition on touch triggers
         self.__try_manoria_softlock_fix()
+
+        # One softlock caused by free running during a forced transition
+        self.__fix_giants_claw_switch_softlock(script_manager)
 
         # Bromide not obtainable after Yakra fix
         self.__try_bromide_fix()
