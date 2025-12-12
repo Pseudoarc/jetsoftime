@@ -859,6 +859,10 @@ class EventCommand:
         return EventCommand.generic_one_arg(0x87, speed)
 
     @staticmethod
+    def check_run_button(bytes_jump: int = 0) -> EventCommand:
+        return EventCommand.generic_command(0x30, bytes_jump)
+
+    @staticmethod
     def pause(duration_secs: float):
         if duration_secs == 0.25:
             return EventCommand.generic_zero_arg(0xB9)

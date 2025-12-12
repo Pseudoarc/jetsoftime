@@ -8,6 +8,7 @@ from ctrom import CTRom
 # import randoconfig as cfg
 
 import ctevent
+from ctevent import EF, EC, FunctionID as FID
 import ctstrings
 from maps import locationtypes
 import randosettings as rset
@@ -155,3 +156,43 @@ def set_auto_run(ct_rom: CTRom):
             raise ValueError(f'Did not find a jump at {addr:06X}')
 
         rom[addr] = 0xD0  # BNE instead of the 0xF0 BEQ
+
+
+def fix_auto_run_scripts(script_manager: ctevent.ScriptManager):
+    """
+    Fix scripts that check for running.
+    - Proto Dome encounter
+    - Geno Dome switch
+    """
+
+    script = script_manager.get_script(ctenums.LocID.PROTO_DOME)
+    pos = script.find_exact_command(
+        EC.check_run_button(), script.get_function_start(0x13, FID.STARTUP)
+    )
+    block = script.get_jump_block(pos, False)
+    new_block = (
+        EF().add_if_else(
+            EC.check_run_button(),
+            EF(),
+            block
+        )
+    )
+    script.insert_commands(new_block.get_bytearray(), pos)
+    pos += len(new_block)
+    script.delete_jump_block(pos)
+
+    script = script_manager.get_script(ctenums.LocID.GENO_DOME_MAINFRAME)
+    pos = script.find_exact_command(
+        EC.check_run_button(), script.get_function_start(0x9, FID.STARTUP)
+    )
+    block = script.get_jump_block(pos, False)
+    new_block = (
+        EF().add_if_else(
+            EC.check_run_button(),
+            EF(),
+            block
+        )
+    )
+    script.insert_commands(new_block.get_bytearray(), pos)
+    pos += len(new_block)
+    script.delete_jump_block(pos)

@@ -1254,7 +1254,7 @@ class Randomizer:
         self.hash_string_bytes = seedhash.write_hash_string(self.out_rom)
 
         # Apply post-randomization changes
-        self.__apply_cosmetic_patches(self.out_rom, self.settings)
+        self.__apply_cosmetic_patches(self.out_rom, self.settings, script_manager)
         self.__set_bike_champions(
             self.out_rom,
             'I\'m All N', 'Nate', 'lordbatsy'
@@ -1940,7 +1940,8 @@ class Randomizer:
 
     @classmethod
     def __apply_cosmetic_patches(cls, ctrom: CTRom,
-                                 settings: rset.Settings):
+                                 settings: rset.Settings,
+                                 script_manager: ctevent.ScriptManager):
         cos_flags = settings.cosmetic_flags
 
         if rset.CosmeticFlags.QUIET_MODE in cos_flags:
@@ -1961,6 +1962,7 @@ class Randomizer:
 
         if rset.CosmeticFlags.AUTORUN in cos_flags:
             cosmetichacks.set_auto_run(ctrom)
+            cosmetichacks.fix_auto_run_scripts(script_manager)
 
         settings.ctoptions.write_to_ctrom(ctrom)
 
