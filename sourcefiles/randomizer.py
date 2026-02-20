@@ -2085,6 +2085,10 @@ class Randomizer:
                     ct_rom.rom_data.getvalue()
                 )
 
+            # Update Elem Resistances
+            if rset.GameFlags.ENEMY_ELEM_RES_RANDO in settings.gameflags:
+                elementrando.update_enemy_resistances(config)
+
             # Why is Dalton worth so few TP?
             config.enemy_dict[ctenums.EnemyID.DALTON_PLUS].tp = 50
 

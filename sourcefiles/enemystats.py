@@ -59,6 +59,11 @@ class EnemySpriteData:
 
         return cls(data)
 
+    @classmethod
+    def from_ctrom(cls, ct_rom: ctrom.CTRom, enemy_id: ctenums.EnemyID):
+        '''Read enemy stats from a CTRom.'''
+        return cls.from_rom(ct_rom.rom_data.getbuffer(), enemy_id)
+
     def write_to_rom(self, rom: WritableBytes, enemy_id: int):
         '''Write sprite data to a rom.'''
         sprite_st = 0x24F600 + 10*enemy_id
