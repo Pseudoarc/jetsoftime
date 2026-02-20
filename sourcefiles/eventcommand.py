@@ -447,6 +447,10 @@ class EventCommand:
     @staticmethod
     def add_gold(gold_amt: int) -> EventCommand:
         return EventCommand.generic_command(0xCD, gold_amt)
+    
+    @staticmethod
+    def sub_gold(gold_amt: int) -> EventCommand:
+        return EventCommand.generic_command(0xCE, gold_amt)
 
     @staticmethod
     def add_item(item_id: int) -> EventCommand:
@@ -840,6 +844,10 @@ class EventCommand:
     @staticmethod
     def if_result_equals(result_val: int, jump_bytes) -> EventCommand:
         return EventCommand.generic_command(0x1A, result_val, jump_bytes)
+
+    @staticmethod
+    def if_gold_greater_equals(gold_value: int, jump_bytes) -> EventCommand:
+        return EventCommand.generic_command(0xCC, gold_value, jump_bytes)
 
     # TODO: merge these two textbox commands
     @staticmethod

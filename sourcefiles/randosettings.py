@@ -117,6 +117,7 @@ class GameFlags(SerializableFlag):
     GEAR_RANDO = auto()
     STARTERS_SUFFICIENT = auto()
     EPOCH_FAIL = auto()
+    SNAIL_PRICE_RANDO = auto()
     # Logic Tweak flags from VanillaRando mode
     UNLOCKED_SKYGATES = auto()
     ADD_SUNKEEP_SPOT = auto()

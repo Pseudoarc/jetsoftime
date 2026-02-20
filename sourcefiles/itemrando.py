@@ -10,6 +10,10 @@ from common.distribution import Distribution as Dist
 import itemdata
 import ctenums
 import ctstrings
+from ctevent import FunctionID as FID 
+from eventcommand import EventCommand as EC
+from eventfunction import EventFunction as EF
+import ctrom
 
 from treasures import treasuredata
 
@@ -54,6 +58,42 @@ def write_item_prices_to_config(settings: rset.Settings,
             price = 0
 
         config.item_db[item].price = price
+
+
+def update_snail_stop_price(ct_rom: ctrom.CTRom,
+                            config: cfg.RandoConfig):
+    # Modify Snail Stop Item Price
+    OID = 0x09
+
+    script = ct_rom.script_manager.get_script(ctenums.LocID.SNAIL_STOP)
+    pos = script.get_function_start(OID, FID.ACTIVATE)
+
+    # Price range 
+    #   - Lower: 7500 (which is about %75 original)
+    #   - Upper: 17500 (which is about %175 original)
+    # TODO:  Consult with JoT community on upper limit
+    price = random.randrange(7500, 17501, 100)# Round to nearest 100
+
+    # Update Text in Decision Box
+    pos, _ = script.find_command([0xC0], pos)
+    str_id = script.data[pos+1]
+    script.strings[str_id] = ctstrings.CTString.from_str(
+        rf"I might let some go for, say, {price}G.{{line break}}"
+          "How about it?{line break}"
+          "    Yes.{line break}"
+          "    No.{null}"
+    )
+
+    # Updated Gold Check
+    _ , cmd = script.find_command_opt([0xCC], pos) # Get command for jump byte.  Needed if player does not have enough gold
+    pos = script.delete_command_from_function([0xCC], OID, FID.ACTIVATE,pos)
+    script.insert_commands(EF().add( EC.if_gold_greater_equals(price,cmd.args[-1])).get_bytearray(), pos)
+
+    # Updated Price Paid
+    pos = script.delete_command_from_function([0xCE], OID, FID.ACTIVATE,pos)
+    script.insert_commands(EF().add( EC.sub_gold(price)).get_bytearray(), pos)
+
+    config.item_db[ctenums.ItemID.JERKY].price = price
 
 
 # TODO: Separate settings check from the randomization itself.

@@ -2254,6 +2254,19 @@ class RandoGUI:
             'Shuffle the 4 elements among characters and Robo techs.'
         )
 
+        checkbox = tk.Checkbutton(
+            frame,
+            text='Snail Stop Price Randomization',
+            variable=self.flag_dict[GameFlags.SNAIL_PRICE_RANDO]
+        )
+        checkbox.pack(anchor=tk.W)
+
+        CreateToolTip(
+            checkbox,
+            'Randomize the price of Snail Stop item.'
+            'Price can be within the range of (7500, 17500) G' # TODO: Update when price range is finalized
+        )
+
         plus_ki_flags = [
             GameFlags.RESTORE_JOHNNY_RACE, GameFlags.RESTORE_TOOLS
         ]
