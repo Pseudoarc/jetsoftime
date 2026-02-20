@@ -1734,8 +1734,9 @@ class ChronosanityIceAgeGameConfig(ChronosanityGameConfig):
     def initLocations(self):
         ChronosanityGameConfig.initLocations(self)
 
-        # For Chronosanity, just remove the Woe group.
+        # For Chronosanity, just remove the Woe group and Magic Cave
         self.locationGroups.remove(self.getLocationGroup('Darkages'))
+        self.locationGroups.remove(self.getLocationGroup('Magic Cave'))
 
 
 # Note: Accessing MtWoe is the same as accessing EoT in current logic.
