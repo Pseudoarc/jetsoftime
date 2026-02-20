@@ -5,6 +5,10 @@ from asm import instructions as inst, assemble
 import byteops
 import ctrom
 import freespace
+from ctenums import LocID, ItemID
+from eventcommand import EventCommand as EC
+from eventfunction import EventFunction as EF
+from ctevent import FunctionID as FID 
 
 
 def apply_mauron_enemy_tech_patch(
@@ -358,6 +362,124 @@ def apply_misc_patches(ct_rom: ctrom.CTRom):
     ct_rom.rom_data.seek(0x02E1ED)
     ct_rom.rom_data.write(b'\xEA\xEA')  # Overwrites ORA $71
 
+
+def patch_tabs(ct_rom: ctrom.CTRom):
+    """
+    Replace the add_item command with an add item from memory so that it can be randomized later on
+    Update text to be consistent with other tab items
+    """
+
+    """
+    Algorithm for normalizing tabs was originally written by Psuedoarc as a part of ctrando project.
+    The original source code can be found here:
+    https://github.com/Pseudoarc/ctrando/blob/main/src/ctrando/base/openworldutils.py#L862
+    SHA1:9c97db1246094f8910cb6d9c84dfa75539
+    The ctrando project, and this algorithm within it, are MIT licensed.
+    Credit to Psuedoarc for the original implementation
+    Thanks for allowing its use in JoT 
+    """
+
+    # Tabs which don't follow typical command convention, but share the same convention
+    location_tab_id = [
+        (LocID.SUN_KEEP_600,0x0A), # TID.SUN_KEEP_600_POWER_TAB
+        (LocID.GENO_DOME_MAINFRAME,0x26), # TID.GENO_DOME_ATROPOS_MAGIC_TAB
+        (LocID.GENO_DOME_LONG_CORRIDOR,0x08), # TID.GENO_DOME_CORRIDOR_POWER_TAB
+        (LocID.GENO_DOME_LABS,0x30), # TID.GENO_DOME_LABS_MAGIC_TAB
+        (LocID.LAST_VILLAGE_SHOP,0x0A) # TID.LAST_VILLAGE_NU_SHOP_MAGIC_TAB
+    ]
+
+    for location, object_id in location_tab_id:
+        script = ct_rom.script_manager.get_script(location)
+        pos = script.get_function_start(object_id, FID.ACTIVATE)
+        
+        # Delete existing text
+        text_pos, _ = script.find_command([0xBB], pos)
+        script.delete_commands(text_pos, 1)
+
+        # Find existing tab
+        item_pos, _ = script.find_command([0xCA], pos)
+        item_id = script.data[item_pos + 1]
+
+        # Remove possible extra set item mem command
+        set_pos = script.find_exact_command_opt(
+            EC.assign_val_to_mem(item_id, 0x7F0200, 1), pos, text_pos
+        )
+        if set_pos is not None:
+            script.delete_commands(set_pos, 1)
+            if set_pos < item_pos:
+                item_pos -= len(EC.assign_val_to_mem(item_id, 0x7F0200, 1), pos, text_pos)
+        script.delete_commands(item_pos, 1)
+
+        """
+        Create new block for tab, song, and text commands
+        """
+
+        # Add Tab
+        new_block = (
+            EF()
+            .add(EC.assign_val_to_mem(item_id, 0x7F0200, 1))
+            .add(EC.add_item_memory(0x7F0200))
+        )
+
+        # Add song
+        song_pos, song_cmd = script.find_command_opt([0xEC], pos, text_pos)
+        new_block.add(song_cmd)
+        ins_pos = song_pos
+
+        # Add text
+        item_str_id = script.add_py_string("{line break}          Found 1 {item}!{null}")
+        new_block.add( EC.auto_text_box(item_str_id))
+        
+        script.insert_commands(new_block.get_bytearray(), ins_pos)
+        ins_pos += len(new_block)
+        script.delete_commands(ins_pos, 1)
+
+
+    """
+    Algorithm for normalizing the Enhasa tabs was originally written by Psuedoarc as a part of ctrando project.
+    The original source code can be found here:
+    https://github.com/Pseudoarc/ctrando/blob/main/src/ctrando/base/openworld/enhasabalthasarstudy.py#L23
+    SHA1:9c97db1246094f8910cb6d9c84dfa75539
+    The ctrando project, and this algorithm within it, are MIT licensed.
+    Credit to Psuedoarc for the original implementation
+    Thanks for allowing its use in JoT 
+    """
+
+    # Enhasa Nu battle tabs require special handling
+    # (LocID.ENHASA_NU_ROOM,0x08), # TID.ENHASA_NU_BATTLE_TABS
+
+    #
+    script = ct_rom.script_manager.get_script(LocID.ENHASA_NU_ROOM)
+    item_str_id = script.add_py_string("{line break}          Found 1 {item}!{null}")
+
+    # Get baseline magic tab location, update the commands as well as text
+    pos = script.find_exact_command(
+        EC.add_item(ItemID.MAGIC_TAB),
+        script.get_function_start(0x08, FID.ACTIVATE),
+    )
+    script.delete_commands(pos, 2)
+
+    pos, _ = script.find_command([0xBB], pos)
+    script.data[pos + 1] = item_str_id
+
+    script.insert_commands(
+        EF()
+        .add(EC.assign_val_to_mem(ItemID.MAGIC_TAB, 0x7F0200, 1))
+        .add(EC.add_item_memory(0x7F0200))
+        .get_bytearray(),
+        pos,
+    )
+
+    # Get baseline speed tab location, update the commands as well as text
+    pos = script.find_exact_command(EC.generic_command(0xEE), pos)
+    script.insert_commands(
+        EF()
+        .add(EC.assign_val_to_mem(ItemID.SPEED_TAB, 0x7F0200, 1))
+        .add(EC.add_item_memory(0x7F0200))
+        .add(EC.auto_text_box(item_str_id))
+        .get_bytearray(),
+        pos,
+    )
 
 def apply_jets_patches(ct_rom: ctrom.CTRom):
     '''

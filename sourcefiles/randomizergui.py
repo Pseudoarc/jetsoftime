@@ -131,6 +131,7 @@ class RandoGUI:
 
         self.tab_rando_scheme = tk.StringVar()
         self.tab_success_chance = tk.DoubleVar()
+        self.tab_rando_flags = tk.StringVar()
 
         # RC stuff
         # By default, rc puts no restrictions on assignment
@@ -423,6 +424,18 @@ class RandoGUI:
                 speed_min=self.speed_tab_min.get(),
                 speed_max=self.speed_tab_max.get()
             )
+        
+        # Tab Rando Flags
+        if self.tab_rando_flags == 'Tab Rando':
+            self.settings.gameflags |= GameFlags.TAB_RANDO
+            self.settings.gameflags &= ~GameFlags.TAB_SHUFFLE
+        elif self.tab_rando_flags == 'Tab Shuffle':
+            self.settings.gameflags |= GameFlags.TAB_SHUFFLE
+            self.settings.gameflags &= ~GameFlags.TAB_RANDO
+        else: # Normal
+            self.settings.gameflags &= ~GameFlags.TAB_SHUFFLE
+            self.settings.gameflags &= ~GameFlags.TAB_RANDO
+
 
         # RC (dup duals already taken, just char choices)
         for i in range(7):
@@ -551,6 +564,13 @@ class RandoGUI:
         )
 
         self.tab_success_chance.set(self.settings.tab_settings.binom_success)
+
+        if GameFlags.TAB_RANDO in self.settings.gameflags:
+            self.tab_rando_flags.set('Tab Rando')
+        elif GameFlags.TAB_SHUFFLE in self.settings.gameflags:
+            self.tab_rando_flags.set('Tab Shuffle')
+        else:
+            self.tab_rando_flags.set('Normal')
 
         # RC char choices
         for i in range(7):
@@ -1820,6 +1840,31 @@ class RandoGUI:
         self.tab_prob_scale.grid(row=1, column=1, columnspan=3)
 
         frame.pack()
+
+       # Tab Randomization
+
+        frame = tk.Frame(page)
+
+
+        tab_rando_flags = ['Normal', 'Tab Rando', 'Tab Shuffle']
+        label = tk.Label(frame, text="Tab Randomizer Flags:")
+        label.pack(side='top', anchor=tk.W)
+
+        self.tab_rando_flag_dropdown = tk.OptionMenu(
+            frame,
+            self.tab_rando_flags,
+            *tab_rando_flags
+        )
+
+        CreateToolTip(
+            self.tab_rando_flag_dropdown,
+            'Normal:  Default JoT Settings\n'
+            'Tab Rando:  Randomizes tab type at each location\n'
+            'Tab Shuffle:  Shuffles existing tabs within an era between locations\n'
+        )
+        self.tab_rando_flag_dropdown.pack(anchor=tk.W)
+
+        frame.pack(anchor=tk.W)
 
         return page
 
