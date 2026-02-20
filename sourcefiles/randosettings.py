@@ -102,6 +102,7 @@ class GameFlags(SerializableFlag):
     ROCKSANITY = auto()
     TAB_TREASURES = auto()  # Maybe needs to be part of treasure page?
     BOSS_RANDO = auto()
+    ENEMY_TYPE_RANDO = auto()
     CHAR_RANDO = auto()
     DUPLICATE_CHARS = auto()
     DUPLICATE_TECHS = auto()
