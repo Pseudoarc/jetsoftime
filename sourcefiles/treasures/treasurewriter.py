@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import random as rand
 
+import ctrom
 import ctenums
 import logictypes
 from treasures import treasuredata as td
+from treasures import treasuretypes as tt
 import randoconfig as cfg
 import randosettings as rset
 import vanillarando.vrtreasure as vrtreasure
@@ -137,15 +139,21 @@ def write_treasures_to_config(settings: rset.Settings,
 
     assign = config.treasure_assign_dict
 
-    treasure_tier_dict = get_treasure_tier_dict(settings)
+    if rset.GameFlags.TREASURE_SHUFFLE in settings.gameflags:
+        # Assign awards from shuffled treasure dictionary
+        shuffled_treasure_dict = tt.get_shuffled_treasure_dict()
+        for treasure, reward in shuffled_treasure_dict.items():
+            assign[treasure].reward = reward
 
-    # Do standard treasure chests
-    for tier in td.TreasureLocTier:
-        treasures = treasure_tier_dict[tier]
-        dist = td.get_treasure_distribution(settings, tier)
+        treasure_tier_dict = get_treasure_tier_dict(settings)
+    else:
+        # Do standard treasure chests
+        for tier in td.TreasureLocTier:
+            treasures = treasure_tier_dict[tier]
+            dist = td.get_treasure_distribution(settings, tier)
 
-        for treasure in treasures:
-            assign[treasure].reward = dist.get_random_item()
+            for treasure in treasures:
+                assign[treasure].reward = dist.get_random_item()
 
     # Now, put treasures in key item spots.  These may get overwritten by
     # the logic.
@@ -210,8 +218,15 @@ def write_treasures_to_config(settings: rset.Settings,
         assign[TID.KAJAR_ROCK].reward = rand.choice(awesome_gear)
         assign[TID.BLACK_OMEN_TERRA_ROCK].reward = rand.choice(awesome_gear)
     else:
-        rock_tids = [TID.DENADORO_ROCK, TID.GIANTS_CLAW_ROCK,
-                     TID.LARUBA_ROCK, TID.KAJAR_ROCK, TID.BLACK_OMEN_TERRA_ROCK]
+
+
+        if rset.GameFlags.TREASURE_SHUFFLE in settings.gameflags:
+            # Find chest place holders for rock assignments
+            rock_tids = [tid for tid,reward in shuffled_treasure_dict.items() if reward == ItemID.NONE]
+            rock_tids+= [TID.DENADORO_ROCK,TID.LARUBA_ROCK, TID.KAJAR_ROCK]
+        else:
+            rock_tids = [TID.DENADORO_ROCK, TID.GIANTS_CLAW_ROCK,
+                         TID.LARUBA_ROCK, TID.KAJAR_ROCK, TID.BLACK_OMEN_TERRA_ROCK]
 
         rocks = [ItemID.GOLD_ROCK, ItemID.BLUE_ROCK,
                  ItemID.SILVERROCK, ItemID.BLACK_ROCK, ItemID.WHITE_ROCK]
@@ -220,6 +235,12 @@ def write_treasures_to_config(settings: rset.Settings,
         for ind, tid in enumerate(rock_tids):
             assign[tid].reward = rocks[ind]
 
+    # There were two place holders put in for rocks.  If those were never populated, add high gear treasure there
+    if rset.GameFlags.TREASURE_SHUFFLE in settings.gameflags:
+        for tid, reward in shuffled_treasure_dict.items():
+            if reward == ItemID.NONE and assign[tid].reward == ItemID.NONE:
+                assign[tid].reward = rand.choice(high_gear)
+        
 
 def ptr_to_enum(ptr_list):
     # Turn old-style pointer lists into enum lists

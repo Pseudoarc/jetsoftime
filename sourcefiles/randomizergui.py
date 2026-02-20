@@ -2254,6 +2254,23 @@ class RandoGUI:
             'Shuffle the 4 elements among characters and Robo techs.'
         )
 
+        checkbox = tk.Checkbutton(
+            frame,
+            text='Treasure Shuffle',
+            variable=self.flag_dict[GameFlags.TREASURE_SHUFFLE]
+        )
+        checkbox.pack(anchor=tk.W)
+
+        CreateToolTip(
+            checkbox,
+            'Uses vanilla treasure distribution for treasure rewards '
+            'The baseline distribution, plus any missing items are shuffled '
+            'and distributed to each of the treasure locations '
+            'Some items are excluded, such as key items, '
+            'which get handled by the game mode logic'
+        )
+
+
         plus_ki_flags = [
             GameFlags.RESTORE_JOHNNY_RACE, GameFlags.RESTORE_TOOLS
         ]
