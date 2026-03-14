@@ -65,6 +65,9 @@ FLAG_ENTRY_DICT: Dict[SettingsFlags, FlagEntry] = {
     GF.VISIBLE_HEALTH: FlagEntry(
         "--visible-health", None,
         "the sightscope effect will always be present"),
+    GF.VISIBLE_TECHLIST: FlagEntry(
+        "--visible-techlist", None,
+        "full techlist will be visible in the menu"),
     GF.FAST_TABS: FlagEntry(
         "--fast-tabs", None,
         "picking up a tab will not pause movement for the fanfare"),

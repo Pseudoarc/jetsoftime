@@ -106,6 +106,7 @@ class GameFlags(SerializableFlag):
     DUPLICATE_CHARS = auto()
     DUPLICATE_TECHS = auto()
     VISIBLE_HEALTH = auto()
+    VISIBLE_TECHLIST = auto()
     FAST_TABS = auto()
     BUCKET_LIST = auto()
     MYSTERY = auto()

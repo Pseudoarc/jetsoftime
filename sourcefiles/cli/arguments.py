@@ -135,7 +135,7 @@ class QoLFlagsAG(FlagsArgumentGroup):
     _title = 'QoL Flags'
     _flags = [
         GF.FAST_TABS, GF.VISIBLE_HEALTH, GF.BOSS_SIGHTSCOPE, GF.FREE_MENU_GLITCH,
-        GF.TREASURE_TIER_MARKERS
+        GF.TREASURE_TIER_MARKERS, GF.VISIBLE_TECHLIST
     ]
 
 

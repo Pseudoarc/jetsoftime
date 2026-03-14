@@ -2271,6 +2271,17 @@ class RandoGUI:
             'High Awesome Tier - Save Point'
         )
 
+        checkbox = tk.Checkbutton(
+            frame,
+            text='Visible Techlist',
+            variable=self.flag_dict[GameFlags.VISIBLE_TECHLIST]
+        )
+        checkbox.pack(anchor=tk.W)
+
+        CreateToolTip(
+            checkbox, "The entire techlist will be visible in the menu"
+        )
+
         plus_ki_flags = [
             GameFlags.RESTORE_JOHNNY_RACE, GameFlags.RESTORE_TOOLS
         ]

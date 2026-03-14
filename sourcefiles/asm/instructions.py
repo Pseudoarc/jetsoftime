@@ -510,7 +510,7 @@ class EOR(_NormalInstruction):
     }
 
 
-class OR(_NormalInstruction):
+class ORA(_NormalInstruction):
     """Bitwise OR"""
     _opcode_dict = {
         _AM.DIR_X_16: 0x01,
