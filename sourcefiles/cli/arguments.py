@@ -121,7 +121,7 @@ class BasicFlagsAG(FlagsArgumentGroup):
         GF.HEALING_ITEM_RANDO,
         GF.GEAR_RANDO,
         GF.EPOCH_FAIL,
-        GF.ELEMENT_RANDO
+        GF.ELEMENT_RANDO,
     ]
 
 
@@ -133,7 +133,10 @@ class BossRandoFlagsAG(FlagsArgumentGroup):
 
 class QoLFlagsAG(FlagsArgumentGroup):
     _title = 'QoL Flags'
-    _flags = [GF.FAST_TABS, GF.VISIBLE_HEALTH, GF.BOSS_SIGHTSCOPE, GF.FREE_MENU_GLITCH]
+    _flags = [
+        GF.FAST_TABS, GF.VISIBLE_HEALTH, GF.BOSS_SIGHTSCOPE, GF.FREE_MENU_GLITCH,
+        GF.TREASURE_TIER_MARKERS
+    ]
 
 
 class ExtraFlagsAG(FlagsArgumentGroup):

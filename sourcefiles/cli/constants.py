@@ -178,5 +178,9 @@ FLAG_ENTRY_DICT: Dict[SettingsFlags, FlagEntry] = {
     CF.REDUCE_FLASH: FlagEntry(
         "--reduce-flashes", None,
         "disable most flashing effects"
+    ),
+    GF.TREASURE_TIER_MARKERS: FlagEntry(
+        "--treasure-tier-markers", None,
+        "draw makers to show tier (none, brown, yellow, blue, large blue)"
     )
 }

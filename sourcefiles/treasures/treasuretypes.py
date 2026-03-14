@@ -219,11 +219,11 @@ class ChestTreasure(Treasure):
     '''
     A class which represents a treasure chest.
     '''
+    _chest_rw = ChestRW(0x00A751)
     def __init__(self, chest_index: int,
                  reward: RewardType = ctenums.ItemID.MOP):
         Treasure.__init__(self, reward)
         self.chest_index = chest_index
-        self._chest_rw = ChestRW(0x00A751)
 
     def get_chest_data(self,ct_rom: ctrom.CTRom,
                        data_start: typing.Optional[int] = None):
@@ -1162,8 +1162,10 @@ _treasure_count_dict: dict[ctenums.LocID, int] = {
 }
 
 _chest_id_loc_id_dict: dict[int, ctenums.LocID] = {}
+_loc_id_chest_st_dict: dict[ctenums.LocID, int] = {}
 _temp = 0
 for loc_id in sorted(_treasure_count_dict.keys()):
+    _loc_id_chest_st_dict[loc_id] = _temp
     for _ in range(_treasure_count_dict[loc_id]):
         _chest_id_loc_id_dict[_temp] = loc_id
         _temp += 1
@@ -1174,6 +1176,13 @@ def get_chest_loc_id(chest_id: int) -> ctenums.LocID:
     Returns the location in which a treasure chest lives
     """
     return _chest_id_loc_id_dict[chest_id]
+
+
+def get_loc_id_first_chest_id(loc_id: ctenums.LocID):
+    """
+    Returns the index of the first chest in a location
+    """
+    return _loc_id_chest_st_dict[loc_id]
 
 
 def get_treasure_count_dict() -> dict[ctenums.LocID, int]:

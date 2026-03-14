@@ -216,11 +216,11 @@ _treasure_loc_tier_list[TreasureLocTier.SEALED] = [
 ]
 
 _treasure_tier_marker_dict = {
-    TreasureLocTier.LOW: NpcID.TRASH_CAN_ON_ITS_SIDE,
-    TreasureLocTier.LOW_MID: NpcID.SODA_CAN,
+    TreasureLocTier.LOW: None,
+    TreasureLocTier.LOW_MID: NpcID.RED_STAR,
     TreasureLocTier.MID: NpcID.BLUE_STAR,
-    TreasureLocTier.MID_HIGH: NpcID.GIANT_BLUE_STAR,
-    TreasureLocTier.HIGH_AWESOME: NpcID.SAVE_POINT,
+    TreasureLocTier.MID_HIGH: NpcID.BLUE_GLOWING_LIGHT,
+    TreasureLocTier.HIGH_AWESOME: NpcID.PURPLE_GLOWING_LIGHT,
 }
 
 # This is how other modules should get the TreasureIDs in each tier
