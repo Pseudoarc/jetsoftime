@@ -384,6 +384,16 @@ def show_all_techs_in_menu(ct_rom: CTRom):
 
     asmpatcher.apply_jmp_patch(rt, hook_addr, ct_rom, return_addr, 0x410000)
 
+    # FFF876  AF E0 01 7F    LDA $7F01E0
+    # FFF87A  85 02          STA $02
+    ct_rom.rom_data.seek(0x3FF876)
+    patch: assemble.ASMList = [
+        inst.LDA(0xFF, AM.IMM8),
+        inst.NOP(),
+        inst.NOP()
+    ]
+    patch_b = assemble.assemble(patch)
+    ct_rom.rom_data.write(patch_b)
 
 def write_cumulative_tp_in_menu(
         ct_rom: CTRom
