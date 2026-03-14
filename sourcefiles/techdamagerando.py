@@ -1,8 +1,10 @@
 """Module to randomize tech damage based on assigned mp."""
+import bisect
 import math
 import random
 from typing import Callable, Dict, Union
 
+import ctenums
 import ctstrings
 import cttechtypes as ctt
 import techdb
@@ -57,7 +59,9 @@ def modify_all_single_techs(tech_db: techdb.TechDB):
 
     # Shuffle the MP values
     new_mp_vals = list(orig_mps.values())
-    random.shuffle(new_mp_vals)
+    tech_ids = list(orig_mps.keys())
+    balance_tech_powers(tech_ids, new_mp_vals)
+
     new_mps = dict(zip(orig_mps.keys(), new_mp_vals))
 
     # Scale the effects.  Also scale the duplicate if one exists
@@ -125,3 +129,58 @@ def modify_effect_header(
     scale_function = scale_dict[formula_type]
     scale_factor = scale_function(new_mp)/scale_function(orig_mp)
     effect_header.power = round(scale_factor*effect_header.power)
+
+
+def balance_tech_powers(
+        tech_ids: list[int],
+        tech_mps: list[int],
+):
+    def get_tech_pc(tech: int):
+        return ctenums.CharID((tech - 1) // 8)
+
+    char_tech_count: dict[ctenums.CharID, int] = {
+        char_id: 0 for char_id in ctenums.CharID
+    }
+
+    for tech_id in tech_ids:
+        char_id = get_tech_pc(tech_id)
+        char_tech_count[char_id] += 1
+
+    char_sorted_tech_ids = sorted(tech_ids, key=get_tech_pc)
+    power_sorted_mps = sorted(tech_mps)
+
+    char_assigned_mps: dict[ctenums.CharID, list[int]] = {
+        char_id: [] for char_id in ctenums.CharID
+    }
+
+    top_7 = [power_sorted_mps.pop() for _ in range(7)]
+    random_chars = list(ctenums.CharID)
+    random.shuffle(random_chars)
+    min_val, max_val = top_7[-1], top_7[0]
+
+
+    for char_id in random_chars:
+        top_mp = top_7.pop()
+        char_assigned_mps[char_id].append(top_mp)
+
+        if (top_mp/max_val) <= 0.90 and char_tech_count[char_id] > 1:
+            ind = bisect.bisect_left(power_sorted_mps, 8)
+            ind = min(ind, len(power_sorted_mps)-1)
+            char_assigned_mps[char_id].append(power_sorted_mps.pop(ind))
+
+    random.shuffle(power_sorted_mps)
+    for char_id in random_chars:
+        num_techs_needed = char_tech_count[char_id] - len(char_assigned_mps[char_id])
+        for _ in range(num_techs_needed):
+            char_assigned_mps[char_id].append(power_sorted_mps.pop())
+
+    if power_sorted_mps:
+        raise ValueError
+
+    new_powers = []
+    for char_id, powers in char_assigned_mps.items():
+        random.shuffle(powers)
+        new_powers.extend(powers)
+
+    tech_ids[:] = char_sorted_tech_ids
+    tech_mps[:] = new_powers
