@@ -168,7 +168,7 @@ class ChestTreasureData(ctt.BinaryData):
 
     @property
     def loc_pointer(self) -> typing.Optional[ctenums.LocID]:
-        if self.x_coord == 0 and self.x_coord == 0:
+        if self.x_coord == 0 and self.y_coord == 0:
             loc_id = int.from_bytes(self[2:4], 'little')
             return ctenums.LocID(loc_id)
 
@@ -219,26 +219,34 @@ class ChestTreasure(Treasure):
     '''
     A class which represents a treasure chest.
     '''
+    _chest_rw = ChestRW(0x00A751)
     def __init__(self, chest_index: int,
                  reward: RewardType = ctenums.ItemID.MOP):
         Treasure.__init__(self, reward)
         self.chest_index = chest_index
 
-    def write_to_ctrom(self, ct_rom: ctrom.CTRom,
+    def get_chest_data(self,ct_rom: ctrom.CTRom,
                        data_start: typing.Optional[int] = None):
-
-        chest_rw = ChestRW(0x00A751)
+        
         if data_start is None:
-            data_start = chest_rw.get_data_start(ct_rom)
+            data_start = self._chest_rw.get_data_start(ct_rom)
 
         # Read that current chest on the rom and just update the reward part
         current_data = ChestTreasureData(
-            chest_rw.read_data_from_ctrom(
+            self._chest_rw.read_data_from_ctrom(
                 ct_rom, ChestTreasureData.SIZE, self.chest_index, data_start
             )
         )
+
+        return current_data
+        
+    def write_to_ctrom(self, ct_rom: ctrom.CTRom,
+                       data_start: typing.Optional[int] = None):
+
+        # Read that current chest on the rom and just update the reward part
+        current_data = self.get_chest_data(ct_rom, data_start)
         current_data.reward = self.reward
-        chest_rw.write_data_to_ct_rom(
+        self._chest_rw.write_data_to_ct_rom(
             ct_rom, current_data, self.chest_index, data_start
         )
 
@@ -1154,8 +1162,10 @@ _treasure_count_dict: dict[ctenums.LocID, int] = {
 }
 
 _chest_id_loc_id_dict: dict[int, ctenums.LocID] = {}
+_loc_id_chest_st_dict: dict[ctenums.LocID, int] = {}
 _temp = 0
 for loc_id in sorted(_treasure_count_dict.keys()):
+    _loc_id_chest_st_dict[loc_id] = _temp
     for _ in range(_treasure_count_dict[loc_id]):
         _chest_id_loc_id_dict[_temp] = loc_id
         _temp += 1
@@ -1166,6 +1176,13 @@ def get_chest_loc_id(chest_id: int) -> ctenums.LocID:
     Returns the location in which a treasure chest lives
     """
     return _chest_id_loc_id_dict[chest_id]
+
+
+def get_loc_id_first_chest_id(loc_id: ctenums.LocID):
+    """
+    Returns the index of the first chest in a location
+    """
+    return _loc_id_chest_st_dict[loc_id]
 
 
 def get_treasure_count_dict() -> dict[ctenums.LocID, int]:
