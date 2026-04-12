@@ -145,15 +145,22 @@ def write_treasure_tier_markers(
     treasure_tier_dict = get_treasure_tier_dict(settings)
     treasure_data = tt.get_base_treasure_dict()
 
-    chest_tier_dict: dict[int, td.LTier] = {}
+    chest_tier_dict: dict[int, td.LTier | typing.Literal["rock"]] = {}
     for tier in td.LTier:
-        spots = td.get_treasures_in_tier(tier)
+        spots = treasure_tier_dict.get(tier, [])
         for spot in spots:
             treasure = treasure_data[spot]
             if not isinstance(treasure, tt.ChestTreasure):
                 continue
             chest_tier_dict[treasure.chest_index] = tier
 
+    for rock_chest in (
+        TID.BLACK_OMEN_TERRA_ROCK, TID.GIANTS_CLAW_ROCK
+    ):
+        treasure = treasure_data[rock_chest]
+        if not isinstance(treasure, tt.ChestTreasure):
+            continue
+        chest_tier_dict[treasure.chest_index] = "rock"
 
     for loc_id in range(0, 0x200):
         if loc_id in (0x1C0, 0x1C4, 0x1C5, 0x1C6, 0x1C7):
@@ -183,7 +190,7 @@ def write_treasure_tier_markers(
         if first_box.is_copying_location():
             real_loc_id = first_box.copy_location
             ptr, num_boxes = get_data_st_num_boxes(real_loc_id)
-            first_box_id = tt.get_loc_id_first_chest_id(loc_id)
+            first_box_id = tt.get_loc_id_first_chest_id(real_loc_id)
 
         ct_rom.rom_data.seek(0x350000 + ptr)
 
@@ -193,6 +200,7 @@ def write_treasure_tier_markers(
             marker = marker_dict[tier]
 
             if marker is None:
+                ct_rom.rom_data.seek(4, 1)
                 continue
 
             chest_flag_addr = 0x7F0001 + chest_id // 8
@@ -210,7 +218,7 @@ def write_treasure_tier_markers(
                     EF().add(EC.remove_object(obj_id))
                 )
                 .add(EC.set_object_coordinates_tile(box.x_coord, box.y_coord))
-                # .add(EC.generic_command(0x8E, 0x3B)) # sprite priority
+                .add(EC.generic_command(0x8E, 0x3B)) # sprite priority
                 .add(EC.generic_command(0x84,0)) # Make Ethereal / Immovable
                 .add(EC.return_cmd())
                 .set_label("loop_st")
