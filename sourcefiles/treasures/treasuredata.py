@@ -221,6 +221,7 @@ _treasure_tier_marker_dict = {
     TreasureLocTier.MID: NpcID.BLUE_STAR,
     TreasureLocTier.MID_HIGH: NpcID.BLUE_GLOWING_LIGHT,
     TreasureLocTier.HIGH_AWESOME: NpcID.PURPLE_GLOWING_LIGHT,
+    "rock": NpcID.HERO_MEDAL
 }
 
 # This is how other modules should get the TreasureIDs in each tier
