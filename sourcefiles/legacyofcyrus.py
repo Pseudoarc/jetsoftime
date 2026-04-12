@@ -3,8 +3,8 @@ Provides functions to implement Cthulhu Crisis's Legacy of Cyrus mode.
 '''
 from __future__ import annotations
 import functools
-import random
 
+from common.random import RNGType
 import ctenums
 import ctevent
 import ctrom
@@ -16,7 +16,7 @@ import randoconfig as cfg
 
 
 
-def get_character_assignment() -> dict[ctenums.RecruitID, ctenums.CharID]:
+def get_character_assignment(rng: RNGType) -> dict[ctenums.RecruitID, ctenums.CharID]:
     '''
     Generates an assignment with neither Magus nor Frog in the future.
     '''
@@ -32,7 +32,7 @@ def get_character_assignment() -> dict[ctenums.RecruitID, ctenums.CharID]:
     future_chars = [
         x for x in avail_chars if x not in (CharID.FROG, CharID.MAGUS)
     ]
-    future_char = random.choice(future_chars)
+    future_char = rng.choice(future_chars)
 
     assign_dict[RID.PROTO_DOME] = future_char
 
@@ -40,7 +40,7 @@ def get_character_assignment() -> dict[ctenums.RecruitID, ctenums.CharID]:
     avail_chars.remove(future_char)
     avail_spots.remove(RID.PROTO_DOME)
 
-    random.shuffle(avail_chars)
+    rng.shuffle(avail_chars)
     remaining_assignments = dict(zip(avail_spots, avail_chars))
 
     # Add the remaining assignments to the main dict

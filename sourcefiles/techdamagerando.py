@@ -1,16 +1,18 @@
 """Module to randomize tech damage based on assigned mp."""
 import bisect
 import math
-import random
+
 from typing import Callable, Dict, Union
 
+from common.random import RNGType
 import ctenums
 import ctstrings
 import cttechtypes as ctt
 import techdb
 
 
-def modify_all_single_techs(tech_db: techdb.TechDB):
+def modify_all_single_techs(tech_db: techdb.TechDB,
+                            rng: RNGType):
     """
     Scale every single tech in the tech_db.  Shuffle existing MPs.
     This function relies on vanilla tech names to identify techs that need
@@ -60,7 +62,7 @@ def modify_all_single_techs(tech_db: techdb.TechDB):
     # Shuffle the MP values
     new_mp_vals = list(orig_mps.values())
     tech_ids = list(orig_mps.keys())
-    balance_tech_powers(tech_ids, new_mp_vals)
+    balance_tech_powers(tech_ids, new_mp_vals, rng)
 
     new_mps = dict(zip(orig_mps.keys(), new_mp_vals))
 
@@ -134,6 +136,7 @@ def modify_effect_header(
 def balance_tech_powers(
         tech_ids: list[int],
         tech_mps: list[int],
+        rng: RNGType
 ):
     def get_tech_pc(tech: int):
         return ctenums.CharID((tech - 1) // 8)
@@ -155,7 +158,7 @@ def balance_tech_powers(
 
     top_7 = [power_sorted_mps.pop() for _ in range(7)]
     random_chars = list(ctenums.CharID)
-    random.shuffle(random_chars)
+    rng.shuffle(random_chars)
     min_val, max_val = top_7[-1], top_7[0]
 
 
@@ -168,7 +171,7 @@ def balance_tech_powers(
             ind = min(ind, len(power_sorted_mps)-1)
             char_assigned_mps[char_id].append(power_sorted_mps.pop(ind))
 
-    random.shuffle(power_sorted_mps)
+    rng.shuffle(power_sorted_mps)
     for char_id in random_chars:
         num_techs_needed = char_tech_count[char_id] - len(char_assigned_mps[char_id])
         for _ in range(num_techs_needed):
@@ -179,7 +182,7 @@ def balance_tech_powers(
 
     new_powers = []
     for char_id, powers in char_assigned_mps.items():
-        random.shuffle(powers)
+        rng.shuffle(powers)
         new_powers.extend(powers)
 
     tech_ids[:] = char_sorted_tech_ids

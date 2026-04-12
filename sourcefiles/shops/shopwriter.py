@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import random as rand
 
+from common.random import RNGType
 from ctenums import ItemID, ShopID
 from treasures import treasuredata as td
 
@@ -11,7 +12,8 @@ import randosettings as rset
 
 
 def write_shops_to_config(settings: rset.Settings,
-                          config: cfg.RandoConfig):
+                          config: cfg.RandoConfig,
+                          rng: RNGType):
 
     # Bunch of declarations.  They're here instead of in global scope after
     # the great shelling of November 2021.
@@ -113,7 +115,7 @@ def write_shops_to_config(settings: rset.Settings,
         for shop in shop_types[i]:
             guaranteed = shop_guaranteed[i]
             dist = shop_dists[i]
-            items = get_shop_items(guaranteed, dist)
+            items = get_shop_items(guaranteed, dist, rng)
 
             shop_manager.set_shop_items(shop, items)
 
@@ -146,18 +148,19 @@ def get_melchior_shop_items():
     return item_list
 
 
-def get_shop_items(guaranteed_items: list[ItemID], item_dist):
+def get_shop_items(guaranteed_items: list[ItemID], item_dist,
+                   rng: RNGType):
     shop_items = guaranteed_items[:]
 
     # potentially shop size should be passed in.  Keep the random isolated.
     item_count = rand.randrange(3, 9) - len(shop_items)
 
     for item_index in range(item_count):
-        item = item_dist.get_random_item()
+        item = item_dist.get_random_item(rng)
 
         # Avoid duplicate items.
         while item in shop_items:
-            item = item_dist.get_random_item()
+            item = item_dist.get_random_item(rng)
 
         shop_items.append(item)
 

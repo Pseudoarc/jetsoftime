@@ -1,7 +1,7 @@
 from byteops import get_record
+from common.random import RNGType
 from techdb import TechDB
 import copy
-import random
 
 import ctenums
 import randosettings as rset
@@ -22,7 +22,8 @@ freqs = [[8, 7, 6, 4, 3, 5, 1, 2],  # Crono
 # This needs to be done after char duplicate assignments since balanced tech
 # distribution varies by character.
 def write_tech_order_to_config(settings: rset.Settings,
-                               config: cfg.RandoConfig):
+                               config: cfg.RandoConfig,
+                               rng: RNGType):
 
     global freqs
 
@@ -31,11 +32,11 @@ def write_tech_order_to_config(settings: rset.Settings,
 
     for char_id in range(7):
         if tech_order == rset.TechOrder.FULL_RANDOM:
-            perm = generate_permutation_freq([1 for i in range(8)])
+            perm = generate_permutation_freq([1 for i in range(8)], rng)
         elif tech_order == rset.TechOrder.BALANCED_RANDOM:
             pc_id = ctenums.CharID(char_id)
             assigned_id = pcstats.get_character_assignment(pc_id)
-            perm = generate_permutation_freq(freqs[int(assigned_id)])
+            perm = generate_permutation_freq(freqs[int(assigned_id)], rng)
         else:
             perm = [i for i in range(8)]
 
@@ -49,7 +50,7 @@ def write_tech_order_to_config(settings: rset.Settings,
 # generate a random permutation where each object has a different probability
 # of being drawn.
 # Uniform distribution is [1,1,1,....,1]
-def generate_permutation_freq(rel_freqs):
+def generate_permutation_freq(rel_freqs, rng: RNGType):
 
     perm = [0]*len(rel_freqs)
     for i in range(len(rel_freqs)):
@@ -57,7 +58,7 @@ def generate_permutation_freq(rel_freqs):
 
     for start in range(0, len(rel_freqs)-1):
         N = sum(rel_freqs[start:])
-        x = random.randrange(1, N+1)
+        x = rng.randrange(1, N+1)
 
         for i in range(start, len(rel_freqs)):
             x -= rel_freqs[i]
@@ -69,20 +70,20 @@ def generate_permutation_freq(rel_freqs):
     return perm
 
 
-def randomize_single_techs_uniform(db):
+def randomize_single_techs_uniform(db, rng: RNGType):
 
     freqs = [1]*8
 
     for i in range(7):
-        perm = generate_permutation_freq(freqs)
+        perm = generate_permutation_freq(freqs, rng)
         randomize_pc_techs(db, i, perm)
 
 
-def randomize_single_techs_balanced(db):
+def randomize_single_techs_balanced(db, rng: RNGType):
     global freqs
 
     for i in range(7):
-        perm = generate_permutation_freq(freqs[i])
+        perm = generate_permutation_freq(freqs[i], rng)
         randomize_pc_techs(db, i, perm)
 
 

@@ -3,7 +3,6 @@ Module for modifying a standard JoT rom back into a more vanilla experience.
 '''
 from __future__ import annotations
 
-import random
 from typing import Optional
 
 import bossassign
@@ -14,6 +13,7 @@ import ctrom
 import ctstrings
 import eventcommand
 import itemdata
+from common.random import RNGType
 from maps import locationtypes
 import objectivetypes as obtypes  # giving spot -> battle command
 from treasures import treasuredata, treasuretypes
@@ -24,12 +24,13 @@ from eventcommand import EventCommand as EC, FuncSync as FS, Operation as OP
 from eventfunction import EventFunction as EF
 
 
-def add_sunstone_spot_to_config(config: cfg.RandoConfig):
+def add_sunstone_spot_to_config(config: cfg.RandoConfig,
+                                rng: RNGType):
     '''
     Add a treasure entry for the sunstone pickup in Sun Keep 2300.
     '''
     td = treasuredata
-    assigned_item = random.choice(td.get_item_list(td.ItemTier.HIGH_GEAR))
+    assigned_item = rng.choice(td.get_item_list(td.ItemTier.HIGH_GEAR))
 
     sunstone_spot = treasuretypes.ScriptTreasure(
         ctenums.LocID.SUN_KEEP_2300, 8, 1, assigned_item
@@ -108,12 +109,13 @@ def split_sunstone_quest(ct_rom: ctrom.CTRom):
                            hook_pos)
 
 
-def add_racelog_chest_to_config(config: cfg.RandoConfig):
+def add_racelog_chest_to_config(config: cfg.RandoConfig,
+                                rng: RNGType):
     '''
     Add a treasure in the config for the Race Log chest.
     '''
     td = treasuredata
-    assigned_item = random.choice(td.get_item_list(td.ItemTier.HIGH_GEAR))
+    assigned_item = rng.choice(td.get_item_list(td.ItemTier.HIGH_GEAR))
     config.treasure_assign_dict[ctenums.TreasureID.LAB_32_RACE_LOG]\
           .reward = assigned_item
 
@@ -135,12 +137,13 @@ def restore_johnny_race(ct_rom: ctrom.CTRom):
     ct_rom.script_manager.set_script(script, ctenums.LocID.LAB_32_EAST)
 
 
-def add_check_to_ozzies_fort_in_config(config: cfg.RandoConfig):
+def add_check_to_ozzies_fort_in_config(config: cfg.RandoConfig,
+                                       rng: RNGType):
     '''
     Add an entry in the config for the Ozzie's Fort KI.
     '''
     td = treasuredata
-    assigned_item = random.choice(td.get_item_list(td.ItemTier.HIGH_GEAR))
+    assigned_item = rng.choice(td.get_item_list(td.ItemTier.HIGH_GEAR))
 
     ozzies_fort_check = treasuretypes.ScriptTreasure(
         ctenums.LocID.OZZIES_FORT_THRONE_INCOMPETENCE,
@@ -331,12 +334,13 @@ def add_arris_food_locker_check(ct_rom: ctrom.CTRom):
     script.insert_commands(func.get_bytearray(), hook_loc)
 
 
-def add_arris_food_locker_check_to_config(config: cfg.RandoConfig):
+def add_arris_food_locker_check_to_config(config: cfg.RandoConfig,
+                                          rng: RNGType):
     '''
     Adds a treasure for the dead guy in Arris Dome food locker.
     '''
     td = treasuredata
-    assigned_item = random.choice(td.get_item_list(td.ItemTier.HIGH_GEAR))
+    assigned_item = rng.choice(td.get_item_list(td.ItemTier.HIGH_GEAR))
 
     food_locker_check = treasuretypes.ScriptTreasure(
         ctenums.LocID.ARRIS_DOME_FOOD_LOCKER, 0x8, 0x1, assigned_item, 0
@@ -641,12 +645,13 @@ class BekklerTreasure(treasuretypes.ScriptTreasure):
         script.data[pos+1] = int(self.reward)
 
 
-def add_vanilla_clone_check_to_config(config: cfg.RandoConfig):
+def add_vanilla_clone_check_to_config(config: cfg.RandoConfig,
+                                      rng: RNGType):
     '''
     Add a treasure to the config for checking the clone game.
     '''
     td = treasuredata
-    assigned_item = random.choice(
+    assigned_item = rng.choice(
         td.get_item_list(td.ItemTier.AWESOME_GEAR)
     )
 
@@ -697,12 +702,13 @@ def restore_magus_castle_decedents(config: cfg.RandoConfig):
     )
 
 
-def restore_cyrus_grave_check_to_config(config: cfg.RandoConfig):
+def restore_cyrus_grave_check_to_config(config: cfg.RandoConfig,
+                                        rng: RNGType):
     '''
     Put a TID into the config for Cyrus's Grave.
     '''
     td = treasuredata
-    assigned_item = random.choice(
+    assigned_item = rng.choice(
         td.get_item_list(td.ItemTier.AWESOME_GEAR)
     )
     cyrus_check = treasuretypes.ScriptTreasure(

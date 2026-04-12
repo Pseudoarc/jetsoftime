@@ -12,6 +12,7 @@ import bossrandotypes as bt
 from ctenums import LocID, EnemyID, CharID, Element, StatusEffect,\
     RecruitID
 from ctrom import CTRom
+from common.random import RNGType
 import enemyrewards
 import enemystats
 from eventcommand import EventCommand as EC
@@ -98,7 +99,8 @@ def get_alt_twin_slot(config: cfg.RandoConfig,
 
 
 def update_twin_boss(settings: rset.Settings,
-                     config: cfg.RandoConfig):
+                     config: cfg.RandoConfig,
+                     rng: RNGType):
     '''
     Use the assignment made in config.boss_assign_dict to update the twin
     boss's data (ai, animations, graphics, stats)
@@ -108,7 +110,7 @@ def update_twin_boss(settings: rset.Settings,
         return
 
     twin_type = config.boss_assign_dict[bt.BossSpotID.OCEAN_PALACE_TWIN_GOLEM]
-    set_twin_boss_data_in_config(twin_type, settings, config)
+    set_twin_boss_data_in_config(twin_type, settings, config, rng)
 
 
 # Write the new EnemyID and slots into the Twin Boss data.
@@ -116,7 +118,8 @@ def update_twin_boss(settings: rset.Settings,
 # when doing the rest of the scaling.
 def set_twin_boss_data_in_config(one_spot_boss: bt.BossID,
                                  settings: rset.Settings,
-                                 config: cfg.RandoConfig):
+                                 config: cfg.RandoConfig,
+                                 rng: RNGType):
     # If the base boss is golem, then we don't have to do anything
     if one_spot_boss == bt.BossID.GOLEM:
         return
@@ -170,7 +173,7 @@ def set_twin_boss_data_in_config(one_spot_boss: bt.BossID,
 
     # Special case scaling in ai scripts
     if base_id == EnemyID.RUST_TYRANO:
-        elem = random.choice(list(Element))
+        elem = rng.choice(list(Element))
         set_rust_tyrano_element(EnemyID.TWIN_BOSS, elem,
                                 config)
         set_rust_tyrano_script_mag(EnemyID.TWIN_BOSS, config)
@@ -180,14 +183,15 @@ def set_twin_boss_data_in_config(one_spot_boss: bt.BossID,
 
 def get_random_assignment(
         spots: list[bt.BossSpotID],
-        bosses: list[bt.BossID]
+        bosses: list[bt.BossID],
+        rng: RNGType
         ) -> dict[bt.BossSpotID, bt.BossID]:
 
     if len(spots) > len(bosses):
         err = f"Not enough bosses for spots: {len(spots)} spots > {len(bosses)} bosses"
         raise InsufficientSpotsException(err)
 
-    random.shuffle(bosses)
+    rng.shuffle(bosses)
 
     # Zip only goes through the smaller of the two.
     return dict(zip(spots, bosses))
@@ -245,7 +249,8 @@ def get_legacy_assignment(
 
 
 def write_assignment_to_config(settings: rset.Settings,
-                               config: cfg.RandoConfig):
+                               config: cfg.RandoConfig,
+                               rng: RNGType):
     '''
     Write boss assignment to config.
     '''
@@ -282,7 +287,7 @@ def write_assignment_to_config(settings: rset.Settings,
             num_extra_bosses = len(available_bosses)-len(available_spots)
             unforced_bosses = [boss_id for boss_id in available_bosses if
                                boss_id not in forced_bosses]
-            removed_bosses = random.sample(unforced_bosses, k=num_extra_bosses)
+            removed_bosses = rng.sample(unforced_bosses, k=num_extra_bosses)
             for boss_id in removed_bosses:
                 available_bosses.remove(boss_id)
 
@@ -301,7 +306,7 @@ def write_assignment_to_config(settings: rset.Settings,
             boss_id for boss_id in available_bosses
             if boss_id in all_one_part_bosses
         ]
-        twin_choice = random.choice(available_one_part_bosses)
+        twin_choice = rng.choice(available_one_part_bosses)
         # set_twin_boss_data_in_config(twin_choice, settings, config)
         # default assignment already has twin boss assigned to ocean palace.
         # Just make sure nothing new is done with this spot.
@@ -382,7 +387,8 @@ def make_boss_rando_sprite_fixes(
 
 
 def reassign_charms_drops(settings: rset.Settings,
-                          config: cfg.RandoConfig):
+                          config: cfg.RandoConfig,
+                          rng: RNGType):
     '''
     When bosses get moved around, their rewards are no longer appropriate for
     that part of the game.  This function calls out to enemyrewards to redo
@@ -432,7 +438,8 @@ def reassign_charms_drops(settings: rset.Settings,
         for part_id in part_ids:
             stats = config.enemy_dict[part_id]
             enemyrewards.set_enemy_charm_drop(stats, reward_group,
-                                              settings.item_difficulty)
+                                              settings.item_difficulty,
+                                              rng)
 
 
 def make_weak_obstacle_copies(config: cfg.RandoConfig):
@@ -483,7 +490,8 @@ def make_weak_obstacle_copies(config: cfg.RandoConfig):
 # the bosses.  This is to be differentiated from the boss scaling flag which
 # scales based on the key item assignment.
 def scale_bosses_given_assignment(settings: rset.Settings,
-                                  config: cfg.RandoConfig):
+                                  config: cfg.RandoConfig,
+                                  rng :RNGType):
     '''
     Scales the bosses given the settings and current assignment of the bosses.
 
@@ -492,8 +500,8 @@ def scale_bosses_given_assignment(settings: rset.Settings,
     '''
     make_boss_rando_sprite_fixes(config.boss_assign_dict,
                                  config.enemy_sprite_dict)
-    update_twin_boss(settings, config)
-    reassign_charms_drops(settings, config)
+    update_twin_boss(settings, config, rng)
+    reassign_charms_drops(settings, config, rng)
     make_weak_obstacle_copies(config)
 
     # Store hp, xp, tp, gp data before messing with stats
@@ -845,39 +853,40 @@ def get_black_tyrano_nuke_id(config: cfg.RandoConfig) -> int:
 
 # Magus gets random hp and a random character sprite (ctenums.CharID)
 # Black Tyrano gets random hp and a random element (ctenums.Element)
-def randomize_midbosses(settings: rset.Settings, config: cfg.RandoConfig):
+def randomize_midbosses(settings: rset.Settings, config: cfg.RandoConfig,
+                        rng: RNGType):
 
     if settings.game_mode != rset.GameMode.VANILLA_RANDO:
         # Random hp from 10k to 15k
         magus_stats = config.enemy_dict[EnemyID.MAGUS]
-        magus_stats.hp = random.randrange(10000, 15001, 1000)
+        magus_stats.hp = rng.randrange(10000, 15001, 1000)
 
     if settings.game_mode == rset.GameMode.LEGACY_OF_CYRUS:
         magus_char = config.char_assign_dict[RecruitID.PROTO_DOME].held_char
     else:
-        magus_char = random.choice(list(CharID))
+        magus_char = rng.choice(list(CharID))
 
     set_magus_character(magus_char, config)
 
     if settings.game_mode != rset.GameMode.VANILLA_RANDO:
         config.enemy_dict[EnemyID.BLACKTYRANO].hp = \
-            random.randrange(8000, 13001, 1000)
+            rng.randrange(8000, 13001, 1000)
 
-    tyrano_element = random.choice(list(Element))
+    tyrano_element = rng.choice(list(Element))
     set_black_tyrano_element(tyrano_element, config)
     set_rust_tyrano_element(EnemyID.RUST_TYRANO, tyrano_element, config)
 
     # We're going to jam obstacle randomization here
     SE = StatusEffect
-    rand_num = random.randrange(0, 10, 1)
+    rand_num = rng.randrange(0, 10, 1)
 
     #  if rand_num < 2:
     #      status_effect = rand.choice(1,0x40) #Blind, Poison
     if rand_num < 8:
-        status_effect = random.choice(
+        status_effect = rng.choice(
             [SE.SLEEP, SE.LOCK, SE.SLOW])
     else:
-        status_effect = random.choice([SE.CHAOS, SE.STOP])     # Chaos, Stop
+        status_effect = rng.choice([SE.CHAOS, SE.STOP])     # Chaos, Stop
 
     obstacle = config.enemy_atk_db.get_tech(0x58)
     obstacle.effect.status_effect = status_effect  # type: ignore

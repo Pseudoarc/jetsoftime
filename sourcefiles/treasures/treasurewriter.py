@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import random as rand
+import typing
 
 import ctrom
 import ctenums
 import logictypes
+from common.random import RNGType
 from treasures import treasuredata as td
 from treasures import treasuretypes as tt
 import randoconfig as cfg
@@ -247,7 +249,8 @@ def write_treasure_tier_markers(
 
 
 def write_treasures_to_config(settings: rset.Settings,
-                              config: cfg.RandoConfig):
+                              config: cfg.RandoConfig,
+                              rng: RNGType):
 
     gil = td.get_item_list
     ITier = td.ItemTier
@@ -262,7 +265,7 @@ def write_treasures_to_config(settings: rset.Settings,
         dist = td.get_treasure_distribution(settings, tier)
 
         for treasure in treasures:
-            assign[treasure].reward = dist.get_random_item()
+            assign[treasure].reward = dist.get_random_item(rng)
 
     # Now, put treasures in key item spots.  These may get overwritten by
     # the logic.

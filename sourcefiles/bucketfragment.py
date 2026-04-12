@@ -1,5 +1,6 @@
 import random
 
+from common.random import RNGType
 from ctrom import CTRom
 import ctenums
 import ctevent
@@ -81,6 +82,7 @@ def write_fragments_to_config(
         num_fragments: int,
         settings: rset.Settings,
         config: cfg.RandoConfig,
+        rng: RNGType
         ):
     item_db = config.item_db
 
@@ -160,7 +162,7 @@ def write_fragments_to_config(
     #     print(x.getName())
 
     # print('****')
-    fragment_locs = random.sample(avail_locs, num_fragments)
+    fragment_locs = rng.sample(avail_locs, num_fragments)
 
     for x in fragment_locs:
         # print(f'Putting fragment in {x.getName()}')

@@ -24,6 +24,7 @@ import enemystats
 import itemdata
 import itemrando
 from characters import pcrecruit, ctpcstats
+from common.random import RNGType
 from maps import mapmangler
 from treasures import treasurewriter, treasuretypes
 from shops import shopwriter
@@ -168,14 +169,17 @@ class Randomizer:
         self._config = new_config
         self.has_generated = False
 
-    def set_random_config(self):
+    def set_random_config(self, rng: RNGType | None = None):
         '''
         Use the Randomizer's settings to generate a random cfg.Randoconfig.
         '''
         if self.settings is None:
             raise NoSettingsException
 
-        random.seed(self.settings.seed)
+        if rng is None:
+            rng = random
+
+        rng.seed(self.settings.seed)
 
         if rset.GameFlags.MYSTERY in self.settings.gameflags:
             self.settings = mystery.generate_mystery_settings(self.settings)
@@ -205,16 +209,16 @@ class Randomizer:
         # Character config.  Includes tech randomization and who can equip
         # which items.
         elementrando.write_config(self.settings, self.config, random)
-        charrando.write_config(self.settings, self.config)
+        charrando.write_config(self.settings, self.config, rng)
 
         techrandomizer.write_tech_order_to_config(self.settings,
-                                                  self.config)
+                                                  self.config, rng)
 
         # Tech Damage Rando can add duplicate effect headers for randomized powers.
         # So we have to generate the combo tech descs before randomizing the single tech damage.
         techdescs.update_combo_tech_descs(self.config.tech_db)
         if rset.GameFlags.TECH_DAMAGE_RANDO in self.settings.gameflags:
-            techdamagerando.modify_all_single_techs(self.config.tech_db)
+            techdamagerando.modify_all_single_techs(self.config.tech_db, rng)
         techdescs.update_single_tech_descs(self.config.tech_db)
         techdescs.clean_up_desc_space(self.config.tech_db)
 
@@ -223,21 +227,21 @@ class Randomizer:
         fastmagic.write_config(self.settings, self.config)
 
         # Treasure config.
-        treasurewriter.write_treasures_to_config(self.settings, self.config)
+        treasurewriter.write_treasures_to_config(self.settings, self.config, rng)
 
         # Enemy rewards
-        enemyrewards.write_enemy_rewards_to_config(self.settings, self.config)
+        enemyrewards.write_enemy_rewards_to_config(self.settings, self.config, rng)
 
         # Key item config.  Important that this goes after treasures because
         # otherwise the treasurewriter can overwrite key items placed by
         # Chronosanity
-        logicwriter.commitKeyItems(self.settings, self.config)
+        logicwriter.commitKeyItems(self.settings, self.config, rng)
 
         # Now go write LW extra items if need be
         treasurewriter.add_lw_key_item_gear(self.settings, self.config)
 
         # Shops
-        shopwriter.write_shops_to_config(self.settings, self.config)
+        shopwriter.write_shops_to_config(self.settings, self.config, rng)
 
         # Robo's Ribbon in itemdb
         roboribbon.set_robo_ribbon_in_config(self.config)
@@ -245,15 +249,15 @@ class Randomizer:
         # Item Rando
         # Important this is done after roboribbon or itemrando gets confused
         # over which stat boost is +3 speed
-        itemrando.write_item_prices_to_config(self.settings, self.config)
-        itemrando.randomize_healing(self.settings, self.config)
-        itemrando.randomize_accessories(self.settings, self.config)
+        itemrando.write_item_prices_to_config(self.settings, self.config, rng)
+        itemrando.randomize_healing(self.settings, self.config, rng)
+        itemrando.randomize_accessories(self.settings, self.config, rng)
         # itemrando.randomize_weapon_armor_stats(self.settings, self.config)
-        itemrando.alt_gear_rando(self.settings, self.config)
+        itemrando.alt_gear_rando(self.settings, self.config, rng)
         self.config.item_db.update_all_descriptions()
 
         # Boss Rando
-        bossrando.write_assignment_to_config(self.settings, self.config)
+        bossrando.write_assignment_to_config(self.settings, self.config, rng)
 
         # We need the boss rando assignment to determine which bosses need
         # additional bossscaler scaling.  That is accomplished by the above
@@ -266,10 +270,10 @@ class Randomizer:
         bossscaler.determine_boss_rank(self.settings, self.config)
 
         # Finally, scale based on new location.
-        bossrando.scale_bosses_given_assignment(self.settings, self.config)
+        bossrando.scale_bosses_given_assignment(self.settings, self.config, rng)
 
         # Black Tyrano/Magus boss randomization
-        bossrando.randomize_midbosses(self.settings, self.config)
+        bossrando.randomize_midbosses(self.settings, self.config, rng)
 
         # Tabs
         tabwriter.write_tabs_to_config(self.settings, self.config)

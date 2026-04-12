@@ -1,17 +1,17 @@
-import random
-
 import ctenums
 
 import randoconfig as cfg
 import randosettings as rset
+from common.random import RNGType
 
 
-def randomize_magus(settings: rset.Settings, config:cfg.RandoConfig):
+def randomize_magus(settings: rset.Settings, config:cfg.RandoConfig,
+                    rng: RNGType):
     CharID = ctenums.CharID
     EnemyID = ctenums.EnemyID
 
     # Magus
-    magus_char = random.choice(list(CharID))
+    magus_char = rng.choice(list(CharID))
 
     magus_nukes = {
         CharID.CRONO: 0xBB,

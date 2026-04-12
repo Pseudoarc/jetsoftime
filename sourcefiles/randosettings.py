@@ -251,7 +251,8 @@ class ROSettings:
 
     @staticmethod
     def from_game_mode(
-        mode: GameMode, bosses: Optional[List[rotypes.BossID]] = None, flags: ROFlags = ROFlags(0)
+            mode: GameMode, bosses: Optional[List[rotypes.BossID]] = None,
+            flags: ROFlags = ROFlags(0),
     ) -> ROSettings:
         '''Construct an ROSettings object with correct initial locations given the game mode.'''
         spots = []

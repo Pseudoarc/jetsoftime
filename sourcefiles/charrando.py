@@ -5,6 +5,7 @@ import random
 from itertools import permutations
 from typing import Dict, List
 
+from common.random import RNGType
 from techdb import TechDB
 from byteops import get_record, set_record, to_little_endian, \
     update_ptrs, to_rom_ptr
@@ -19,18 +20,20 @@ import randoconfig as cfg
 import randosettings as rset
 
 
-def write_config(settings: rset.Settings, config: cfg.RandoConfig):
-    write_pcs_to_config(settings, config)
+def write_config(settings: rset.Settings, config: cfg.RandoConfig,
+                 rng: RNGType):
+    write_pcs_to_config(settings, config, rng)
     write_items_to_config(settings, config)
 
 
 # This needs to be called BEFORE assigning key items
-def write_pcs_to_config(settings: rset.Settings, config: cfg.RandoConfig):
+def write_pcs_to_config(settings: rset.Settings, config: cfg.RandoConfig,
+                        rng: RNGType):
     # First, choose the locations for each character
     recruit_spots = config.char_assign_dict.keys()
 
     chars = [CharID(i) for i in range(7)]
-    random.shuffle(chars)
+    rng.shuffle(chars)
 
     loc_assign_dict = dict(zip(recruit_spots, chars))
 
@@ -71,11 +74,11 @@ def write_pcs_to_config(settings: rset.Settings, config: cfg.RandoConfig):
         if rset.GameFlags.DUPLICATE_CHARS in settings.gameflags:
             for pc_id in CharID:
                 avail_choices = settings.char_settings.choices[int(pc_id)]
-                choices[pc_id] = CharID(random.choice(avail_choices))
+                choices[pc_id] = CharID(rng.choice(avail_choices))
         # unique chars (default for char rando)
         else:
             all_choices = [p for p in permutations(range(0, 7), r=7)]
-            shuffle = random.sample(all_choices, k=len(all_choices))
+            shuffle = rng.sample(all_choices, k=len(all_choices))
             try:
                 permutation = next(
                     p for p in shuffle

@@ -3,17 +3,19 @@ import copy
 import functools
 from typing import Any, Dict, List
 
-import random
 import randosettings as rset
+from common.random import RNGType
 
 
-def random_weighted_choice_from_dict(choice_dict: Dict[Any, int]):
+def random_weighted_choice_from_dict(choice_dict: Dict[Any, int],
+                                     rng: RNGType):
     '''Make a random choice from dict keys given weights in dict values.'''
     keys, weights = zip(*choice_dict.items())
-    return random.choices(keys, weights, k=1)[0]
+    return rng.choices(keys, weights, k=1)[0]
 
 
-def generate_mystery_settings(base_settings: rset.Settings) -> rset.Settings:
+def generate_mystery_settings(base_settings: rset.Settings,
+                              rng: RNGType) -> rset.Settings:
     '''
     Use the mystery settings in base_settings to generate a new settings
     object with random flags.
@@ -27,11 +29,11 @@ def generate_mystery_settings(base_settings: rset.Settings) -> rset.Settings:
     weighted_choice = random_weighted_choice_from_dict
     ms = base_settings.mystery_settings
 
-    ret_settings.game_mode = weighted_choice(ms.game_mode_freqs)
-    ret_settings.item_difficulty = weighted_choice(ms.item_difficulty_freqs)
-    ret_settings.enemy_difficulty = weighted_choice(ms.enemy_difficulty_freqs)
-    ret_settings.techorder = weighted_choice(ms.tech_order_freqs)
-    ret_settings.shopprices = weighted_choice(ms.shop_price_freqs)
+    ret_settings.game_mode = weighted_choice(ms.game_mode_freqs, rng)
+    ret_settings.item_difficulty = weighted_choice(ms.item_difficulty_freqs, rng)
+    ret_settings.enemy_difficulty = weighted_choice(ms.enemy_difficulty_freqs, rng)
+    ret_settings.techorder = weighted_choice(ms.tech_order_freqs, rng)
+    ret_settings.shopprices = weighted_choice(ms.shop_price_freqs, rng)
 
     # Order is important in that some flags block off others.
     # Really, once game mode is determined, it's just chronosanity that
@@ -60,7 +62,7 @@ def generate_mystery_settings(base_settings: rset.Settings) -> rset.Settings:
             added_flag = flag
         elif flag in ms.flag_prob_dict:
             prob = ms.flag_prob_dict[flag]
-            if random.random() < prob:
+            if rng.random() < prob:
                 added_flag = flag
             else:
                 added_flag = GF(0)

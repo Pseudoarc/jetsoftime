@@ -2,6 +2,7 @@ from __future__ import annotations
 import random
 import typing
 
+from common.random import RNGType
 import logicfactory
 import logictypes
 
@@ -24,7 +25,8 @@ class KeyItemFiller(typing.Protocol):
 
     def fill_key_item_locations(
             self,
-            game_config: logicfactory.GameConfig
+            game_config: logicfactory.GameConfig,
+            rng: RNGType
     ) -> list[_LocType]:
         '''
         Return a key item assignment for the given GameConfig
@@ -41,7 +43,8 @@ class RandomRejectionFiller:
 
     def fill_key_item_locations(
             self,
-            game_config: logicfactory.GameConfig
+            game_config: logicfactory.GameConfig,
+            rng: RNGType
     ) -> list[_LocType]:
         '''
         Randomly fill in the key items until a valid configuration is reached.
@@ -67,7 +70,7 @@ class RandomRejectionFiller:
                     f'{len(key_items_list)} KIs'
                 )
 
-            random.shuffle(available_locations)
+            rng.shuffle(available_locations)
             for ind, item in enumerate(key_items_list):
                 available_locations[ind].setKeyItem(item)
 
@@ -92,7 +95,8 @@ class ALTTPRWeightedFiller:
 
     def fill_key_item_locations(
             self,
-            game_config: logicfactory.GameConfig
+            game_config: logicfactory.GameConfig,
+            rng: RNGType
     ) -> list[_LocType]:
         '''
         Implement a Weighted version of ALTTPR's AssumedFiller algorithm
@@ -114,7 +118,7 @@ class ALTTPRWeightedFiller:
             if not unassigned_key_items:
                 break
 
-            random.shuffle(unassigned_key_items)
+            rng.shuffle(unassigned_key_items)
             next_item = unassigned_key_items.pop()
 
             collectable_key_items = get_collectable_key_items(game_config)
@@ -146,8 +150,8 @@ class ALTTPRWeightedFiller:
 
             else:
                 weights = [group.getWeight() for group in avail_groups]
-                group = random.choices(avail_groups, weights=weights, k=1)[0]
-                loc = random.choice([loc for loc in group.locations
+                group = rng.choices(avail_groups, weights=weights, k=1)[0]
+                loc = rng.choice([loc for loc in group.locations
                                      if loc not in assigned_locations])
                 loc.setKeyItem(next_item)
                 assigned_locations.append(loc)
@@ -266,7 +270,8 @@ class ALTTPRFiller:
 
     def fill_key_item_locations(
             self,
-            game_config: logicfactory.GameConfig
+            game_config: logicfactory.GameConfig,
+            rng: RNGType
     ) -> list[_LocType]:
         '''
         Get key item locations using ALTTPR's AssumedFiller's algorithm.
@@ -285,7 +290,7 @@ class ALTTPRFiller:
             if not unassigned_key_items:
                 break
 
-            random.shuffle(unassigned_key_items)
+            rng.shuffle(unassigned_key_items)
             next_item = unassigned_key_items.pop()
 
             collectable_key_items = get_collectable_key_items(game_config)
@@ -312,7 +317,7 @@ class ALTTPRFiller:
                 unassigned_key_items = list(key_items_list)
                 assigned_locations = []
             else:
-                loc = random.choice(avail_locs)
+                loc = rng.choice(avail_locs)
                 assigned_locations.append(loc)
                 loc.setKeyItem(next_item)
 
@@ -359,12 +364,12 @@ class ChronosanityFiller:
     # return: Shuffled list of key items with duplicates removed
     #
     @classmethod
-    def getShuffledKeyItemList(cls, weightedList):
+    def getShuffledKeyItemList(cls, weightedList, rng: RNGType):
         tempList = weightedList.copy()
 
         # In the shuffle, higher weighted items have a better chance of
         # appearing before lower weighted items.
-        random.shuffle(tempList)
+        rng.shuffle(tempList)
 
         keyItemList = []
         for keyItem in tempList:
@@ -385,7 +390,9 @@ class ChronosanityFiller:
     @classmethod
     def getRandomLocation(
             cls,
-            groups: list[logicfactory.LocationGroup]):
+            groups: list[logicfactory.LocationGroup],
+            rng: RNGType
+    ):
         # get the max rand value from the combined weightings of the location
         # groups. This will be used to help select a location group
         weightTotal = 0
@@ -393,7 +400,7 @@ class ChronosanityFiller:
             weightTotal = weightTotal + group.getWeight()
 
         # Select a location group
-        locationChoice = random.randint(1, weightTotal)
+        locationChoice = rng.randint(1, weightTotal)
         counter = 0
         chosenGroup = None
         for group in groups:
@@ -406,7 +413,7 @@ class ChronosanityFiller:
             raise ValueError("Weighted choice failed")
 
         # Select a random location from the chosen location group.
-        location = random.choice(chosenGroup.getLocations())
+        location = rng.choice(chosenGroup.getLocations())
         return chosenGroup, location
 
     # end getRandomLocation
@@ -422,12 +429,14 @@ class ChronosanityFiller:
     # Raises ImpossibleConfigurationException if not successful.
     def fill_key_item_locations(
             self,
-            gameConfig: logicfactory.GameConfig) -> list[_LocType]:
+            gameConfig: logicfactory.GameConfig,
+            rng: RNGType
+    ) -> list[_LocType]:
         self.locationGroups = gameConfig.getLocations()
         remainingKeyItems = gameConfig.getKeyItemList()
         chosenLocations: list[_LocType] = []
         success, key_item_locations = self.determineKeyItemPlacement_impl(
-            chosenLocations, remainingKeyItems, gameConfig
+            chosenLocations, remainingKeyItems, gameConfig, rng
         )
 
         if not success:
@@ -475,7 +484,8 @@ class ChronosanityFiller:
             self,
             chosenLocations: list[_LocType],
             remainingKeyItems: list[ctenums.ItemID],
-            gameConfig: logicfactory.GameConfig
+            gameConfig: logicfactory.GameConfig,
+            rng: RNGType
     ) -> typing.Tuple[bool, list[_LocType]]:
         if len(remainingKeyItems) == 0:
             # We've placed all key items.  This is our breakout condition
@@ -495,7 +505,7 @@ class ChronosanityFiller:
 
                 # Choose a random location
                 locationGroup, location = \
-                    self.getRandomLocation(availableLocations)
+                    self.getRandomLocation(availableLocations, rng)
                 locationGroup.removeLocation(location)
                 locationGroup.decayWeight()
                 chosenLocations.append(location)
@@ -506,7 +516,7 @@ class ChronosanityFiller:
                 # Use the weighted key item list to get a list of key items
                 # that we can loop through and attempt to place.
                 localKeyItemList = \
-                    self.getShuffledKeyItemList(remainingKeyItems)
+                    self.getShuffledKeyItemList(remainingKeyItems, rng)
                 for keyItem in localKeyItemList:
                     # Try placing this key item and then recurse
                     location.setKeyItem(keyItem)
@@ -518,7 +528,8 @@ class ChronosanityFiller:
                     keyItemConfirmed, returnedChosenLocations = \
                         self.determineKeyItemPlacement_impl(chosenLocations,
                                                             newKeyItemList,
-                                                            gameConfig)
+                                                            gameConfig,
+                                                            rng)
 
                     if keyItemConfirmed:
                         # We're unwinding the recursion here,
@@ -649,20 +660,21 @@ def getFiller(settings: rset.Settings) -> KeyItemFiller:
 
 
 def commitKeyItems(settings: rset.Settings,
-                   config: cfg.RandoConfig):
+                   config: cfg.RandoConfig,
+                   rng: RNGType):
     '''Add Key Items to the config.'''
     gameConfig = logicfactory.getGameConfig(settings, config)
     filler = getFiller(settings)
 
     try:
-        chosenLocations = filler.fill_key_item_locations(gameConfig)
+        chosenLocations = filler.fill_key_item_locations(gameConfig, rng)
     except LogicIterationException:
         # Chronosanity is guaranteed to return a valid assignment in the
         # exceedingly rare case that another filler fails.
         print(f'{filler.__class__.__name__} failed. '
               'Falling back to ChronosanityFiller.')
         filler = ChronosanityFiller()
-        chosenLocations = filler.fill_key_item_locations(gameConfig)
+        chosenLocations = filler.fill_key_item_locations(gameConfig, rng)
 
     for location in chosenLocations:
         location.writeKeyItem(config)

@@ -9,8 +9,8 @@
 from __future__ import annotations
 
 from typing import Tuple
-import random
 
+from common.random import RNGType
 from ctenums import TreasureID as TID, StrIntEnum, ItemID, NpcID
 
 import randosettings as rset
@@ -221,6 +221,7 @@ _treasure_tier_marker_dict = {
     TreasureLocTier.MID: NpcID.BLUE_STAR,
     TreasureLocTier.MID_HIGH: NpcID.BLUE_GLOWING_LIGHT,
     TreasureLocTier.HIGH_AWESOME: NpcID.PURPLE_GLOWING_LIGHT,
+    "rock": NpcID.HERO_MEDAL
 }
 
 # This is how other modules should get the TreasureIDs in each tier
@@ -417,15 +418,15 @@ class TreasureDist:
         # input()
         self.weight_item_pairs = weight_item_pairs
 
-    def get_random_item(self) -> ItemID:
-        target = random.randrange(0, self.__total_weight)
+    def get_random_item(self, rng: RNGType) -> ItemID:
+        target = rng.randrange(0, self.__total_weight)
 
         value = 0
         for x in self.__weight_item_pairs:
             value += x[0]
 
             if value > target:
-                return random.choice(x[1])
+                return rng.choice(x[1])
 
         raise ValueError("No selection")
 

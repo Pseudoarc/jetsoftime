@@ -1,10 +1,11 @@
 from __future__ import annotations
 from enum import Enum, auto
-import random
 import typing
 from typing import Optional
 
+from common.random import RNGType
 import enemystats
+from common.random import RNGType
 from ctenums import ItemID, EnemyID
 
 import randoconfig as cfg
@@ -317,17 +318,18 @@ def get_tier_of_enemy(enemy_id: EnemyID):
 
 def set_enemy_charm_drop(stats: enemystats.EnemyStats,
                          reward_group: RewardGroup,
-                         difficulty: rset.Difficulty):
+                         difficulty: rset.Difficulty,
+                         rng: RNGType):
     drop_dist, charm_dist, drop_rate = \
         get_distributions(reward_group, difficulty)
 
-    drop = drop_dist.get_random_item()
+    drop = drop_dist.get_random_item(rng)
     if charm_dist is None:
         charm = drop
     else:
-        charm = charm_dist.get_random_item()
+        charm = charm_dist.get_random_item(rng)
 
-    if random.random() > drop_rate:
+    if rng.random() > drop_rate:
         drop = ItemID.NONE
 
     stats.drop_item = drop
@@ -336,7 +338,8 @@ def set_enemy_charm_drop(stats: enemystats.EnemyStats,
 
 # This method just alters the cfg.RandoConfig object.
 def write_enemy_rewards_to_config(settings: rset.Settings,
-                                  config: cfg.RandoConfig):
+                                  config: cfg.RandoConfig,
+                                  rng: RNGType):
 
     for group in list(RewardGroup):
         enemies = _enemy_group_dict[group]
@@ -344,13 +347,13 @@ def write_enemy_rewards_to_config(settings: rset.Settings,
             get_distributions(group, settings.item_difficulty)
 
         for enemy in enemies:
-            drop = drop_dist.get_random_item()
+            drop = drop_dist.get_random_item(rng)
             if charm_dist is None:
                 charm = drop
             else:
-                charm = charm_dist.get_random_item()
+                charm = charm_dist.get_random_item(rng)
 
-            if random.random() > drop_rate:
+            if rng.random() > drop_rate:
                 drop = ItemID.NONE
 
             config.enemy_dict[enemy].drop_item = drop
@@ -373,7 +376,7 @@ def write_enemy_rewards_to_config(settings: rset.Settings,
     tp_enemies = [EnemyID.CROAKER, EnemyID.AMPHIBITE, EnemyID.RAIN_FROG,
                   EnemyID.ION, EnemyID.ANION]
 
-    random.shuffle(tp_drops)
+    rng.shuffle(tp_drops)
     tp_drops.append(tp_drops[0])  # Copy a frog drop for the slimes
 
     for ind, enemy in enumerate(tp_enemies):

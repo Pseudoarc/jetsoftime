@@ -8,6 +8,7 @@ the weights, then return a random element of the pair's value_list.
 
 from __future__ import annotations
 
+from common.random import RNGType
 import random
 import typing
 
@@ -75,20 +76,20 @@ class Distribution(typing.Generic[T]):
         '''
         return self.__total_weight
 
-    def get_random_item(self) -> T:
+    def get_random_item(self, rng: RNGType) -> T:
         '''
         Get a random item from the distributuion.
         First choose a weight-object pair based on weights.  Then (uniformly)
         choose an element of that object.
         '''
-        target = random.randrange(0, self.__total_weight)
+        target = rng.randrange(0, self.__total_weight)
 
         cum_weight = 0
         for weight, obj in self.weight_object_pairs:
             cum_weight += weight
 
             if cum_weight > target:
-                return random.choice(obj)
+                return rng.choice(obj)
 
         raise ValueError('No choice made.')
 
