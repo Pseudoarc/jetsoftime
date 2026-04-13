@@ -443,6 +443,8 @@ class EnemyAIDB:
     '''Class to store all AI Scripts along with battle messages.'''
     PTR_TO_AI_PTRS = 0x01AFD7
 
+    # Unused 0xFF is actually used for missing enemies.
+    # Not preserving that script can lead to weirdness.
     unused_enemies = (
         EnemyID.LAVOS_3_CENTER_UNK_0B, EnemyID.LAVOS_GIGA_GAIA_RIGHT,
         EnemyID.LAVOS_GIGA_GAIA_LEFT, EnemyID.LAVOS_SUPPORT_UNK_1F,
@@ -459,7 +461,8 @@ class EnemyAIDB:
         EnemyID.LAVOS_TYRANO, EnemyID.LAVOS_GIGA_GAIA_HEAD,
         EnemyID.LAVOS_UNK_E8, EnemyID.LAVOS_UNK_E9, EnemyID.LAVOS_UNK_EA,
         EnemyID.JOHNNY, EnemyID.MAGUS_NO_NAME, EnemyID.UNUSED_FC,
-        EnemyID.UNUSED_FD, EnemyID.UNUSED_FE, EnemyID.UNUSED_FF)
+        EnemyID.UNUSED_FD, EnemyID.UNUSED_FE, #EnemyID.UNUSED_FF
+    )
 
     def __init__(self,
                  scripts: Optional[dict[EnemyID, AIScript]] = None,
@@ -612,8 +615,9 @@ class EnemyAIDB:
             rom.seek(ai_data_pos)
             if enemy_id not in self.unused_enemies:
                 script = self.scripts[enemy_id]
-                rom.write(script.get_as_bytearray())
-                ai_data_pos += len(script)
+                payload = script.get_as_bytearray()
+                rom.write(payload)
+                ai_data_pos += len(payload)
 
         if self.battle_msgs is not None:
             self.battle_msgs.write_to_ctrom(ct_rom)
