@@ -163,8 +163,13 @@ def write_treasure_tier_markers(
             continue
         chest_tier_dict[treasure.chest_index] = "rock"
 
+    bad_loc_ids = []
+    if settings.game_mode == rset.GameMode.LOST_WORLDS:
+        bad_loc_ids = [ctenums.LocID.OZZIES_FORT_GUILLOTINE]
+
+    bad_loc_ids.extend([0x1C0, 0x1C4, 0x1C5, 0x1C6, 0x1C7])
     for loc_id in range(0, 0x200):
-        if loc_id in (0x1C0, 0x1C4, 0x1C5, 0x1C6, 0x1C7):
+        if loc_id in bad_loc_ids:
             continue
 
         def get_data_st_num_boxes(loc_id: int) -> tuple[int, int]:
