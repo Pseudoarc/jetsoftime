@@ -80,7 +80,7 @@ def modify_all_single_techs(tech_db: techdb.TechDB):
             power_byte = copy_ind*eff_len + 9
 
             if tech_id in grand_dream_ids:
-                power = sorted([1, round(2.4*power), 0xFF])[1]
+                power = sorted([1, 3*power, 0xFF])[1]
             tech_db.effects[power_byte] = power
             tech_db.mps[copy_ind] = new_mp
 
