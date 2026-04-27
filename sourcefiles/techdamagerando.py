@@ -26,8 +26,10 @@ def modify_all_single_techs(tech_db: techdb.TechDB):
     dup_names_effect_dict: dict[str, int] = {
         "Confuse": 0x3C,
         "Triple Kick": 0x3D,
-        "Slurp Cut": 0x40
+        "Slurp Cut": 0x40,
+        "Frog Squash": 0x42
     }
+    grand_dream_ids: set[int] = set()
 
     # Loop through all single techs and collect the damage dealing effect headers
     for tech_id in range(1, 1+7*8):
@@ -56,6 +58,8 @@ def modify_all_single_techs(tech_db: techdb.TechDB):
                     tech_db.effects.extend(copy_eff)
                     duplicate_version_dict[tech_id] = len(tech_db.effects)//eff_len - 1
                     tech_db.mps.append(tech_db.mps[tech_id])
+                    if name == "Frog Squash":
+                        grand_dream_ids.add(tech_id)
 
     # Shuffle the MP values
     new_mp_vals = list(orig_mps.values())
@@ -74,6 +78,9 @@ def modify_all_single_techs(tech_db: techdb.TechDB):
             power = effect.power
             copy_ind = duplicate_version_dict[tech_id]
             power_byte = copy_ind*eff_len + 9
+
+            if tech_id in grand_dream_ids:
+                power = sorted([1, round(2.4*power), 0xFF])[1]
             tech_db.effects[power_byte] = power
             tech_db.mps[copy_ind] = new_mp
 
