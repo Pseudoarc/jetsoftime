@@ -1559,6 +1559,16 @@ class ChronosanityLegacyOfCyrusGameConfig(ChronosanityGameConfig):
         woe_group = self.getLocationGroup('Darkages')
         woe_group.accessRule = lambda game: game.hasKeyItem(ItemID.GATE_KEY)
 
+        def nr_loc_rule(game: Game) -> bool:
+            return (
+                game.canAccessRuins() and
+                game.hasCharacter(ctenums.CharID.MAGUS) and
+                game.hasCharacter(ctenums.CharID.FROG)
+            )
+
+        nr_group = self.getLocationGroup("NorthernRuins")
+        nr_group.accessRule = nr_loc_rule
+
 
 class LegacyOfCyrusGameConfig(NormalGameConfig):
 
