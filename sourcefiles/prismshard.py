@@ -61,6 +61,7 @@ def modify_present_guards_and_king(ct_rom: ctrom.CTRom):
         ).get_bytearray(), pos
     )
 
+
 def set_quest_activation_flags(ct_rom: ctrom.CTRom):
     '''
     Set some additional flags when turning in the prismshard to the king.
@@ -91,6 +92,12 @@ def set_quest_activation_flags(ct_rom: ctrom.CTRom):
     script = ct_rom.script_manager.get_script(
         ctenums.LocID.KINGS_CHAMBER_600
     )
+
+    # Remove Marle check from sick king
+    pos, _ = script.find_command([0xCF],
+                              script.get_function_start(0xB, 1)
+    )
+    script.delete_commands(pos, 1)
 
     hook_pos = script.find_exact_command(hook_cmd,
                                          script.get_function_start(0xB, 1))
