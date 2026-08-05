@@ -2184,41 +2184,45 @@ class Randomizer:
 
                 tech_db.pc_target[int(ctenums.TechID.ANTI_LIFE)] = 6
 
-            # Make X-Strike use Spincut+Leapslash
-            # Also buff 3d-attack and triple raid
-            x_strike = tech_db.get_tech(ctenums.TechID.X_STRIKE)
-            x_strike['control'][5] = int(ctenums.TechID.SPINCUT)
-            x_strike['control'][6] = int(ctenums.TechID.LEAP_SLASH)
+            if rset.GameFlags.TECH_DAMAGE_RANDO not in settings.gameflags:
+                # Make X-Strike use Spincut+Leapslash
+                # Also buff 3d-attack and triple raid
+                x_strike = tech_db.get_tech(ctenums.TechID.X_STRIKE)
+                x_strike['control'][5] = int(ctenums.TechID.SPINCUT)
+                x_strike['control'][6] = int(ctenums.TechID.LEAP_SLASH)
 
-            # Crono's techlevel = 4 (spincut)
-            # Frog's techlevel = 5 (leapslash)
-            x_strike['lrn_req'] = [4, 5, 0xFF]
+                # Crono's techlevel = 4 (spincut)
+                # Frog's techlevel = 5 (leapslash)
+                x_strike['lrn_req'] = [4, 5, 0xFF]
 
-            x_strike['mmp'][0] = int(ctenums.TechID.SPINCUT)
-            x_strike['mmp'][1] = int(ctenums.TechID.LEAP_SLASH)
-            tech_db.set_tech(x_strike, ctenums.TechID.X_STRIKE)
+                x_strike['mmp'][0] = int(ctenums.TechID.SPINCUT)
+                x_strike['mmp'][1] = int(ctenums.TechID.LEAP_SLASH)
+                tech_db.set_tech(x_strike, ctenums.TechID.X_STRIKE)
 
-            # 3d-atk
-            three_d_atk = tech_db.get_tech(ctenums.TechID.THREE_D_ATTACK)
-            three_d_atk['control'][6] = int(ctenums.TechID.SPINCUT)
-            three_d_atk['control'][7] = int(ctenums.TechID.LEAP_SLASH)
+                # 3d-atk
+                three_d_atk = tech_db.get_tech(ctenums.TechID.THREE_D_ATTACK)
+                three_d_atk['control'][6] = int(ctenums.TechID.SPINCUT)
+                three_d_atk['control'][7] = int(ctenums.TechID.LEAP_SLASH)
 
-            three_d_atk['mmp'][0] = int(ctenums.TechID.SPINCUT)
-            three_d_atk['mmp'][1] = int(ctenums.TechID.LEAP_SLASH)
+                three_d_atk['mmp'][0] = int(ctenums.TechID.SPINCUT)
+                three_d_atk['mmp'][1] = int(ctenums.TechID.LEAP_SLASH)
 
-            three_d_atk['lrn_req'] = [4, 5, 8]
-            tech_db.set_tech(three_d_atk, ctenums.TechID.THREE_D_ATTACK)
+                three_d_atk['lrn_req'] = [4, 5, 8]
+                tech_db.set_tech(three_d_atk, ctenums.TechID.THREE_D_ATTACK)
 
-            # Triple Raid
-            triple_raid = tech_db.get_tech(ctenums.TechID.TRIPLE_RAID)
-            triple_raid['control'][5] = int(ctenums.TechID.SPINCUT)
-            triple_raid['control'][7] = int(ctenums.TechID.LEAP_SLASH)
+                # Triple Raid
+                triple_raid = tech_db.get_tech(ctenums.TechID.TRIPLE_RAID)
+                triple_raid['control'][5] = int(ctenums.TechID.SPINCUT)
+                triple_raid['control'][7] = int(ctenums.TechID.LEAP_SLASH)
 
-            triple_raid['mmp'][0] = int(ctenums.TechID.SPINCUT)
-            triple_raid['mmp'][2] = int(ctenums.TechID.LEAP_SLASH)
+                triple_raid['mmp'][0] = int(ctenums.TechID.SPINCUT)
+                triple_raid['mmp'][2] = int(ctenums.TechID.LEAP_SLASH)
 
-            triple_raid['lrn_req'] = [4, 4, 5]
-            tech_db.set_tech(triple_raid, ctenums.TechID.TRIPLE_RAID)
+                triple_raid['lrn_req'] = [4, 4, 5]
+                tech_db.set_tech(triple_raid, ctenums.TechID.TRIPLE_RAID)
+            else:
+                tech_db.mps[ctenums.TechID.LASER_SPIN] = 3
+
 
             # Ayla changes
             combo_tripkick_effect_id = 0x3D
