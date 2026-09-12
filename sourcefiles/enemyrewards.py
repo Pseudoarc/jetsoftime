@@ -230,7 +230,7 @@ _uncommon_enemies = [
     EnemyID.GRIMALKIN, EnemyID.T_POLE, EnemyID.VAMP,
     EnemyID.BUGGER, EnemyID.DEBUGGER, EnemyID.SORCERER, EnemyID.CRATER,
     EnemyID.VOLCANO, EnemyID.SHITAKE, EnemyID.SHIST, EnemyID.NEREID,
-    EnemyID.MOHAVOR, EnemyID.ACID, EnemyID.ALKALINE,
+    EnemyID.MOHAVOR, EnemyID.BASE, EnemyID.ACID, EnemyID.ALKALINE,
     EnemyID.WINGED_APE, EnemyID.MEGASAUR, EnemyID.OMNICRONE,
     EnemyID.BEAST, EnemyID.AVIAN_REX, EnemyID.RAT, EnemyID.GREMLIN,
     EnemyID.RUNNER, EnemyID.PROTO_2, EnemyID.PROTO_3, EnemyID.BUG,
