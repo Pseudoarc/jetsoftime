@@ -964,6 +964,8 @@ def apply_plus_minus(item: itemdata.Item, mod: int):
             )
 
             item.stats.effect_id = dist.get_random_item()
+            if item.stats.effect_id != WE.NONE:
+                item.stats.has_effect = True
 
     # is armor
     elif isinstance(item.stats, AS) and isinstance(item.secondary_stats, GSS):
@@ -974,6 +976,7 @@ def apply_plus_minus(item: itemdata.Item, mod: int):
 
         if mod == -5:
             item.stats.effect_id = AE.NONE
+            item.stats.has_effect = False
             item.secondary_stats.elemental_protection_magnitude = 0
         elif mod <= -3:
             # Downgrade epm if it exists
@@ -986,6 +989,7 @@ def apply_plus_minus(item: itemdata.Item, mod: int):
                               AE.IMMUNE_CHAOS, AE.IMMUNE_LOCK,
                               AE.IMMUNE_SLOW_STOP):
                 item.stats.effect_id = AE.NONE
+                item.stats.has_effect = False
             elif cur_effect in (AE.ABSORB_FIR_100, AE.ABSORB_LIT_100,
                                 AE.ABSORB_SHD_100, AE.ABSORB_WAT_100):
                 # going back by 5 gets to the 25% versions
