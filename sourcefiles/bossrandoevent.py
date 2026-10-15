@@ -98,7 +98,8 @@ def get_alt_twin_slot(config: cfg.RandoConfig,
 
 
 def update_twin_boss(settings: rset.Settings,
-                     config: cfg.RandoConfig):
+                     config: cfg.RandoConfig,
+                     hp_dict: dict[EnemyID, int]):
     '''
     Use the assignment made in config.boss_assign_dict to update the twin
     boss's data (ai, animations, graphics, stats)
@@ -108,7 +109,7 @@ def update_twin_boss(settings: rset.Settings,
         return
 
     twin_type = config.boss_assign_dict[bt.BossSpotID.OCEAN_PALACE_TWIN_GOLEM]
-    set_twin_boss_data_in_config(twin_type, settings, config)
+    set_twin_boss_data_in_config(twin_type, settings, config, hp_dict)
 
 
 # Write the new EnemyID and slots into the Twin Boss data.
@@ -116,7 +117,8 @@ def update_twin_boss(settings: rset.Settings,
 # when doing the rest of the scaling.
 def set_twin_boss_data_in_config(one_spot_boss: bt.BossID,
                                  settings: rset.Settings,
-                                 config: cfg.RandoConfig):
+                                 config: cfg.RandoConfig,
+                                 hp_dict: dict[EnemyID, int]):
     # If the base boss is golem, then we don't have to do anything
     if one_spot_boss == bt.BossID.GOLEM:
         return
@@ -160,7 +162,13 @@ def set_twin_boss_data_in_config(one_spot_boss: bt.BossID,
     )[EnemyID.TWIN_BOSS]
 
     if rset.ROFlags.BOSS_SPOT_HP in settings.ro_settings.flags:
-        scaled_stats.hp = twin_stats.hp
+        twin_hp = twin_stats.hp
+        fake_scheme = bt.BossScheme(
+            bt.BossPart(base_id, 3, (0,0)),
+        )
+        new_hp = bossspot.get_part_new_hps(fake_scheme, hp_dict, twin_hp)[base_id]
+        scaled_stats.hp = new_hp
+
 
     config.enemy_dict[EnemyID.TWIN_BOSS] = scaled_stats
 
@@ -490,9 +498,14 @@ def scale_bosses_given_assignment(settings: rset.Settings,
     This is different from boss scaling (b-flag) which scales based on the
     key item distributuion.
     '''
+
+    # Store hp, xp, tp, gp data before messing with stats
+    hp_dict = bossspot.get_initial_hp_dict(settings, config)
+    reward_dict = bossspot.get_spot_reward_dict(settings, config)
+
     make_boss_rando_sprite_fixes(config.boss_assign_dict,
                                  config.enemy_sprite_dict)
-    update_twin_boss(settings, config)
+    update_twin_boss(settings, config, hp_dict)
     reassign_charms_drops(settings, config)
     make_weak_obstacle_copies(config)
 
