@@ -1491,6 +1491,8 @@ class Randomizer:
         CharID = ctenums.CharID
         char_rando = rset.GameFlags.CHAR_RANDO in self.settings.gameflags
         tech_db = self.config.tech_db
+        if tech_db is None:
+            raise ValueError
 
         for char_id in range(7):
             pc_id = CharID(char_id)
@@ -1511,7 +1513,8 @@ class Randomizer:
                 tech_id = 1 + 8*char_id + tech_num
                 tech = tech_db.get_tech(tech_id)
                 name = ctstrings.CTString.ct_bytes_to_techname(tech['name'])
-                file_object.write(f"\t{name}\n")
+                mp = tech_db.mps[tech_id]
+                file_object.write(f"\t{name} ({mp} MP)\n")
             file_object.write('\n')
 
     def write_treasure_spoilers(self, file_object):
