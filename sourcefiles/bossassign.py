@@ -1431,8 +1431,11 @@ def set_geno_dome_boss(
 
     # Weird commands that make mother brain's colors shift.
     # Setting 0x7E2A21 to  2 or 0.  Both are command 0x4A.
-    script.delete_command_from_function([0x4A], 0x1E, 0)
-    script.delete_command_from_function([0x4A], 0x1E, 0)
+    pos = script.get_function_start(0x1E, 0)
+    pos = script.find_exact_command(EC.assign_val_to_mem(2, 0x7E2A21, 1), pos)
+    script.delete_commands(pos, 1)
+    pos = script.find_exact_command(EC.assign_val_to_mem(0, 0x7E2A21, 1), pos)
+    script.delete_commands(pos, 1)
 
     boss_objs = [0x1F, 0x20, 0x21, 0x22]
 
