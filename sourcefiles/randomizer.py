@@ -1275,7 +1275,7 @@ class Randomizer:
         self.__apply_cosmetic_patches(self.out_rom, self.settings, script_manager)
         self.__set_bike_champions(
             self.out_rom,
-            'I\'m All N', 'Nate', 'lordbatsy'
+            'Nate', 'atomraptors', 'I\'m All N'
         )
         self.__set_fair_racers(
             self.out_rom,
